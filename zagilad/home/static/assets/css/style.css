@@ -1,0 +1,33 @@
+body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+main{
+    display: block;
+}
+
+.tablas {
+    background: greenyellow;
+    border: 3px solid bisque;
+    width: 100%;
+    height: 400px;
+    overflow-x: scroll;
+}
+
+.panel_visualizacion {
+    background: palegoldenrod;
+    border: 3px solid bisque;
+    width: 100%;
+    height: 400px;
+    overflow-x: scroll;
+}
+
+.no_show {
+    display: none;
+}
+
+.botton_press {
+    
+}
