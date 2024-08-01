@@ -35,6 +35,8 @@ urlpatterns = [
     path('listarFinalidades/', views.listar_finalidades),
     path('listarCentrosCostos/', views.listar_centros_costos),
     path('listarEstratos/', views.listar_estratos),
+    #####Carga de Archivos
+    path('cargarActividades/', views.cargar_actividades),
 
 
 ]

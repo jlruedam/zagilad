@@ -2,35 +2,52 @@ from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect, JsonResponse, FileResponse
 from .modules import peticiones_http
 from .modules import admision
-import ast
+from  home.models import TipoActividad
+import ast, time
 
 
 # Create your views here.
 
 def index(request):
 
-    ctx = {}
+    listado_tipo_actividad = TipoActividad.objects.all()
+
+
+    ctx = {
+        "listado_tipo_actividad":listado_tipo_actividad
+    }
     return render(request,"home/index.html",ctx)
+# ENVÍO DE ADMISIONES
 
 def grabar_admision(request):
     ctx = {}
     return render(request,"home/index.html",ctx)
 
 def grabar_admision_prueba(request):
-
+    inicio = time.time()
+    cantidad = int(request.GET['cantidad'])
     token = peticiones_http.obtener_token()
     admision_enviar = admision.admision_prueba
+    respuestas = []
+    resultados = []
+    for i in range(0,cantidad):
+        respuesta = peticiones_http.crear_admision(admision_enviar,token)
+        respuestas.append(respuesta)
+        print(i, respuesta)
 
-    print(str(token), admision_enviar)
-
-    respuesta = peticiones_http.crear_admision(admision_enviar,token)
-    print(respuesta)
-
+    for r in respuestas:
+        resultados.append(r['Datos'][0])
 
     ctx = {
-        "respuesta_admision":respuesta
+        "resultados":resultados, 
     }
-    return JsonResponse(respuesta)
+    final= time.time()
+
+    print("Tiempo de creación admisiones:", final - inicio)
+    return JsonResponse(ctx)
+
+
+# CONSULTAS ENDPOINT API ZEUS
 
 def consultar_codigos_empresas(request):
     
@@ -144,6 +161,23 @@ def listar_estratos(request):
     
     # https://dev.to/chryzcode/django-json-response-safe-false-4f9i
     return JsonResponse(respuesta, safe = False)
+
+# 
+
+def cargar_actividades(request):
+    datos = request.GET
+    respuesta = {}
+
+    print(datos)
+
+    # token = peticiones_http.obtener_token()
+    # print(token)
+    # respuesta = peticiones_http.consultar_data("/api/Estrato",token = token)
+    # print(respuesta)
+    
+    # https://dev.to/chryzcode/django-json-response-safe-false-4f9i
+    return JsonResponse(respuesta, safe = False)
+
 
 
 

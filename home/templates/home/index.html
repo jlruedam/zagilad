@@ -11,37 +11,53 @@
     {% csrf_token %} 
 
     <main>
-        <!-- <section class="tablas">
-            <button onclick="obtenerToken()">Autenticar
-            </button>
-            
-        </section> -->
+        <section class="tablas">
 
-        <!-- <section class="section_menu">
-            <button onclick="enviarAdminsionPrueba()">Enviar Admisión de Prueba</button>
-            <button onclick="consultarPaciente()">Consultar paciente</button>
-            <button onclick="codigos_empresa()">Empresas</button>
-            <button onclick="consultarMedicos()">Consultar medicos</button>
-            <button onclick="listarTiposServicios()">Listar tipos de servicio</button>
-            <button onclick="listarCausaExterna()">Listar Causa Externa  </button>
-            <button onclick="listarUnidadesFuncionales()">Listar Unidades Funcionales </button>
-            <button onclick="listarCodigosSedes()">Listar Seriales (Códigos sede)</button>
-            <button onclick="listarPuntosAtencion()">Listar Puntos de Atención</button>
-            <button onclick="listarTiposDiagnosticos()">Listar Tipos Diagnósticos</button>
-            <button onclick="listarFinalidades()">Listar Finalidades</button>
-            <button onclick="listarCentrosCosto()">Listar Centros de Costo</button>
+            <h2>
+                CARGA MASIVA DE ACTIVIDADES
+            </h2>
+
+            <div class="">
+                <div class="myFormContainer">
+                    <div class="row text-center">
+                        <div class="col">
+                            <a class="mylink" href="/descargarArchivo/formato_masivo_carga_actividades.xlsx">Formato de carga</a>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <div class="" >
+                                <label for="archivoMasivoActividades" class="">Subir archivo</label>
+                                <input type="file" id="archivoMasivoActividades" accept=".xlsx">
+                            </div>
+                            <p id="archivoCargado"></p>            
+                        </div>
+                    </div>
+                    
+                    <div class="row text-center">
+                        <button id="btnEnviarCargaActividades">Enviar</button>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="myForm__item">
+                <label for="listadoTiposActividad" class="">Tipos de actividad</label>
+                <input list="listadoTiposActividad" class="" id="tipoActividad">
+                <datalist id="listadoTiposActividad">
+                    {% for tipo_actividad in listado_tipo_actividad %}
+                        <option  id_municipio={{tipo_actividad.id}} value="{{tipo_actividad}}">{{tipo_actividad}}</option>
+                    {% endfor %}  
+                </datalist>
+            </div>
+          
+
+
         </section>
-
-        <section class = "panel_visualizacion">
-            panel_visualizacion
-            <p id="respuestaAdmision" class="no_show"></p>
-        </section>
-
-        </section> -->
-
 
         <section class="tablas">
-            <button onclick="enviarAdminsionPrueba()">Enviar Admisión de Prueba</button>
+            <input type="text" id = "cantidadAdmisiones" /> 
+            <button onclick="enviarAdminsionPrueba()">Enviar Admisión de Prueba</button> Admisiones cargadas: <span id="admisionesEnviadas">0</span>
             <p id="respuestaAdmision" display = None></p>
         </section>
         
@@ -209,14 +225,16 @@
 
     </main>
     
-    
-    <script src="../../static/assets/js/util.js"></script>
-    <script src="../../static/assets/js/script.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script
         src="https://code.jquery.com/jquery-3.7.1.min.js"
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
         crossorigin="anonymous"></script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+    <script src="../../static/assets/js/util.js"></script>
+    <script src="../../static/assets/js/peticionesHttp.js"></script>
+    <script src="../../static/assets/js/script.js"></script>
+    <script src="../../static/assets/js/cargarArchivos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
 </body>
 </html>
