@@ -18,12 +18,25 @@ const enviarAdminsionPrueba = async () => {
         
     }
     // $('#respuestaAdmision').toggleClass("no_show");
-    
-
     // $('#respuestaAdmision').html(String(respuesta.resultados.DatosGuardados + "/" + respuesta.resultados.DatosEnError));
     $('#admisionesEnviadas').html(respuesta.resultados.length);
+}
 
-    
+const grabarAdmisiones = async () => {
+    let respuesta = "";
+   
+    ruta = "/grabarAdmisiones/";
+
+    data = {}
+    try{
+        respuesta = await peticion_http(data, ruta, "GET");
+        // respuesta = respuesta.Datos[0].infoTrasaction;
+        console.log(respuesta);
+    }catch(error){
+        console.log(error);
+        respuesta = `error: ${error.status} - ${error.statusText} - ${error.responseText}`;
+        
+    }
 }
 
 const codigos_empresa = async () => {
@@ -272,5 +285,24 @@ const listarEstratos = async () => {
     }); 
 }
 
+
+const listarContratos = async () => {
+    let ruta = "/listarContratos/";
+    let datos = {};
+    let encabezados = [];
+    let respuesta =  await peticion_http(datos, ruta);
+    console.log(respuesta)
+    let primeroObjeto = respuesta[0]
+
+    for( campo of Object.keys(primeroObjeto)){
+        console.log(campo);
+        encabezados.push({data:campo});
+    } 
+    console.log(encabezados);
+    $('#tablaContratos').DataTable({
+        data:respuesta,
+        columns: encabezados
+    }); 
+}
 
 

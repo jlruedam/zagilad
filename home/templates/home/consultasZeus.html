@@ -1,0 +1,199 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Consultas Zeus {% endblock %} 
+
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+   
+<div>
+       
+    <section class="tablas">
+        <input type="text" id = "cantidadAdmisiones" /> 
+        <button onclick="enviarAdminsionPrueba()">Enviar Admisión de Prueba</button> Admisiones cargadas: <span id="admisionesEnviadas">0</span>
+        <p id="respuestaAdmision" display = None></p>
+    </section>
+    
+    <!--Datos Paciente -->
+    <section class="tablas">
+        <input type="text" id = "documentoPaciente" />
+        <button onclick="consultarPaciente()">Consultar paciente</button>
+        <ul id="datosPaciente"></ul>
+    </section>
+    
+    <!--Datos Empresas -->
+    <section class="tablas">
+        <button onclick="codigos_empresa()">Empresas</button>
+        <table id="tablaEmpresa">
+            <caption>
+                <h2>
+                    /api/SisEmpre
+                </h2>
+            </caption>
+            <thead>
+                
+            </thead>
+        </table>
+    </section>
+
+    <!--Datos Medicos -->
+    <section class="tablas">
+        <button onclick="consultarMedicos()">Consultar medicos</button>
+        <table id="tablaMedicos">
+            <caption>
+                <h2>
+                    /api/SisMedi
+                </h2>
+            </caption>
+            <thead>
+                
+            </thead>
+        </table>
+    </section>
+
+    <!--Datos tipos de Servicio -->
+    <section class="tablas">
+        <button onclick="listarTiposServicios()">Listar tipos de servicio</button>
+        <table id="tablaTiposServicios">
+            <caption>
+                <h2>
+                    ​/api​/SisTipo
+                </h2>
+            </caption>
+        </table>
+    </section>
+
+    <!--Datos via de ingreso -->
+    <section class="tablas">
+        <button onclick="listarViaIngreso()">Listar Vía de Ingreso </button>
+        <table id="tablaViaIngreso">
+            <caption>
+                <h2>
+                    /api/Sismaelm/ObtenerViaIngreso
+                </h2>
+            </caption>
+            <!-- <thead>
+                
+            </thead> -->
+        </table>
+    </section>
+    
+    <!--Datos casusa externa -->
+    <section class="tablas">
+        <button onclick="listarCausaExterna()">Listar Causa Externa  </button>
+        <table id="tablaCausaExterna">
+            <caption>
+                <h2>
+                    /api/Sismaelm/GetCausaExterna
+                </h2>
+            </caption>
+        </table>
+    </section>
+
+    <!--Datos casusa externa -->
+    <section class="tablas">
+        <button onclick="listarUnidadesFuncionales()">Listar Unidades Funcionales </button>
+        <table id="tablaUnidadFuncional">
+            <!-- <caption>
+                <h2>
+                    /api/Ufuncionales
+                </h2>
+            </caption> -->
+        </table>
+    </section>
+
+     <!--Datos codigo sede -->
+     <section class="tablas">
+        <button onclick="listarCodigosSedes()">Listar Seriales (Códigos sede)</button>
+        <table id="tablaCodigosSedes">
+            <caption>
+                <h2>
+                    /api/Seriales
+                </h2>
+            </caption>
+        </table>
+    </section>
+
+    <!--Datos Puntos de atención -->
+    <section class="tablas">
+        <button onclick="listarPuntosAtencion()">Listar Puntos de Atención</button>
+        <table id="tablaPuntosAtencion">
+            <caption>
+                <h2>
+                    /api/Puntoatencion
+                </h2>
+            </caption>
+        </table>
+    </section>
+
+    <!--Datos Tipos Diagnósticos -->
+    <section class="tablas">
+        <button onclick="listarTiposDiagnosticos()">Listar Tipos Diagnósticos</button>
+        <table id="tablaTiposDiagnosticos">
+            <caption>
+                <h2>
+                    /api/Sismaelm/GetTipoDiagnosticos
+                </h2>
+            </caption>
+        </table>
+    </section>
+
+    <!--Datos Finalidades -->
+    <section class="tablas">
+        <button onclick="listarFinalidades()">Listar Finalidades</button>
+        <table id="tablaFinalidades">
+            <caption>
+                <h2>
+                    /api/Sismaelm/GetFinalidades
+                </h2>
+            </caption>
+        </table>
+    </section>
+
+
+    <!--Datos Centros de Costo-->
+    <section class="tablas">
+        <button onclick="listarCentrosCosto()">Listar Centros de Costo</button>
+        <table id="tablaCentrosCostos">
+            <caption>
+                <h2>
+                    /api/CentroCostos
+                </h2>
+            </caption>
+        </table>
+    </section>
+
+     <!--Datos Estratos-->
+     <section class="tablas">
+        <button onclick="listarEstratos()">Listar Estratos</button>
+        <table id="tablaEstratos">
+            <caption>
+                <h2>
+                    /api/Estrato
+                </h2>
+            </caption>
+        </table>
+    </section>
+
+     <!--Datos Estratos-->
+     <section class="tablas">
+        <button onclick="listarContratos()">Listar Contratos</button>
+        <table id="tablaContratos">
+            <caption>
+                <h2>
+                    /api/Contratos
+                </h2>
+            </caption>
+        </table>
+    </section>
+
+
+</div>
+
+  
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+{% endblock javascripts %}

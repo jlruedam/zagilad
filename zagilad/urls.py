@@ -21,7 +21,13 @@ from home import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('index/', views.index),
+    path('consultasZeus/', views.consultas_zeus),
+    path('vistaCargaActividades/', views.vista_carga_actividades),
+    path('vistaGrabarAdmisiones/', views.vista_grabar_admisiones),
+    path('cargaActividades/', views.cargar_actividades),
+    path('cargarTiposActividad/', views.cargar_tipos_actividad),
     path('grabarAdmisionPrueba/', views.grabar_admision_prueba),
+    path('grabarAdmisiones/', views.grabar_admisiones),
     path('consultarCodigosEmpresa/', views.consultar_codigos_empresas),
     path('consultarDatosPaciente/', views.consultar_datos_paciente),
     path('consultarMedicos/', views.consultar_medicos),
@@ -35,6 +41,7 @@ urlpatterns = [
     path('listarFinalidades/', views.listar_finalidades),
     path('listarCentrosCostos/', views.listar_centros_costos),
     path('listarEstratos/', views.listar_estratos),
+    path('listarContratos/', views.listar_contratos),
     #####Carga de Archivos
     path('cargarActividades/', views.cargar_actividades),
 

@@ -1,7 +1,6 @@
 
 const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value; // Se utiliza para poder enviar petición tipo POST a Django
 
-
 const  peticion_http = async (data, ruta, metodo = "GET", archivo = []) => {
     console.log(data, ruta, metodo, archivo);
     var respuesta;
@@ -36,21 +35,20 @@ const  peticion_http = async (data, ruta, metodo = "GET", archivo = []) => {
     return respuesta;
 }
 
-
 const  peticion_archivos = async (data, ruta, metodo = "GET", archivo = []) => {
    
     let formData = new FormData();
     let fileData = archivo;
+    var respuesta;
 
-    var data = JSON.stringify(data);
-
-    formData.append("data");
+    formData.append("data", data);
     formData.append("adjunto",fileData);
 
-
+    
     $.ajax({
+        async:false,
         url: ruta,
-        method:"POST",
+        method:metodo,
         headers: {'X-CSRFToken': csrftoken},
         contentType: false,
         data: formData,
@@ -59,7 +57,8 @@ const  peticion_archivos = async (data, ruta, metodo = "GET", archivo = []) => {
         cache: false,
 
         success:function(response){
-            console.log(response);
+            respuesta = response;
+            console.log(respuesta);
             console.log("Petición exitosa");
             alert("Carga enviada");
             location.reload();
@@ -75,5 +74,5 @@ const  peticion_archivos = async (data, ruta, metodo = "GET", archivo = []) => {
     }); 
 
 
-    return respuesta;
+    return await respuesta;
 }

@@ -59,8 +59,8 @@ def consultar_data(ruta, data = [], token = ""):
         print(respuesta.json())
     else:
         respuesta = requests.get(URL_API_ZEUS + ruta_endpoint, headers=cabeceras) 
-        print(respuesta.status_code)
-        print(respuesta.json())
+        # print(respuesta.status_code)
+        # print(respuesta.json())
         
     if respuesta.status_code == 200:
         respuesta = respuesta.json()

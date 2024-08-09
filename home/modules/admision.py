@@ -1,11 +1,10 @@
 from datetime import datetime, date, timedelta
 
-
 hoy = date.today() - timedelta(days=10)
 
 admision_prueba =  [{
         "autoid": 34678, #VARIABLE
-        "Cod_entidad": "ESS207",#PARÁMETRO - CONTRATO
+        "Cod_entidad": "ESS207",#PARÁMETRO ESPECÍFICO - LA EPS, lo da el afiliado
         "tipo_estudio": "A",#QUEDMADO
         "nro_autoriza": "",#QUEDMADO
         "Cod_clasi": "01",#QUEDMADO
@@ -15,13 +14,13 @@ admision_prueba =  [{
         "Nro_factura": 0,#CALCULADO
         "Estado": "A",#QUEDMADO
         "Obs": "Admisión de prueba JLRM",#VARIABLE
-        "Cod_usuario": "1047394846",#PARÁMETRO
-        "Nom_usuario": "LUIS FERNANDO RODRIGUEZ",#PARÁMETRO
-        "Contrato": 150,#endpoint no funciona #PARÁMETRO
+        "Cod_usuario": "1047394846",#PARÁMETRO GENERAL
+        "Nom_usuario": "LUIS FERNANDO RODRIGUEZ",#PARÁMETRO GENERAL
+        "Contrato": 150,#endpoint no funciona #PARÁMETRO ESPECÍFICO 
         "Status_regis": 0,#QUEDMADO
         # "Estado_res": 0,
         "Usuario_estado_res": "1047394846",#PARÁMETRO
-        "Codigo_servicio": "63",#VARIABLE // **Es realente unidad funcional
+        "Codigo_servicio": "63",#VARIABLE // **Es realmente unidad funcional
         "Via_ingreso": 2,#QUEMADO
         "Causa_ext": "13",#QUEMADO
         "Terapia": 0,#QUEMADO
@@ -39,7 +38,7 @@ admision_prueba =  [{
                 "autoid": 34678,#VARIABLE
                 "fuente_tips": 87,#VARIABLE //Viene siendo el codigo del servicio
                 "num_servicio": 1,#VARIABLE
-                "cod_servicio": "990204",#VARIABLE
+                "cod_servicio": "990211", #"990204",#VARIABLE
                 "fecha_servicio": hoy.isoformat(),#CALCULADO
                 "descripcion": "EDUCACION INDIVIDUAL EN SALUD, POR ENFERMERIA",#VARIABLE
                 "cantidad": 1, #PARÁMETRO
@@ -63,3 +62,69 @@ admision_prueba =  [{
         ]
     }
 ]
+
+def crear_admision(autoid, regimen, codigo_entidad, medico, num_usuario, 
+                   usuario_id, usuario_nombre, tipo_diag, actividad):
+    
+    admision_formato =  [{
+        "autoid": autoid, #VARIABLE
+        "Cod_entidad": codigo_entidad,#PARÁMETRO - CONTRATO
+        "tipo_estudio": "A",#QUEDMADO
+        "nro_autoriza": "",#QUEDMADO
+        "Cod_clasi": "01",#QUEDMADO
+        "Fecha_ing":(actividad.fecha_servicio).isoformat(),#CALCULADO
+        "Hora_ing": "08:00",#QUEDMADO
+        "Cod_medico": medico,#PARAMETRO
+        "Nro_factura": 0,#QUEDMADO
+        "Estado": "A",#QUEDMADO
+        "Obs": actividad.descripcion,#VARIABLE
+        "Cod_usuario": usuario_id,#PARÁMETRO
+        "Nom_usuario": usuario_nombre,#PARÁMETRO
+        "Contrato": actividad.tipo_actividad.contrato.get(regimen = regimen).numero_contrato,#endpoint no funciona #PARÁMETRO
+        "Status_regis": 0,#QUEDMADO
+        # "Estado_res": 0,
+        "Usuario_estado_res": usuario_id,#PARÁMETRO
+        "Codigo_servicio": actividad.unidad_funcional, #VARIABLE // **Es realente unidad funcional
+        "Via_ingreso": 2,#QUEMADO
+        "Causa_ext": "13",#QUEMADO
+        "Terapia": 0,#QUEMADO
+        "Nit_asegura": "0",#QUEMADO
+        "Rs_asegura": "0",#QUEMADO
+        "Consec_soat": "",#QUEMADO
+        "No_poliza": 0,#QUEMADO
+        "Ufuncional":actividad.unidad_funcional,#VARIABLE
+        "Embarazo": actividad.embarazo,#VARIABLE
+        "Id_sede": 1, #actividad.sede,#VARIABLE
+        "PuntoAtencion": 16, # actividad.punto_atencion,#VARIABLE
+        "PolizaSalud": "",#QUEMADO
+        "serviciosObjDTOS": [
+            {
+                "autoid": autoid,#VARIABLE
+                "fuente_tips": actividad.tipo_actividad.tipo_servicio,#VARIABLE //Viene siendo el codigo del servicio
+                "num_servicio": actividad.id,#VARIABLE
+                "cod_servicio": actividad.tipo_actividad.cups,#VARIABLE
+                "fecha_servicio": (actividad.fecha_servicio).isoformat(),#CALCULADO
+                "descripcion": actividad.tipo_actividad.nombre,#VARIABLE
+                "cantidad": 1, #PARÁMETRO
+                "vlr_servicio": 2000,#PARÁMETRO
+                "total": 2000,#PARAMETRO
+                "personal_ate": medico,#QUEMADO
+                "cod_medico": medico,#QUEMADO
+                "tipo_diag": tipo_diag,#VARIABLE
+                "cod_diap": "" if actividad.diagnostico_p == 'nan' or actividad.diagnostico_p == '0' else actividad.diagnostico_p.strip(),#VARIABLE
+                "cod_diagn1":"" if actividad.diagnostico_1 == 'nan' or actividad.diagnostico_1 == '0' else actividad.diagnostico_1.strip(),#VARIABLE
+                "cod_diagn2": "" if actividad.diagnostico_2 == 'nan' or actividad.diagnostico_2 == '0' else actividad.diagnostico_2.strip(),#VARIABLE
+                "cod_diagn3": "" if actividad.diagnostico_3 == 'nan' or actividad.diagnostico_3 == '0' else actividad.diagnostico_3.strip(),#VARIABLE
+                "finalidad": 10,#QUEMADO
+                "ambito_proc": 1,#QUEMADO
+                "ccosto": actividad.centro_costo,#PARÁMETRO
+                "tipo_estudio": "A",#QUEMADO
+                "ufuncional": actividad.unidad_funcional,#VARIABLE
+                "usuario": num_usuario,#PARÁMETRO
+                "tipoItem": "Procedimiento"#PARÁMETRO
+            }
+        ]
+       }
+    ]
+
+    return admision_formato

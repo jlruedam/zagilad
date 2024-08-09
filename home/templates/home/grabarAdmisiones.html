@@ -1,0 +1,24 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Consultas Zeus {% endblock %} 
+
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+   
+
+<section class="tablas">
+    <h2>Enviar admisiones</h2>
+    <div class="row text-center">
+        <button id="btnGrabarAdmisiones" onclick="grabarAdmisiones()">Grabar admisiones</button>
+    </div>
+    <div class="admisionesCargadas">
+
+    </div>
+</section>
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+{% endblock javascripts %}

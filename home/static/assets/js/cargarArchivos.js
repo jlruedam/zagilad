@@ -13,13 +13,14 @@ $('#btnEnviarCargaActividades').on('click', async () => {
     let ruta = "/cargarActividades/";
 
     json = {
-        'archivo':archivo,
         'tipoActividad':tipoActividad
     }
 
+    console.log(json);
+
     data = JSON.stringify(json);
     
-    respuesta = await peticion_http(data, ruta, "GET");
+    respuesta = await peticion_archivos(data, ruta, "POST", archivo);
 
     console.log(respuesta)
 });
