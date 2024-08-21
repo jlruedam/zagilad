@@ -72,7 +72,7 @@ class Sede(models.Model):
     updated_at = models.DateTimeField(auto_now = True)
 
     def __str__(self):
-        return f'PuntoAtencion - {self.id} - {self.id_zeus} - {self.nit} - {self.razon_social}'
+        return f'Sede - {self.id} - {self.id_zeus} - {self.nit} - {self.razon_social}'
     
 class TipoServicio(models.Model):
     id = models.AutoField(primary_key =True)

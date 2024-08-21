@@ -16,7 +16,7 @@ from .modules import peticiones_http
 from .modules import admision
 from .modules import parametros_generales
 from .modules import validador_actividades
-from  home.models import TipoActividad, Actividad, ParametrosAreaPrograma, Regional, Admision
+from  home.models import TipoActividad, Actividad, ParametrosAreaPrograma, Regional, Admision, AreaPrograma
 
 
 # Create your views here.
@@ -37,10 +37,12 @@ def vista_carga_actividades(request):
     print("CARGA ACTIVIDADES")
     listado_tipo_actividad = TipoActividad.objects.all()
     listado_actividades = Actividad.objects.all()
+    areas_programas = AreaPrograma.objects.all()
 
     ctx = {
         "listado_tipo_actividad":listado_tipo_actividad,
-        "listado_actividades":listado_actividades
+        "listado_actividades":listado_actividades,
+        "areas_programas":areas_programas
     }
     return render(request,"home/cargaActividades.html",ctx)
 
@@ -69,8 +71,9 @@ def vista_actividades_admisionadas(request):
     return render(request,"home/actividadesAdmisionadas.html",ctx)
 # PROCESAMIENTO DE ACTIVIDADES
 def cargar_actividades(request):
-
+    
     archivo_masivo = pd.read_excel(request.FILES["adjunto"])
+    archivo_masivo = archivo_masivo.fillna("")
     archivo_dict = archivo_masivo.to_dict()
     respuesta = []
        
@@ -87,28 +90,25 @@ def cargar_actividades(request):
                 registros[i].append(campo[i])
 
         for registro, valores in registros.items():
-            
+
+            print(registro, valores)
             valores[1] = (str(valores[1])).strip()
             valores[7] = (str(valores[7]).split(" "))[0]
             valores[9] = (str(valores[9])).strip()
             valores.append("A procesar")
             respuesta.append(valores)
-            print(registro, valores)
+            
     
     # https://dev.to/chryzcode/django-json-response-safe-false-4f9i
     return JsonResponse(respuesta, safe = False)
 
 def procesarCargue(request):
     datos = request.POST
-    respuesta = {}
     dict_data = ast.literal_eval(datos["data"])
-    area_programa = 1 # Se debe tomar del formulario
-    print("INFORMACIÓN: ",dict_data)
+    area_programa = int(dict_data['areaPrograma']) # Se debe tomar del formulario
     resultados_cargue = []
 
-    
-
-    for valores in dict_data:
+    for valores in dict_data['datos']:
         error = 0
         print("*"*100)
         print(valores)
@@ -120,7 +120,7 @@ def procesarCargue(request):
             actividad.nombre_paciente = f'{valores[4]} {valores[5]} {valores[2]} {valores[3]}' 
             actividad.regional = valores[6]
             actividad.fecha_servicio = str(valores[7])
-            actividad.nombre_actividad = valores[8]
+            actividad.nombre_actividad = (valores[8]).strip()
             actividad.diagnostico_p = valores[9]
 
             # Consultador datos del afiliado

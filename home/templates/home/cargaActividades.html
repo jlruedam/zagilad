@@ -14,19 +14,23 @@
         CARGA MASIVA DE ACTIVIDADES
     </h2>
 
-    
-    
-
     <div class="bloqueCargaArchivo">
         
+        <div class="enlaceDescargaArchivo">
+            <a class="mylink" href="/descargarArchivo/formato_masivo_carga_actividades.xlsx">Formato de carga</a>
+        </div>
         <div>
             <label for="archivoMasivoActividades" class="">Subir archivo</label>
             <input type="file" id="archivoMasivoActividades" accept=".xlsx">
             <button id="btnCargarActividadesArchivo">Cargar</button>
         </div>
-        
-        <div class="enlaceDescargaArchivo">
-            <a class="mylink" href="/descargarArchivo/formato_masivo_carga_actividades.xlsx">Formato de carga</a>
+        <div class="">
+            <label for="areaPrograma">Area - Programa</label>
+            <select name="" id="areaPrograma">
+                {% for programa in areas_programas%}
+                <option value="{{programa.id}}">{{programa}}</option>
+                {% endfor %}
+            </select>
         </div>
     </div>
    

@@ -19,14 +19,19 @@
     justify-content: center;
 }
 
-.myLogo  {
+.myTitle {
     font-size: 30px;
     margin: 20px;
 }
 
-.myLogo a{
+.myTitle a{
     text-decoration: none;
     color: gray;
+}
+
+.myLogo img {
+    width: 16rem;
+    height: 4rem;
 }
 
 .myIconoMenu {
@@ -40,5 +45,9 @@
 
 .myLogo:hover {
     transform: scale(1.1);
-    
 }
+
+.myLogo:hover {
+    transform: scale(1.1);
+}
+

@@ -9,18 +9,18 @@ $('#archivoMasivoActividades').on('change', () => {
 
 $('#btnCargarActividadesArchivo').on('click', async () => {
     let archivo = $('#archivoMasivoActividades').get(0).files[0];
-    // let tipoActividad = $('#tipoActividad').val();
+
     let ruta = "/cargarActividades/";
 
-    json = {
-        // 'tipoActividad':tipoActividad
-    }
+    json = {};
 
     console.log(json);
 
     data = JSON.stringify(json);
     
     respuesta = await peticion_archivos(data, ruta, "POST", archivo);
+
+    console.log(respuesta)
 
     tablaActividadesSubir.clear().draw();
     tablaActividadesSubir.rows.add(respuesta).draw();   
@@ -29,9 +29,13 @@ $('#btnCargarActividadesArchivo').on('click', async () => {
 
 $('#btnEnviarCargaActividades').on('click', async () => {
     let ruta = "/procesarCargueActividades/";
-   
-    data = respuesta;
+    let areaPrograma = $('#areaPrograma').val();
 
+    data = {
+        "areaPrograma":areaPrograma,
+        "datos":respuesta
+    }
+   
     data = JSON.stringify(data);
 
     respuesta = await peticion_archivos(data, ruta,"POST");
