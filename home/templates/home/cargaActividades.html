@@ -2,105 +2,64 @@
 
 {% block title %} Carga de actividades {% endblock %} 
 
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+
+{% endblock stylesheets %}
 
 {% block content %}
 
-<section class="">
+<section class="section" id="sectionCargaActividades">
            
-    <h2>
+    <h2 class="tituloSection">
         CARGA MASIVA DE ACTIVIDADES
     </h2>
 
-    <div class="">
-        <div class="myFormContainer">
-            <div class="row text-center">
-                <div class="col">
-                    <a class="mylink" href="/descargarArchivo/formato_masivo_carga_actividades.xlsx">Formato de carga</a>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col">
-                    <div class="" >
-                        <label for="archivoMasivoActividades" class="">Subir archivo</label>
-                        <input type="file" id="archivoMasivoActividades" accept=".xlsx">
-                    </div>
-                    <p id="archivoCargado"></p>            
-                </div>
-            </div>
-            
-            <div class="row text-center">
-                <button id="btnEnviarCargaActividades">Enviar</button>
-            </div>
+    
+    
 
+    <div class="bloqueCargaArchivo">
+        
+        <div>
+            <label for="archivoMasivoActividades" class="">Subir archivo</label>
+            <input type="file" id="archivoMasivoActividades" accept=".xlsx">
+            <button id="btnCargarActividadesArchivo">Cargar</button>
+        </div>
+        
+        <div class="enlaceDescargaArchivo">
+            <a class="mylink" href="/descargarArchivo/formato_masivo_carga_actividades.xlsx">Formato de carga</a>
         </div>
     </div>
-
-    <div class="">
-        <select name="" id="tipoActividad">
-            {% for tipo_actividad in listado_tipo_actividad %}
-                <option  value="{{tipo_actividad.id}}">{{tipo_actividad.nombre}}</option>
-            {% endfor %}  
-        </select>
-        <!-- <label for="listadoTiposActividad" class="">Tipos de actividad</label>
-        <input list="listadoTiposActividad" class="" id="tipoActividad">
-        <datalist id="listadoTiposActividad">
-            {% for tipo_actividad in listado_tipo_actividad %}
-                <option  value="{{tipo_actividad.id}}">{{tipo_actividad.nombre}}</option>
-            {% endfor %}  
-        </datalist> -->
-    </div>
-
-    <div>
-        <table id="tablaActividades">
+   
+    
+ 
+    <div class = "bloqueTabla">
+        <table id="tablaActividadesSubir">
             <caption>
                 <h2>
-                    Actividades Cargadas
+                    Actividades a procesar
                 </h2>
             </caption>
             <thead>
                 <tr>
-                    <th>id</th>
-                    <th>Identificador</th>
-                    <th>Tipo Fuente</th>
-                    <th>Tipo Actividad</th>
+                    <th>Tipo identificación</th>
+                    <th>Número de identificación</th>
+                    <th>Primer Apellido</th>
+                    <th>Segundo Apellido</th>
+                    <th>Primer nombre</th>
+                    <th>Segundo nombre</th>
+                    <th>Regional</th>
                     <th>Fecha servicio</th>
-                    <th>Descrpción</th>
-                    <th>Diganostico principal</th>
-                    <th>Diganostico 1</th>
-                    <th>Diganostico 2</th>
-                    <th>Diganostico 3</th>
-                    <th>Tipo documento</th>
-                    <th>Documento paciente</th>
-                    <th>Nombre paciente</th>
-                    <th>Embarazo</th>
-                    <th>Sede</th>
-                    <th>Punto atención</th>
+                    <th>Nombre</th>
+                    <th>Ciex</th>
+                    <th id="estadoCargue">Estado Cargue</th>
                 </tr>
             </thead>
             <tbody>
-                {% for actividad in listado_actividades %}
-                <tr>
-                    <td>{{actividad.id}}</td>
-                    <td>{{actividad.identificador}}</td>
-                    <td>{{actividad.tipo_fuente}}</td>
-                    <td>{{actividad.tipo_actividad.nombre}}</td>
-                    <td>{{actividad.fecha_servicio}}</td>
-                    <td>{{actividad.descripcion}}</td>
-                    <td>{{actividad.diagnostico_p}}</td>
-                    <td>{{actividad.diagnostico_1}}</td>
-                    <td>{{actividad.diagnostico_2}}</td>
-                    <td>{{actividad.diagnostico_3}}</td>
-                    <td>{{actividad.tipo_documento}}</td>
-                    <td>{{actividad.documento_paciente}}</td>
-                    <td>{{actividad.nombre_paciente}}</td>
-                    <td>{{actividad.embarazo}}</td>
-                    <td>{{actividad.sede}}</td>
-                    <td>{{actividad.punto_atencion}}</td>
-                </tr>
-                {% endfor%}
             </tbody>
         </table>
+    </div>
+    <div class="">
+        <button id="btnEnviarCargaActividades">Enviar</button>
     </div>
 </section>
 

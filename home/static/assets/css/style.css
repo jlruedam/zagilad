@@ -4,13 +4,10 @@ body {
     box-sizing: border-box;
 }
 
-main{
-    display: block;
-}
 
 .tablas {
-    background: greenyellow;
-    border: 3px solid bisque;
+    background: whitesmoke;
+    border: 1px solid aquamarine;
     width: 100%;
     height: 400px;
     overflow-x: scroll;
@@ -31,3 +28,6 @@ main{
 .botton_press {
     
 }
+
+/* cargar tipo de actividad */
+

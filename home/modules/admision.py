@@ -66,6 +66,11 @@ admision_prueba =  [{
 def crear_admision(autoid, regimen, codigo_entidad, medico, num_usuario, 
                    usuario_id, usuario_nombre, tipo_diag, actividad):
     
+    contrato = {
+        "Subsidiado": actividad.tipo_actividad.contrato.contrato_subsidiado.codigo,
+        "Contributivo": actividad.tipo_actividad.contrato.contrato_contributivo.codigo
+    }
+
     admision_formato =  [{
         "autoid": autoid, #VARIABLE
         "Cod_entidad": codigo_entidad,#PARÁMETRO - CONTRATO
@@ -77,14 +82,14 @@ def crear_admision(autoid, regimen, codigo_entidad, medico, num_usuario,
         "Cod_medico": medico,#PARAMETRO
         "Nro_factura": 0,#QUEDMADO
         "Estado": "A",#QUEDMADO
-        "Obs": actividad.descripcion,#VARIABLE
+        "Obs": actividad.nombre_actividad,#VARIABLE
         "Cod_usuario": usuario_id,#PARÁMETRO
         "Nom_usuario": usuario_nombre,#PARÁMETRO
-        "Contrato": actividad.tipo_actividad.contrato.get(regimen = regimen).numero_contrato,#endpoint no funciona #PARÁMETRO
+        "Contrato": contrato[regimen],#endpoint no funciona #PARÁMETRO
         "Status_regis": 0,#QUEDMADO
         # "Estado_res": 0,
         "Usuario_estado_res": usuario_id,#PARÁMETRO
-        "Codigo_servicio": actividad.unidad_funcional, #VARIABLE // **Es realente unidad funcional
+        "Codigo_servicio":str(actividad.parametros_programa.unidad_funcional.id_zeus), #VARIABLE // **Es realente unidad funcional
         "Via_ingreso": 2,#QUEMADO
         "Causa_ext": "13",#QUEMADO
         "Terapia": 0,#QUEMADO
@@ -92,15 +97,15 @@ def crear_admision(autoid, regimen, codigo_entidad, medico, num_usuario,
         "Rs_asegura": "0",#QUEMADO
         "Consec_soat": "",#QUEMADO
         "No_poliza": 0,#QUEMADO
-        "Ufuncional":actividad.unidad_funcional,#VARIABLE
-        "Embarazo": actividad.embarazo,#VARIABLE
+        "Ufuncional":actividad.parametros_programa.unidad_funcional.codigo,#VARIABLE
+        "Embarazo": "",#QUEMADO
         "Id_sede": 1, #actividad.sede,#VARIABLE
         "PuntoAtencion": 16, # actividad.punto_atencion,#VARIABLE
         "PolizaSalud": "",#QUEMADO
         "serviciosObjDTOS": [
             {
                 "autoid": autoid,#VARIABLE
-                "fuente_tips": actividad.tipo_actividad.tipo_servicio,#VARIABLE //Viene siendo el codigo del servicio
+                "fuente_tips": actividad.tipo_actividad.tipo_servicio.id_zeus,#VARIABLE //Viene siendo el codigo del servicio
                 "num_servicio": actividad.id,#VARIABLE
                 "cod_servicio": actividad.tipo_actividad.cups,#VARIABLE
                 "fecha_servicio": (actividad.fecha_servicio).isoformat(),#CALCULADO
@@ -117,9 +122,9 @@ def crear_admision(autoid, regimen, codigo_entidad, medico, num_usuario,
                 "cod_diagn3": "" if actividad.diagnostico_3 == 'nan' or actividad.diagnostico_3 == '0' else actividad.diagnostico_3.strip(),#VARIABLE
                 "finalidad": 10,#QUEMADO
                 "ambito_proc": 1,#QUEMADO
-                "ccosto": actividad.centro_costo,#PARÁMETRO
+                "ccosto": actividad.parametros_programa.centro_costo.codigo,#PARÁMETRO
                 "tipo_estudio": "A",#QUEMADO
-                "ufuncional": actividad.unidad_funcional,#VARIABLE
+                "ufuncional": actividad.parametros_programa.unidad_funcional.id_zeus,#VARIABLE
                 "usuario": num_usuario,#PARÁMETRO
                 "tipoItem": "Procedimiento"#PARÁMETRO
             }

@@ -42,9 +42,10 @@ const  peticion_archivos = async (data, ruta, metodo = "GET", archivo = []) => {
     var respuesta;
 
     formData.append("data", data);
-    formData.append("adjunto",fileData);
-
-    
+    if(fileData){
+        formData.append("adjunto",fileData);
+    }
+        
     $.ajax({
         async:false,
         url: ruta,
@@ -61,18 +62,16 @@ const  peticion_archivos = async (data, ruta, metodo = "GET", archivo = []) => {
             console.log(respuesta);
             console.log("Petición exitosa");
             alert("Carga enviada");
-            location.reload();
         }, 
         error: function(error){
             console.log("Hay un Pendejo error")
             console.log(error);
             alert("No se pudo realizar la carga.");
             //location.reload();
-            
         }
         
     }); 
 
 
-    return await respuesta;
+    return respuesta;
 }

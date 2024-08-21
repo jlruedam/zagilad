@@ -7,13 +7,13 @@ $('#archivoMasivoActividades').on('change', () => {
 });
 
 
-$('#btnEnviarCargaActividades').on('click', async () => {
+$('#btnCargarActividadesArchivo').on('click', async () => {
     let archivo = $('#archivoMasivoActividades').get(0).files[0];
-    let tipoActividad = $('#tipoActividad').val();
+    // let tipoActividad = $('#tipoActividad').val();
     let ruta = "/cargarActividades/";
 
     json = {
-        'tipoActividad':tipoActividad
+        // 'tipoActividad':tipoActividad
     }
 
     console.log(json);
@@ -22,7 +22,27 @@ $('#btnEnviarCargaActividades').on('click', async () => {
     
     respuesta = await peticion_archivos(data, ruta, "POST", archivo);
 
-    console.log(respuesta)
+    tablaActividadesSubir.clear().draw();
+    tablaActividadesSubir.rows.add(respuesta).draw();   
 });
+
+
+$('#btnEnviarCargaActividades').on('click', async () => {
+    let ruta = "/procesarCargueActividades/";
+   
+    data = respuesta;
+
+    data = JSON.stringify(data);
+
+    respuesta = await peticion_archivos(data, ruta,"POST");
+
+    tablaActividadesSubir.clear().draw();
+    tablaActividadesSubir.rows.add(respuesta).draw();
+
+});
+
+
+
+
 
 

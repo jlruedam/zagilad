@@ -7,13 +7,50 @@
 {% block content %}
    
 
-<section class="tablas">
-    <h2>Enviar admisiones</h2>
-    <div class="row text-center">
+<section class="section" id ="seccionGrabarAdmisiones">
+    <div class="bloqueTitulo">
+        <h2>Enviar admisiones</h2>
+    </div>
+    <div class = "bloqueTabla">
+        <table id="tablaActividadesAdmisionar">
+            <caption>
+                <h2>
+                    Actividades a admisionar
+                </h2>
+            </caption>
+            <thead>
+                <tr>
+                    <th>Tipo identificación</th>
+                    <th>Número de identificación</th>
+                    <th>Nombre del paciente</th>
+                    <th>Regional</th>
+                    <th>Fecha servicio</th>
+                    <th>Nombre</th>
+                    <th>CieX</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for actividad in actividadesAdmisionar %}
+                    <tr>
+                        <td>{{actividad.tipo_documento}}</td>
+                        <td>{{actividad.documento_paciente}}</td>
+                        <td>{{actividad.nombre_paciente}}</td>
+                        <td>{{actividad.regional}}</td>
+                        <td>{{actividad.fecha_servicio}}</td>
+                        <td>{{actividad.nombre_actividad}}</td>
+                        <td>{{actividad.diagnostico_p}}</td>
+                    </tr>
+
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="bloqueBoton">
         <button id="btnGrabarAdmisiones" onclick="grabarAdmisiones()">Grabar admisiones</button>
     </div>
+    
     <div class="admisionesCargadas">
-
+        
     </div>
 </section>
 {% endblock content %}

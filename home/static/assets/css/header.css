@@ -1,0 +1,44 @@
+.myHeader {
+    position:sticky;
+    top: 0;
+    width: 100%;
+    background: aquamarine;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 10vh;
+    border: 2px solid blanchedalmond;
+    -webkit-box-shadow: 26px 20px 68px -7px rgba(0,0,0,0.75);
+    -moz-box-shadow: 26px 20px 68px -7px rgba(0,0,0,0.75);
+    box-shadow: 26px 20px 68px -7px rgba(0,0,0,0.75);
+    z-index: 1;
+}
+
+.myHeader div{
+    display: flex;
+    justify-content: center;
+}
+
+.myLogo  {
+    font-size: 30px;
+    margin: 20px;
+}
+
+.myLogo a{
+    text-decoration: none;
+    color: gray;
+}
+
+.myIconoMenu {
+    font-size: 40px;
+    margin: 20px;
+}
+
+.myIconoMenu:hover{
+    transform: scale(1.1);
+}
+
+.myLogo:hover {
+    transform: scale(1.1);
+    
+}

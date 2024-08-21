@@ -1,0 +1,64 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Carga de actividades {% endblock %} 
+
+{% block stylesheets %}
+
+{% endblock stylesheets %}
+
+{% block content %}
+
+<section class="section" id="">
+           
+    <h2 class="tituloSection">
+        ACTIVIDADES ADMISIONADAS
+    </h2>
+
+    <div class = "bloqueTabla">
+        <table id="tablaActividadesAdmisionadas">
+            <caption>
+                <h2>
+                    Actividades a procesar
+                </h2>
+            </caption>
+            <thead>
+                <tr>
+                    <th>Tipo identificación</th>
+                    <th>Número de identificación</th>
+                    <th>Nombre del paciente</th>
+                    <th>Regional</th>
+                    <th>Fecha servicio</th>
+                    <th>Nombre</th>
+                    <th>CieX</th>
+                    <th>Admisión</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for actividad in listado_actividades %}
+                    <tr>
+                        <td>{{actividad.tipo_documento}}</td>
+                        <td>{{actividad.documento_paciente}}</td>
+                        <td>{{actividad.nombre_paciente}}</td>
+                        <td>{{actividad.regional}}</td>
+                        <td>{{actividad.fecha_servicio}}</td>
+                        <td>{{actividad.nombre_actividad}}</td>
+                        <td>{{actividad.diagnostico_p}}</td>
+                        <td><a href="">{{actividad.admision.numero_estudio}}</a></td>
+                    </tr>
+                {% endfor %}
+        </table>
+    </div>
+    
+    
+
+    
+</section>
+
+
+  
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+{% endblock javascripts %}

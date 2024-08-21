@@ -285,7 +285,6 @@ const listarEstratos = async () => {
     }); 
 }
 
-
 const listarContratos = async () => {
     let ruta = "/listarContratos/";
     let datos = {};

@@ -1,0 +1,18 @@
+.myFooter {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: whitesmoke;
+    height: 20vh;
+    font-size: 30px;
+    color: gray;
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    font-style: italic;
+    transition: all 1s cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+.myFooter:hover{
+    transform: perspective(100rem);
+    font-size: 40px;
+}

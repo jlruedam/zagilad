@@ -14,36 +14,15 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.urls import include
 from django.contrib import admin
 from django.urls import path
 from home import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('index/', views.index),
-    path('consultasZeus/', views.consultas_zeus),
-    path('vistaCargaActividades/', views.vista_carga_actividades),
-    path('vistaGrabarAdmisiones/', views.vista_grabar_admisiones),
-    path('cargaActividades/', views.cargar_actividades),
-    path('cargarTiposActividad/', views.cargar_tipos_actividad),
-    path('grabarAdmisionPrueba/', views.grabar_admision_prueba),
-    path('grabarAdmisiones/', views.grabar_admisiones),
-    path('consultarCodigosEmpresa/', views.consultar_codigos_empresas),
-    path('consultarDatosPaciente/', views.consultar_datos_paciente),
-    path('consultarMedicos/', views.consultar_medicos),
-    path('listarTiposServicios/', views.listar_tipos_servicios),
-    path('listarViasIngreso/', views.listar_vias_ingreso),
-    path('listarCasusasExternas/', views.listar_causas_externas),
-    path('listarUnidadesFuncionales/', views.listar_unidades_funcionales),
-    path('listarSerialesSedes/', views.listar_seriales_sedes),
-    path('listarPuntosAtencion/', views.listar_puntos_atencion),
-    path('listarTiposDiagnosticos/', views.listar_tipos_diagnosticos),
-    path('listarFinalidades/', views.listar_finalidades),
-    path('listarCentrosCostos/', views.listar_centros_costos),
-    path('listarEstratos/', views.listar_estratos),
-    path('listarContratos/', views.listar_contratos),
-    #####Carga de Archivos
-    path('cargarActividades/', views.cargar_actividades),
-
+    path('', views.index),
+    path('', include('zeus_mirror.urls')),
+    path('', include('home.urls')),
 
 ]
