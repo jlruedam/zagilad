@@ -12,8 +12,14 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 
+# from unipath import Path
+import os
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+print("BASE_DIR:",BASE_DIR)
+
 
 
 # Quick-start development settings - unsuitable for production
@@ -38,7 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'home',
-    'zeus_mirror'
+    'zeus_mirror',
 ]
 
 MIDDLEWARE = [
@@ -116,8 +122,19 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+print("STATIC_ROOT: ", STATIC_ROOT)
 STATIC_URL = 'static/'
+
+# Extra places for collectstatic to find static files.
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'home\\static'),
+)
+print("STATICFILES_DIRS: ", STATICFILES_DIRS)
+
+# print("STATICFILES_DIRS: ", STATICFILES_DIRS)
+
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
