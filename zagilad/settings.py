@@ -30,8 +30,8 @@ SECRET_KEY = 'django-insecure-*9k#0f4)f4oe*%=0dbmx4s)8=%ml%7rm!xr)w1nxju1u6^1--0
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '10.244.21.7', 'zagilad.sersocial.org']
+CSRF_TRUSTED_ORIGINS = ['http://*.sersocial.org', 'https://10.244.21.7', 'https://zagilad.sersocial.org',]
 
 
 # Application definition
@@ -122,19 +122,13 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 print("STATIC_ROOT: ", STATIC_ROOT)
-STATIC_URL = 'static/'
-
 # Extra places for collectstatic to find static files.
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'home\\static'),
-)
-print("STATICFILES_DIRS: ", STATICFILES_DIRS)
-
-# print("STATICFILES_DIRS: ", STATICFILES_DIRS)
-
-
+# STATICFILES_DIRS = (
+#     os.path.join(BASE_DIR, 'static'),
+# )
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

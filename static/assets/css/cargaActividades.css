@@ -1,0 +1,109 @@
+.section {
+    
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;  
+}
+
+.section .tituloSection{
+    
+    width: 100%;
+    text-align: center;
+    padding: 20px;
+    margin: 0;
+    color: gray;
+}
+
+.section .enlaceDescargaArchivo{
+    
+    width: 100%;
+    text-align: center;
+    padding: 20px;
+}
+
+
+.section .bloqueCargaArchivo {
+    
+    width: 100%;
+    text-align: center;
+    padding: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.section .bloqueCargaArchivo div{
+
+    border-radius: 20px;
+    width: 25%;
+    height: 120px;
+    margin: 30px 30px 30px 30px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: whitesmoke;
+    color: gray;
+    font-size: 20px;
+    -webkit-box-shadow: 26px 20px 68px -7px rgba(0,0,0,0.75);
+    -moz-box-shadow: 26px 20px 68px -7px rgba(0,0,0,0.75);
+    box-shadow: 26px 20px 68px -7px rgba(0,0,0,0.75);
+    transition:all 1s cubic-bezier(0.075, 0.82, 0.165, 1)
+
+}
+
+.section .bloqueCargaArchivo div:hover{
+    background: aquamarine;
+    transform: scale(1.2);
+
+}
+
+.section .bloqueCargaArchivo div button {
+    width: 100%;
+    border-radius: 20px;
+    padding: 5px;
+    color: gray;
+    margin: 20px;
+}
+
+.section .bloqueCargaArchivo div button:hover {
+    background-color:bisque;
+}
+
+
+#btnEnviarCargaActividades {
+    width: 20rem;
+    border-radius: 20px;
+    padding: 5px;
+    color: gray;
+    margin: 20px;
+}
+
+#btnEnviarCargaActividades:hover {
+    background-color:bisque;
+}
+
+.enlaceDescargaArchivo a {
+    text-decoration: none;
+    color: gray;
+}
+
+@media (max-width: 1100px) {
+    /* … */
+    .section .bloqueCargaArchivo div{
+        width: 50%;
+    }
+
+}
+
+@media (max-width: 700px) {
+    /* … */
+    .section .bloqueCargaArchivo div{
+        width: 100%;
+    }
+
+}
+

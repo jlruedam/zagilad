@@ -1,0 +1,39 @@
+.tipoActividad {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.myForm  {
+    
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.myForm fieldset {
+    width: 50%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+
+}
+
+.tipoActividad .myForm .campo {
+    width: 300px;
+    padding: 20px;
+}
+
+.tipoActividad .myForm .campo label {
+    width: 20%;
+    text-align: start;
+    padding: 5px;
+}
+
+.tipoActividad .myForm .campo input {
+    text-align: end;
+}
+
+.myBtn {
+    width: 200px;
+}
