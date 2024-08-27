@@ -22,6 +22,7 @@ from home import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.index),
+    path('', include('authentication.urls')),
     path('', include('zeus_mirror.urls')),
     path('', include('home.urls')),
 

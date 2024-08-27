@@ -1,0 +1,30 @@
+.login {
+    
+    display: flex;
+    justify-content: center;
+    text-align: center;
+}
+
+.login-body {
+    
+    margin: 50px;
+}
+
+.login-body .login-mensaje {
+    font-size: large;
+    color: gray;
+}
+
+
+
+.login-formulario {
+    
+}
+
+.login-formulario .login-username {
+    margin: 30px;
+}
+
+.login-formulario .login-submit {
+    margin: 30px;
+}

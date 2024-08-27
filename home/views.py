@@ -3,6 +3,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect, JsonResponse, FileResponse
 from django.core.serializers import json
 from django.core import serializers
+from django.contrib.auth.decorators import login_required
 # PYTHON
 import ast, time
 import pandas as pd
@@ -22,6 +23,7 @@ from  home.models import TipoActividad, Actividad, ParametrosAreaPrograma, Regio
 # Create your views here.
 
 # VISTAS PRINCIPALES
+@login_required(login_url="/login/")
 def index(request):
 
     listado_tipo_actividad = TipoActividad.objects.all()
@@ -33,6 +35,7 @@ def index(request):
     }
     return render(request,"home/index.html",ctx)
 
+@login_required(login_url="/login/")
 def vista_carga_actividades(request):
     print("CARGA ACTIVIDADES")
     listado_tipo_actividad = TipoActividad.objects.all()
@@ -46,6 +49,7 @@ def vista_carga_actividades(request):
     }
     return render(request,"home/cargaActividades.html",ctx)
 
+@login_required(login_url="/login/")
 def vista_grabar_admisiones(request):
     
     actividades = Actividad.objects.filter(admision = None)
@@ -55,11 +59,13 @@ def vista_grabar_admisiones(request):
     ctx = {"actividadesAdmisionar": actividades}
     return render(request,"home/grabarAdmisiones.html",ctx)
 
+@login_required(login_url="/login/")
 def cargar_tipos_actividad(request):
     
     ctx = {}
     return render(request,"home/cargarTiposActividad.html",ctx)
 
+@login_required(login_url="/login/")
 def vista_actividades_admisionadas(request):
     
     listado_actividades = Actividad.objects.all().exclude(admision = None)
@@ -69,7 +75,9 @@ def vista_actividades_admisionadas(request):
     }
 
     return render(request,"home/actividadesAdmisionadas.html",ctx)
+
 # PROCESAMIENTO DE ACTIVIDADES
+@login_required(login_url="/login/")
 def cargar_actividades(request):
     
     archivo_masivo = pd.read_excel(request.FILES["adjunto"])
@@ -102,6 +110,7 @@ def cargar_actividades(request):
     # https://dev.to/chryzcode/django-json-response-safe-false-4f9i
     return JsonResponse(respuesta, safe = False)
 
+@login_required(login_url="/login/")
 def procesarCargue(request):
     datos = request.POST
     dict_data = ast.literal_eval(datos["data"])
@@ -158,10 +167,12 @@ def procesarCargue(request):
     return JsonResponse(resultados_cargue, safe = False)
 
 # GRABAR ADMISIONES
+@login_required(login_url="/login/")
 def grabar_admision(request):
     ctx = {}
     return render(request,"home/index.html",ctx)
 
+@login_required(login_url="/login/")
 def grabar_admision_prueba(request):
     inicio = time.time()
     cantidad = int(request.GET['cantidad'])
@@ -185,6 +196,7 @@ def grabar_admision_prueba(request):
     print("Tiempo de creación admisiones:", final - inicio)
     return JsonResponse(ctx)
 
+@login_required(login_url="/login/")
 def grabar_admisiones(request):
     token = peticiones_http.obtener_token()
     
