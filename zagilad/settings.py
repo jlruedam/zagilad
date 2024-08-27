@@ -15,27 +15,28 @@ from pathlib import Path
 # from unipath import Path
 import os
 
+import environ
+
+env = environ.Env()
+environ.Env.read_env()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-print("BASE_DIR:",BASE_DIR)
-
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-*9k#0f4)f4oe*%=0dbmx4s)8=%ml%7rm!xr)w1nxju1u6^1--0'
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '10.244.21.7', 'zagilad.sersocial.org']
-CSRF_TRUSTED_ORIGINS = ['http://*.sersocial.org', 'https://10.244.21.7', 'https://zagilad.sersocial.org',]
+DEBUG =  env('DEBUG'),
+ALLOWED_HOSTS=(env('ALLOWED_HOSTS')).split(",")
+CSRF_TRUSTED_ORIGINS = (env('CSRF_TRUSTED_ORIGINS')).split(",")
 
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -44,8 +45,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'authentication',
-    'home',
     'zeus_mirror',
+    'home',  
 ]
 
 MIDDLEWARE = [
@@ -82,10 +83,22 @@ WSGI_APPLICATION = 'zagilad.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': env('ENGINE'),
+        'NAME': env('DATABASE_NAME'),
+        'USER': env('DATABASE_USER'),
+        'PASSWORD': env('DATABASE_PASS'),
+        'HOST': env('HOST'),
+        'PORT': env('PORT'),
     }
 }
 
@@ -125,7 +138,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-print("STATIC_ROOT: ", STATIC_ROOT)
+
+
 # Extra places for collectstatic to find static files.
 # STATICFILES_DIRS = (
 #     os.path.join(BASE_DIR, 'static'),

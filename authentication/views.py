@@ -37,6 +37,5 @@ def login_view(request):
 
 
 def salir(request):
-    print("HA SALIDO")
     logout(request)
     return redirect("/")
