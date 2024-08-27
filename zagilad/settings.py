@@ -17,6 +17,8 @@ import os
 
 import environ
 
+from decouple import config
+
 env = environ.Env()
 environ.Env.read_env()
 
@@ -28,13 +30,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('SECRET_KEY')
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG =  env('DEBUG'),
-ALLOWED_HOSTS=(env('ALLOWED_HOSTS')).split(",")
-CSRF_TRUSTED_ORIGINS = (env('CSRF_TRUSTED_ORIGINS')).split(",")
+DEBUG =  config('DEBUG', cast = bool),
+ALLOWED_HOSTS=(config('ALLOWED_HOSTS')).split(",")
+CSRF_TRUSTED_ORIGINS = (config('CSRF_TRUSTED_ORIGINS')).split(",")
 
+print(ALLOWED_HOSTS)
 
 # Application definition
 INSTALLED_APPS = [
@@ -93,12 +96,12 @@ WSGI_APPLICATION = 'zagilad.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': env('ENGINE'),
-        'NAME': env('DATABASE_NAME'),
-        'USER': env('DATABASE_USER'),
-        'PASSWORD': env('DATABASE_PASS'),
-        'HOST': env('HOST'),
-        'PORT': env('PORT'),
+        'ENGINE': config('ENGINE'),
+        'NAME': config('DATABASE_NAME'),
+        'USER': config('DATABASE_USER'),
+        'PASSWORD': config('DATABASE_PASS'),
+        'HOST': config('HOST'),
+        'PORT': config('PORT'),
     }
 }
 
