@@ -15,8 +15,6 @@ from pathlib import Path
 # from unipath import Path
 import os
 
-import environ
-
 from decouple import config
 
 env = environ.Env()
