@@ -3,12 +3,12 @@ from django.db import models
 # Create your models here.
 class Contrato(models.Model):
     id = models.AutoField(primary_key =True)
-    codigo = models.CharField(max_length=50)
-    nombre = models.CharField(max_length=50)
-    empresa = models.CharField(max_length=50)
+    codigo = models.CharField(max_length=50, unique=True)
+    nombre = models.CharField(max_length=150)
+    empresa = models.CharField(max_length=150)
     fecha_inicial = models.CharField(max_length=50)
     fecha_final = models.CharField(max_length=50)
-    observacion = models.CharField(max_length=50)
+    observacion = models.CharField(max_length=2000)
     numero = models.CharField(max_length=50)
     id_sede = models.CharField(max_length=50)
     regimen = models.CharField(max_length=50)

@@ -180,10 +180,12 @@ def listar_contratos(request):
     cantidad_bd_contratos = Contrato.objects.count()
     cantidad_respuesta = len(respuesta)
     if cantidad_bd_contratos != cantidad_respuesta:
+
         for contrato in respuesta:
             print("-"*100)
-            
-            nuevo_contrato = Contrato(
+
+            # Consultar si el contrato existe sin cambios
+            contrato_existente_sin_cambios = Contrato.objects.filter(
                 codigo = contrato["Codigo"],
                 nombre = contrato["Nombre"],
                 empresa = contrato["Empresa"],
@@ -195,9 +197,46 @@ def listar_contratos(request):
                 regimen = contrato["Regimen"],
                 activo = contrato["Activo"],
             )
-            nuevo_contrato.save()
 
-            print(contrato, nuevo_contrato)
+            # Si no existe contratos existen sin cambios
+            if not contrato_existente_sin_cambios:
+                
+                # Consultar si ya existe por el código.
+                contrato_existente = Contrato.objects.filter(
+                    codigo = contrato["Codigo"],
+                )
+
+                if contrato_existente:
+                    print("Actualizar Contrato")
+                    # Entonces uno de sus campos cambió y se debe actualizar.
+                    contrato_existente[0].nombre(contrato["Nombre"])
+                    contrato_existente[0].empresa(contrato["Empresa"])
+                    contrato_existente[0].fecha_inicial(contrato["Fechai"])
+                    contrato_existente[0].fecha_final(contrato["Fechaf"])
+                    contrato_existente[0].observacion(contrato["Obs"])
+                    contrato_existente[0].numero(contrato["Numero"])
+                    contrato_existente[0].id_sede(contrato["IdSede"])
+                    contrato_existente[0].regimen(contrato["Regimen"])
+                    contrato_existente[0].activo(contrato["Activo"])
+                    contrato_existente[0].save()
+
+                else:
+                    print("Crear Contrato")
+                    nuevo_contrato = Contrato(
+                        codigo = contrato["Codigo"],
+                        nombre = contrato["Nombre"],
+                        empresa = contrato["Empresa"],
+                        fecha_inicial = contrato["Fechai"],
+                        fecha_final = contrato["Fechaf"],
+                        observacion = contrato["Obs"],
+                        numero = contrato["Numero"],
+                        id_sede = contrato["IdSede"],
+                        regimen = contrato["Regimen"],
+                        activo = contrato["Activo"],
+                    )
+                    nuevo_contrato.save()
+
+            print(contrato)
         
     # https://dev.to/chryzcode/django-json-response-safe-false-4f9i
     return JsonResponse(respuesta, safe = False)

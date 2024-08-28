@@ -4,6 +4,7 @@ from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedire
 from django.core.serializers import json
 from django.core import serializers
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 # PYTHON
 import ast, time
 import pandas as pd
@@ -17,7 +18,8 @@ from .modules import peticiones_http
 from .modules import admision
 from .modules import parametros_generales
 from .modules import validador_actividades
-from  home.models import TipoActividad, Actividad, ParametrosAreaPrograma, Regional, Admision, AreaPrograma
+from  home.models import TipoActividad, Actividad, ParametrosAreaPrograma
+from  home.models import Regional, Admision, AreaPrograma, Colaborador
 
 
 # Create your views here.
@@ -25,6 +27,7 @@ from  home.models import TipoActividad, Actividad, ParametrosAreaPrograma, Regio
 # VISTAS PRINCIPALES
 @login_required(login_url="/login/")
 def index(request):
+    print("INDEX")
 
     listado_tipo_actividad = TipoActividad.objects.all()
     listado_actividades = Actividad.objects.all()
@@ -33,10 +36,20 @@ def index(request):
         "listado_tipo_actividad":listado_tipo_actividad,
         "listado_actividades":listado_actividades
     }
+
+
     return render(request,"home/index.html",ctx)
 
 @login_required(login_url="/login/")
 def vista_carga_actividades(request):
+
+    usuario_actual = User.objects.get(username=request.user.username)
+
+    print(usuario_actual)
+    colaborador_actual = Colaborador.objects.filter(usuario = usuario_actual)
+    if not colaborador_actual:
+        colaborador_actual = [""]
+
     print("CARGA ACTIVIDADES")
     listado_tipo_actividad = TipoActividad.objects.all()
     listado_actividades = Actividad.objects.all()
@@ -45,7 +58,8 @@ def vista_carga_actividades(request):
     ctx = {
         "listado_tipo_actividad":listado_tipo_actividad,
         "listado_actividades":listado_actividades,
-        "areas_programas":areas_programas
+        "areas_programas":areas_programas,
+        "colaborador_actual":colaborador_actual[0]
     }
     return render(request,"home/cargaActividades.html",ctx)
 
@@ -75,6 +89,7 @@ def vista_actividades_admisionadas(request):
     }
 
     return render(request,"home/actividadesAdmisionadas.html",ctx)
+
 
 # PROCESAMIENTO DE ACTIVIDADES
 @login_required(login_url="/login/")
@@ -284,3 +299,26 @@ def grabar_admisiones(request):
     }
     return JsonResponse(respuesta)
 
+# ADMISTRACIÓN 
+@login_required(login_url="/login/")
+def vista_administrador(request):
+    ctx = {}
+    return render(request,"home/administrador.html",ctx)
+
+def cargar_configuracion_arranque(request):
+    try:
+        parametros_default = parametros_generales.cargar_configuracion_default()
+        parametros_areas = parametros_generales.parametros_area_default()
+        
+        if parametros_default and parametros_areas:
+            mensaje = "Proceso realizado"
+        else:
+            mensaje = "Ya existen datos"
+    except Exception as e:
+        mensaje = e
+        
+    ctx = {
+        "mensaje_configuracion_arranque":mensaje
+    }   
+    
+    return render(request,"home/administrador.html",ctx)

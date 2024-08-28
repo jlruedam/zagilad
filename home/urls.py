@@ -5,7 +5,8 @@ from home import views
 
 urlpatterns = [
    
-    # Actvidades
+    
+    # Actividades
     path('vistaCargaActividades/', views.vista_carga_actividades),
     path('vistaGrabarAdmisiones/', views.vista_grabar_admisiones),
     path('cargaActividades/', views.cargar_actividades),
@@ -17,5 +18,8 @@ urlpatterns = [
     # Carga de Archivos
     path('cargarActividades/', views.cargar_actividades),
     path('procesarCargueActividades/', views.procesarCargue),
+    # Administración
+    path('administrador/', views.vista_administrador),
+    path('cargarConfiguracionArranque/', views.cargar_configuracion_arranque),
 ]
 

@@ -42,8 +42,8 @@ admision_prueba =  [{
                 "fecha_servicio": hoy.isoformat(),#CALCULADO
                 "descripcion": "EDUCACION INDIVIDUAL EN SALUD, POR ENFERMERIA",#VARIABLE
                 "cantidad": 1, #PARÁMETRO
-                "vlr_servicio": 2000,#PARÁMETRO
-                "total": 2000,#PARAMETRO
+                "vlr_servicio": 0,#PARÁMETRO
+                "total": 0,#PARAMETRO
                 "personal_ate": "1",#QUEMADO
                 "cod_medico": "1",#QUEMADO
                 "tipo_diag": 1,#VARIABLE

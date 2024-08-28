@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 from zeus_mirror.models import Contrato, UnidadFuncional, CentroCosto, PuntoAtencion, Sede, TipoServicio
 # Create your models here.
 
@@ -15,11 +16,12 @@ class Admision(models.Model):
 
 class AreaPrograma(models.Model):
     id = models.AutoField(primary_key =True) 
+    identificador = models.CharField(max_length=10, unique=True)
     nombre = models.CharField(max_length=150)
     created_at = models.DateTimeField(auto_now_add = True)
     updated_at = models.DateTimeField(auto_now = True)
     def __str__(self):
-        return f'AreaPrograma - {self.id} - {self.nombre}' 
+        return f'AreaPrograma - {self.id} - {self.identificador} - {self.nombre}' 
 
 class Regional(models.Model):
     id = models.AutoField(primary_key =True) 
@@ -54,8 +56,6 @@ class ParametrosAreaPrograma(models.Model):
 
     def __str__(self):
         return f'ParametrosAP - {self.id} - {self.regional} - {self.unidad_funcional} - {self.punto_atencion} - {self.centro_costo}' 
-
-
 
 class TipoActividad(models.Model):
     id = models.AutoField(primary_key =True)
@@ -99,6 +99,29 @@ class Actividad(models.Model):
 
     def __str__(self):
         return f'Actividad - {self.id} - {self.fecha_servicio} - {self.nombre_actividad}' 
+
+
+class Colaborador(models.Model):
+    id = models.AutoField(primary_key =True)
+    usuario = models.ForeignKey(User, models.SET_NULL, blank=True,null=True)
+    identificacion = models.CharField(max_length = 20, unique = True)
+    nombre = models.CharField(max_length = 100)
+    cargo = models.CharField(max_length = 100)
+    email = models.CharField(max_length = 150, blank=True,null=True)
+    is_active = models.BooleanField(default = False)
+    area = models.ForeignKey(AreaPrograma, models.SET_NULL, blank=True,null=True)
+    created_at = models.DateTimeField(auto_now_add = True)
+    updated_at = models.DateTimeField(auto_now = True)
+
+    class meta:
+        verbose_name="Colaborador"
+        verbose_name_plural="Colaboradores"
+        db_table="colaborador"
+        ordering=["id","identificacion","nombre"]
+
+    def __str__(self) -> str:
+        return "{} - {}".format(self.identificacion,self.nombre)
+
 
 
 parametros_generales= {

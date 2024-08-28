@@ -25,10 +25,16 @@
             <button id="btnCargarActividadesArchivo">Cargar</button>
         </div>
         <div class="">
+            Colaborador: {{colaborador_actual}}
             <label for="areaPrograma">Area - Programa</label>
             <select name="" id="areaPrograma">
                 {% for programa in areas_programas%}
-                <option value="{{programa.id}}">{{programa}}</option>
+                    {% if programa.id == colaborador_actual.area.id %}
+                    <option value="{{programa.id}}" selected>{{programa.nombre}}</option>
+                    {% else %}
+                    <option value="{{programa.id}}">{{programa.nombre}}</option>
+                    {% endif %}
+                    
                 {% endfor %}
             </select>
         </div>
