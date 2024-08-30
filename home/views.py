@@ -171,11 +171,9 @@ def procesarCargue(request):
             error = e
             valores[-1]="⚠️" + str(error)
             print(e)
-
         
         resultados_cargue.append(valores)
 
-        
     print("RESULTADOS DEL CARGUE",resultados_cargue)
        
 

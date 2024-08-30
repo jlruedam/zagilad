@@ -7,7 +7,8 @@ $('#archivoMasivoActividades').on('change', () => {
 });
 
 
-$('#btnCargarActividadesArchivo').on('click', async () => {
+$('#btnCargarActividadesArchivo').on('click',() => {
+    $('.iconoCargador').addClass("loader");
     let archivo = $('#archivoMasivoActividades').get(0).files[0];
 
     let ruta = "/cargarActividades/";
@@ -18,19 +19,23 @@ $('#btnCargarActividadesArchivo').on('click', async () => {
 
     data = JSON.stringify(json);
     
-    respuesta = await peticion_archivos(data, ruta, "POST", archivo);
+    respuesta = peticion_archivos(data, ruta, "POST", archivo);
 
     console.log(respuesta)
 
     tablaActividadesSubir.clear().draw();
-    tablaActividadesSubir.rows.add(respuesta).draw();   
+    tablaActividadesSubir.rows.add(respuesta).draw();
+    $('.iconoCargador').removeClass("loader");   
 });
 
 
-$('#btnEnviarCargaActividades').on('click', async () => {
+$('#btnEnviarCargaActividades').on('click', () => {
+    console.log("CARGADOR ??");
+    alert("Espere");
+    $('.loader').show();
     let ruta = "/procesarCargueActividades/";
     let areaPrograma = $('#areaPrograma').val();
-
+    
     data = {
         "areaPrograma":areaPrograma,
         "datos":respuesta
@@ -38,10 +43,16 @@ $('#btnEnviarCargaActividades').on('click', async () => {
    
     data = JSON.stringify(data);
 
-    respuesta = await peticion_archivos(data, ruta,"POST");
+    respuesta = peticion_archivos(data, ruta,"POST");
+
+    for(inconsistencia of respuesta){
+        console.log(inconsistencia);
+    }
 
     tablaActividadesSubir.clear().draw();
     tablaActividadesSubir.rows.add(respuesta).draw();
+    $('.loader').hide();  
+    
 
 });
 

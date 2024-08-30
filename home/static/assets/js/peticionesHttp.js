@@ -35,11 +35,11 @@ const  peticion_http = async (data, ruta, metodo = "GET", archivo = []) => {
     return respuesta;
 }
 
-const  peticion_archivos = async (data, ruta, metodo = "GET", archivo = []) => {
+const  peticion_archivos = (data, ruta, metodo = "GET", archivo = []) => {
    
     let formData = new FormData();
     let fileData = archivo;
-    var respuesta;
+    var res;
 
     formData.append("data", data);
     if(fileData){
@@ -57,7 +57,7 @@ const  peticion_archivos = async (data, ruta, metodo = "GET", archivo = []) => {
         processData: false,
         cache: false,
 
-        success:function(response){
+        success: async function(response){
             respuesta = response;
             console.log(respuesta);
             console.log("Petición exitosa");
@@ -70,8 +70,7 @@ const  peticion_archivos = async (data, ruta, metodo = "GET", archivo = []) => {
             //location.reload();
         }
         
-    }); 
+    });
+    return respuesta; 
 
-
-    return respuesta;
 }

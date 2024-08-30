@@ -1,5 +1,10 @@
 <div class="myHeader">
     <div class="myLogo"><a href="/"><i><img src="../../static/assets/img/SERSOCIAL_IPS_horizontal.png" alt=""></i></a></div>
     <div class="myTitle"><a href="/"><i> ZAGILAD</i></a></div>
-    <div class="myIconoMenu"><a href="/salir/"><img width="48" height="48" src="https://img.icons8.com/deco/48/exit.png" alt="exit"/></a></div>
+    <div class="myIconoMenu">
+        {% if request.user.is_authenticated %}
+        <span class="myUser">{{request.user}}</span>
+        {% endif %}
+        <a href="/salir/"><img width="48" height="48" src="https://img.icons8.com/deco/48/exit.png" alt="exit"/></a>
+    </div>
 </div>
