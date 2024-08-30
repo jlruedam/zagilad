@@ -19,7 +19,7 @@ $('#btnCargarActividadesArchivo').on('click',() => {
 
     data = JSON.stringify(json);
     
-    respuesta = peticion_archivos(data, ruta, "POST", archivo);
+    respuesta = peticion_archivos(data, ruta, "POST", false, archivo);
 
     console.log(respuesta)
 
@@ -30,14 +30,10 @@ $('#btnCargarActividadesArchivo').on('click',() => {
 
 
 $('#btnEnviarCargaActividades').on('click', () => {
-    console.log("CARGADOR ??");
-    alert("Espere");
-    $('.loader').show();
+
     let ruta = "/procesarCargueActividades/";
-    let areaPrograma = $('#areaPrograma').val();
     
     data = {
-        "areaPrograma":areaPrograma,
         "datos":respuesta
     }
    
@@ -45,15 +41,16 @@ $('#btnEnviarCargaActividades').on('click', () => {
 
     respuesta = peticion_archivos(data, ruta,"POST");
 
-    for(inconsistencia of respuesta){
-        console.log(inconsistencia);
-    }
+    console.log(respuesta);
 
     tablaActividadesSubir.clear().draw();
-    tablaActividadesSubir.rows.add(respuesta).draw();
-    $('.loader').hide();  
-    
 
+    if(respuesta){
+        alert(`✅Se ha creado la Carga # ${respuesta.num_carga}`);
+    }else{
+        alert(`🚫Error al procesar la carga`)
+    }
+    
 });
 
 

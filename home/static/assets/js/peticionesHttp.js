@@ -35,7 +35,7 @@ const  peticion_http = async (data, ruta, metodo = "GET", archivo = []) => {
     return respuesta;
 }
 
-const  peticion_archivos = (data, ruta, metodo = "GET", archivo = []) => {
+const  peticion_archivos = (data, ruta, metodo = "GET", sincrono = false, archivo = []) => {
    
     let formData = new FormData();
     let fileData = archivo;
@@ -47,7 +47,7 @@ const  peticion_archivos = (data, ruta, metodo = "GET", archivo = []) => {
     }
         
     $.ajax({
-        async:false,
+        async:sincrono,
         url: ruta,
         method:metodo,
         headers: {'X-CSRFToken': csrftoken},
@@ -66,6 +66,7 @@ const  peticion_archivos = (data, ruta, metodo = "GET", archivo = []) => {
         error: function(error){
             console.log("Hay un Pendejo error")
             console.log(error);
+            respuesta = false;
             alert("No se pudo realizar la carga.");
             //location.reload();
         }

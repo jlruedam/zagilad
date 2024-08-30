@@ -56,6 +56,46 @@ class ParametrosAreaPrograma(models.Model):
 
     def __str__(self):
         return f'ParametrosAP - {self.id} - {self.regional} - {self.unidad_funcional} - {self.punto_atencion} - {self.centro_costo}' 
+    
+class Colaborador(models.Model):
+    id = models.AutoField(primary_key =True)
+    usuario = models.ForeignKey(User, models.SET_NULL, blank=True,null=True)
+    identificacion = models.CharField(max_length = 20, unique = True)
+    nombre = models.CharField(max_length = 100)
+    cargo = models.CharField(max_length = 100)
+    email = models.CharField(max_length = 150, blank=True,null=True)
+    is_active = models.BooleanField(default = False)
+    created_at = models.DateTimeField(auto_now_add = True)
+    updated_at = models.DateTimeField(auto_now = True)
+
+    class meta:
+        verbose_name="Colaborador"
+        verbose_name_plural="Colaboradores"
+        db_table="colaborador"
+        ordering=["id","identificacion","nombre"]
+
+    def __str__(self) -> str:
+        return "{} - {}".format(self.identificacion,self.nombre)
+
+
+
+class Carga(models.Model):
+    estados_carga = (
+        (0, 'eliminada'),
+        (1, 'creada'),
+        (2, 'procesada')
+    )
+    id = models.AutoField(primary_key =True)
+    usuario = models.ForeignKey(User, models.SET_NULL, blank=True,null=True)
+    data = models.JSONField(blank=True,null=True)
+    estado = models.CharField(max_length=1, default=1, choices=estados_carga)
+    created_at = models.DateTimeField(auto_now_add = True)
+    updated_at = models.DateTimeField(auto_now = True)
+
+
+    def __str__(self) -> str:
+        return "Carga # {} ".format(self.id)
+
 
 class TipoActividad(models.Model):
     id = models.AutoField(primary_key =True)
@@ -70,6 +110,7 @@ class TipoActividad(models.Model):
     entrega = models.CharField(max_length= 150, blank=True,null=True)
     contrato = models.ForeignKey(ContratoMarco, models.SET_NULL, blank=True,null=True)
     tipo_servicio = models.ForeignKey(TipoServicio, models.SET_NULL, blank=True,null=True) #fuetnes tips # VALIDAR
+    area = models.ForeignKey(AreaPrograma, models.SET_NULL, blank=True,null=True) 
     created_at = models.DateTimeField(auto_now_add = True)
     updated_at = models.DateTimeField(auto_now = True)
 
@@ -94,6 +135,7 @@ class Actividad(models.Model):
     documento_paciente = models.CharField(max_length= 50)
     nombre_paciente = models.CharField(max_length= 50)
     parametros_programa =  models.ForeignKey(ParametrosAreaPrograma, models.SET_NULL, blank=True,null=True) 
+    carga =  models.ForeignKey(Carga, models.SET_NULL, blank=True,null=True) 
     created_at = models.DateTimeField(auto_now_add = True)
     updated_at = models.DateTimeField(auto_now = True)
 
@@ -101,34 +143,14 @@ class Actividad(models.Model):
         return f'Actividad - {self.id} - {self.fecha_servicio} - {self.nombre_actividad}' 
 
 
-class Colaborador(models.Model):
-    id = models.AutoField(primary_key =True)
-    usuario = models.ForeignKey(User, models.SET_NULL, blank=True,null=True)
-    identificacion = models.CharField(max_length = 20, unique = True)
-    nombre = models.CharField(max_length = 100)
-    cargo = models.CharField(max_length = 100)
-    email = models.CharField(max_length = 150, blank=True,null=True)
-    is_active = models.BooleanField(default = False)
-    area = models.ForeignKey(AreaPrograma, models.SET_NULL, blank=True,null=True)
-    created_at = models.DateTimeField(auto_now_add = True)
-    updated_at = models.DateTimeField(auto_now = True)
-
-    class meta:
-        verbose_name="Colaborador"
-        verbose_name_plural="Colaboradores"
-        db_table="colaborador"
-        ordering=["id","identificacion","nombre"]
-
-    def __str__(self) -> str:
-        return "{} - {}".format(self.identificacion,self.nombre)
 
 
 
-parametros_generales= {
-    "codigo_medico":1,
-    "id_medico": "1047394846",
-    "cod_usuario":"1047394846",
-    "nom_usuario": "1047394846",
-}
+# parametros_generales= {
+#     "codigo_medico":1,
+#     "id_medico": "1047394846",
+#     "cod_usuario":"1047394846",
+#     "nom_usuario": "1047394846",
+# }
 
 

@@ -19,7 +19,7 @@ from .modules import admision
 from .modules import parametros_generales
 from .modules import validador_actividades
 from  home.models import TipoActividad, Actividad, ParametrosAreaPrograma
-from  home.models import Regional, Admision, AreaPrograma, Colaborador
+from  home.models import Regional, Admision, AreaPrograma, Colaborador, Carga
 
 
 # Create your views here.
@@ -129,50 +129,64 @@ def cargar_actividades(request):
 def procesarCargue(request):
     datos = request.POST
     dict_data = ast.literal_eval(datos["data"])
-    area_programa = int(dict_data['areaPrograma']) # Se debe tomar del formulario
-    resultados_cargue = []
+    usuario_actual = User.objects.get(username=request.user.username)
+    # colaborador_actual = Colaborador.objects.filter(usuario = usuario_actual)
 
-    for valores in dict_data['datos']:
-        error = 0
-        print("*"*100)
-        print(valores)
-        try:
-            actividad = Actividad()
-            actividad.tipo_fuente = "EXCEL"
-            actividad.tipo_documento = valores[0]
-            actividad.documento_paciente = valores[1]
-            actividad.nombre_paciente = f'{valores[4]} {valores[5]} {valores[2]} {valores[3]}' 
-            actividad.regional = valores[6]
-            actividad.fecha_servicio = str(valores[7])
-            actividad.nombre_actividad = (valores[8]).strip()
-            actividad.diagnostico_p = valores[9]
+    # Crear carga:
+    carga_actividades = Carga(
+        usuario = usuario_actual,
+        data = json.dumps(dict_data)
+    )
+    carga_actividades.save()
 
-            # Consultador datos del afiliado
-            ruta = f"/api/SisDeta/GetDatosBasicosPaciente?NumeroIdentificacion={actividad.documento_paciente}&TipoIdentificacion={actividad.tipo_documento}"
-            datos_afiliado = peticiones_http.consultar_data(ruta)
+    # Aquí se debe crear la tarea programa.
 
-            if len(datos_afiliado['Datos']):
-                # Atributos inferidos
-                regional = Regional.objects.get(regional = actividad.regional)
-                actividad.parametros_programa = ParametrosAreaPrograma.objects.get(area_programa = area_programa, regional = regional.id)
-                actividad.tipo_actividad = TipoActividad.objects.get(nombre = actividad.nombre_actividad)
 
-                # Validar si la actividad está repetida
-                if validador_actividades.valida_actividad_repectiva_paciente(actividad):
-                    print("ACTIVIDAD YA SE ENCUENTRA CARGADA PARA ESTE PACIENTE")
-                    valores[-1]="⚠️ Actividad repetida"
-                else:
-                    valores[-1]="✅"
-                    actividad.save()
-            else:
-                valores[-1]="⚠️" + "Paciente no está registrado en Zeus"
+    resultados_cargue = {
+        "num_carga":carga_actividades.id
+    }
+
+    # for valores in dict_data['datos']:
+    #     error = 0
+    #     print("*"*100)
+    #     print(valores)
+    #     try:
+    #         actividad = Actividad()
+    #         actividad.tipo_fuente = "EXCEL"
+    #         actividad.tipo_documento = valores[0]
+    #         actividad.documento_paciente = valores[1]
+    #         actividad.nombre_paciente = f'{valores[4]} {valores[5]} {valores[2]} {valores[3]}' 
+    #         actividad.regional = valores[6]
+    #         actividad.fecha_servicio = str(valores[7])
+    #         actividad.nombre_actividad = (valores[8]).strip()
+    #         actividad.diagnostico_p = valores[9]
+
+    #         # Consultador datos del afiliado
+    #         ruta = f"/api/SisDeta/GetDatosBasicosPaciente?NumeroIdentificacion={actividad.documento_paciente}&TipoIdentificacion={actividad.tipo_documento}"
+    #         datos_afiliado = peticiones_http.consultar_data(ruta)
+
+    #         if len(datos_afiliado['Datos']):
+    #             # Atributos inferidos
+    #             regional = Regional.objects.get(regional = actividad.regional)
+    #             actividad.tipo_actividad = TipoActividad.objects.get(nombre = actividad.nombre_actividad)
+    #             actividad.parametros_programa = ParametrosAreaPrograma.objects.get(area_programa = actividad.tipo_actividad.area, regional = regional.id)
+                
+    #             # Validar si la actividad está repetida
+    #             if validador_actividades.valida_actividad_repectiva_paciente(actividad):
+    #                 print("ACTIVIDAD YA SE ENCUENTRA CARGADA PARA ESTE PACIENTE")
+    #                 valores[-1]="⚠️ Actividad repetida"
+    #             else:
+    #                 valores[-1]="✅"
+    #                 actividad.save()
+    #         else:
+    #             valores[-1]="⚠️" + "Paciente no está registrado en Zeus"
             
-        except Exception as e:
-            error = e
-            valores[-1]="⚠️" + str(error)
-            print(e)
+    #     except Exception as e:
+    #         error = e
+    #         valores[-1]="⚠️" + str(error)
+    #         print(e)
         
-        resultados_cargue.append(valores)
+    #     resultados_cargue.append(valores)
 
     print("RESULTADOS DEL CARGUE",resultados_cargue)
        
