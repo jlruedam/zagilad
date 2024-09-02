@@ -1,0 +1,47 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Home {% endblock %} 
+
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+    <div class="infoCargas">
+        <div class = "bloqueTabla">
+            <table id="tablaCargas">
+                <caption>
+                    <h2>
+                        Cargas 
+                    </h2>
+                </caption>
+                <thead>
+                    <tr>
+                        <th>ID Carga</th>
+                        <th>Usuario</th>
+                        <th>Estado</th>
+                        <th>Created</th>
+                        <th>Updated</th>
+                        <th>Gestión</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for carga in cargas %}
+                    <tr>
+                        <td>{{carga.id}}</td>
+                        <td>{{carga.usuario}}</td>
+                        <td>{{carga.estado}}</td>
+                        <td>{{carga.created_at}}</td>
+                        <td>{{carga.updated_at}}</td>
+                        <td>👁️</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+  
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+{% endblock javascripts %}

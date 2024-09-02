@@ -90,6 +90,11 @@ def vista_actividades_admisionadas(request):
 
     return render(request,"home/actividadesAdmisionadas.html",ctx)
 
+@login_required(login_url="/login/")
+def informe_cargas(request):
+    cargas = Carga.objects.all()
+    ctx = {"cargas":cargas}
+    return render(request,"home/informeCargas.html",ctx)
 
 # PROCESAMIENTO DE ACTIVIDADES
 @login_required(login_url="/login/")
@@ -140,6 +145,7 @@ def procesarCargue(request):
     carga_actividades.save()
 
     # Aquí se debe crear la tarea programa.
+    
 
 
     resultados_cargue = {

@@ -77,8 +77,6 @@ class Colaborador(models.Model):
     def __str__(self) -> str:
         return "{} - {}".format(self.identificacion,self.nombre)
 
-
-
 class Carga(models.Model):
     estados_carga = (
         (0, 'eliminada'),
@@ -95,7 +93,6 @@ class Carga(models.Model):
 
     def __str__(self) -> str:
         return "Carga # {} ".format(self.id)
-
 
 class TipoActividad(models.Model):
     id = models.AutoField(primary_key =True)
@@ -141,16 +138,5 @@ class Actividad(models.Model):
 
     def __str__(self):
         return f'Actividad - {self.id} - {self.fecha_servicio} - {self.nombre_actividad}' 
-
-
-
-
-
-# parametros_generales= {
-#     "codigo_medico":1,
-#     "id_medico": "1047394846",
-#     "cod_usuario":"1047394846",
-#     "nom_usuario": "1047394846",
-# }
 
 

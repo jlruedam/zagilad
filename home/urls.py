@@ -18,6 +18,7 @@ urlpatterns = [
     # Carga de Archivos
     path('cargarActividades/', views.cargar_actividades),
     path('procesarCargueActividades/', views.procesarCargue),
+    path('informeCargas/', views.informe_cargas),
     # Administración
     path('administrador/', views.vista_administrador),
     path('cargarConfiguracionArranque/', views.cargar_configuracion_arranque),

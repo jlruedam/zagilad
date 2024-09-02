@@ -6,7 +6,6 @@ $('#archivoMasivoActividades').on('change', () => {
     console.log("Si carga el archivo");
 });
 
-
 $('#btnCargarActividadesArchivo').on('click',() => {
     $('.iconoCargador').addClass("loader");
     let archivo = $('#archivoMasivoActividades').get(0).files[0];
@@ -27,7 +26,6 @@ $('#btnCargarActividadesArchivo').on('click',() => {
     tablaActividadesSubir.rows.add(respuesta).draw();
     $('.iconoCargador').removeClass("loader");   
 });
-
 
 $('#btnEnviarCargaActividades').on('click', () => {
 
