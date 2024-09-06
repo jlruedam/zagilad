@@ -20,7 +20,8 @@
                         <th>Estado</th>
                         <th>Created</th>
                         <th>Updated</th>
-                        <th>Gestión</th>
+                        <th>Ver</th>
+                        <th>Ejecutar</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -31,7 +32,8 @@
                         <td>{{carga.estado}}</td>
                         <td>{{carga.created_at}}</td>
                         <td>{{carga.updated_at}}</td>
-                        <td>👁️</td>
+                        <td><a href="/verCarga/{{carga.id}}">👁️</a></td>
+                        <td><a href="/ejecutarCarga/{{carga.id}}">🆙</a></td>
                     </tr>
                     {% endfor %}
                 </tbody>

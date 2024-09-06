@@ -96,6 +96,69 @@ def informe_cargas(request):
     ctx = {"cargas":cargas}
     return render(request,"home/informeCargas.html",ctx)
 
+@login_required(login_url="/login/")
+def ver_carga(request, id_carga):
+    print(id_carga)
+    carga = Carga.objects.get(id= id_carga)
+    ctx = {"carga":carga}
+    return render(request,"home/verCarga.html",ctx)
+
+@login_required(login_url="/login/")
+def ejecutar_carga(request, id_carga):
+    print(id_carga)
+    carga = Carga.objects.get(id= id_carga)
+    dict_data = ast.literal_eval(carga.data)
+    resultados_cargue = []
+
+    print(type(dict_data))
+
+    for valores in dict_data['datos']:
+        error = 0
+        print("*"*100)
+        print(valores)
+        try:
+            actividad = Actividad()
+            actividad.tipo_fuente = "EXCEL"
+            actividad.tipo_documento = valores[0]
+            actividad.documento_paciente = valores[1]
+            actividad.nombre_paciente = f'{valores[4]} {valores[5]} {valores[2]} {valores[3]}' 
+            actividad.regional = valores[6]
+            actividad.fecha_servicio = str(valores[7])
+            actividad.nombre_actividad = (valores[8]).strip()
+            actividad.diagnostico_p = valores[9]
+
+            # Consultador datos del afiliado
+            ruta = f"/api/SisDeta/GetDatosBasicosPaciente?NumeroIdentificacion={actividad.documento_paciente}&TipoIdentificacion={actividad.tipo_documento}"
+            datos_afiliado = peticiones_http.consultar_data(ruta)
+
+            if len(datos_afiliado['Datos']):
+                # Atributos inferidos
+                regional = Regional.objects.get(regional = actividad.regional)
+                actividad.tipo_actividad = TipoActividad.objects.get(nombre = actividad.nombre_actividad)
+                actividad.parametros_programa = ParametrosAreaPrograma.objects.get(area_programa = actividad.tipo_actividad.area, regional = regional.id)
+                
+                # Validar si la actividad está repetida
+                if validador_actividades.valida_actividad_repectiva_paciente(actividad):
+                    print("ACTIVIDAD YA SE ENCUENTRA CARGADA PARA ESTE PACIENTE")
+                    valores[-1]="⚠️ Actividad repetida"
+                else:
+                    valores[-1]="✅"
+                    actividad.save()
+            else:
+                valores[-1]="⚠️" + "Paciente no está registrado en Zeus"
+            
+        except Exception as e:
+            error = e
+            valores[-1]="⚠️" + str(error)
+            print(e)
+        
+        resultados_cargue.append(valores)
+
+
+    ctx = {"resultados":resultados_cargue}
+    return render(request,"home/verCarga.html",ctx)
+
+
 # PROCESAMIENTO DE ACTIVIDADES
 @login_required(login_url="/login/")
 def cargar_actividades(request):
@@ -146,7 +209,6 @@ def procesarCargue(request):
 
     # Aquí se debe crear la tarea programa.
     
-
 
     resultados_cargue = {
         "num_carga":carga_actividades.id

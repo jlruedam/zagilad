@@ -1,0 +1,22 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Home {% endblock %} 
+
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+    <div class="verCarga">
+        <h2>Ver carga {{carga}} - {{carga.usuario}} - {{carga.estado}} - {{carga.created_at}}</h2>
+        <div>
+            <p>
+                {{carga.data}}
+            </p>
+        </div>
+    </div>
+  
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+{% endblock javascripts %}
