@@ -18,6 +18,7 @@ from .modules import peticiones_http
 from .modules import admision
 from .modules import parametros_generales
 from .modules import validador_actividades
+from .modules import task
 from  home.models import TipoActividad, Actividad, ParametrosAreaPrograma
 from  home.models import Regional, Admision, AreaPrograma, Colaborador, Carga
 
@@ -66,7 +67,7 @@ def vista_carga_actividades(request):
 @login_required(login_url="/login/")
 def vista_grabar_admisiones(request):
     
-    actividades = Actividad.objects.filter(admision = None)
+    actividades = Actividad.objects.filter(admision = None, inconsistencias = None)
     
     print("ACTIVIDADES A ADMISIONAR: ", actividades)
 
@@ -100,62 +101,11 @@ def informe_cargas(request):
 def ver_carga(request, id_carga):
     print(id_carga)
     carga = Carga.objects.get(id= id_carga)
-    ctx = {"carga":carga}
-    return render(request,"home/verCarga.html",ctx)
-
-@login_required(login_url="/login/")
-def ejecutar_carga(request, id_carga):
-    print(id_carga)
-    carga = Carga.objects.get(id= id_carga)
-    dict_data = ast.literal_eval(carga.data)
-    resultados_cargue = []
-
-    print(type(dict_data))
-
-    for valores in dict_data['datos']:
-        error = 0
-        print("*"*100)
-        print(valores)
-        try:
-            actividad = Actividad()
-            actividad.tipo_fuente = "EXCEL"
-            actividad.tipo_documento = valores[0]
-            actividad.documento_paciente = valores[1]
-            actividad.nombre_paciente = f'{valores[4]} {valores[5]} {valores[2]} {valores[3]}' 
-            actividad.regional = valores[6]
-            actividad.fecha_servicio = str(valores[7])
-            actividad.nombre_actividad = (valores[8]).strip()
-            actividad.diagnostico_p = valores[9]
-
-            # Consultador datos del afiliado
-            ruta = f"/api/SisDeta/GetDatosBasicosPaciente?NumeroIdentificacion={actividad.documento_paciente}&TipoIdentificacion={actividad.tipo_documento}"
-            datos_afiliado = peticiones_http.consultar_data(ruta)
-
-            if len(datos_afiliado['Datos']):
-                # Atributos inferidos
-                regional = Regional.objects.get(regional = actividad.regional)
-                actividad.tipo_actividad = TipoActividad.objects.get(nombre = actividad.nombre_actividad)
-                actividad.parametros_programa = ParametrosAreaPrograma.objects.get(area_programa = actividad.tipo_actividad.area, regional = regional.id)
-                
-                # Validar si la actividad está repetida
-                if validador_actividades.valida_actividad_repectiva_paciente(actividad):
-                    print("ACTIVIDAD YA SE ENCUENTRA CARGADA PARA ESTE PACIENTE")
-                    valores[-1]="⚠️ Actividad repetida"
-                else:
-                    valores[-1]="✅"
-                    actividad.save()
-            else:
-                valores[-1]="⚠️" + "Paciente no está registrado en Zeus"
-            
-        except Exception as e:
-            error = e
-            valores[-1]="⚠️" + str(error)
-            print(e)
-        
-        resultados_cargue.append(valores)
-
-
-    ctx = {"resultados":resultados_cargue}
+    actividades_carga = Actividad.objects.filter(carga = carga)
+    ctx = {
+        "carga":carga,
+        "actividades_carga":actividades_carga
+    }
     return render(request,"home/verCarga.html",ctx)
 
 
@@ -197,69 +147,47 @@ def cargar_actividades(request):
 def procesarCargue(request):
     datos = request.POST
     dict_data = ast.literal_eval(datos["data"])
+    cant_act = len(dict_data['datos'])
     usuario_actual = User.objects.get(username=request.user.username)
-    # colaborador_actual = Colaborador.objects.filter(usuario = usuario_actual)
-
+    
     # Crear carga:
     carga_actividades = Carga(
         usuario = usuario_actual,
-        data = json.dumps(dict_data)
+        data = json.dumps(dict_data), #Quitar esto y enviar a archivo json en el servidor
+        cantidad_actividades = cant_act
     )
     carga_actividades.save()
 
     # Aquí se debe crear la tarea programa.
-    
+    task.procesar_cargue_actividades.delay(carga_actividades.id)
+    print("Carga en proceso...")
 
     resultados_cargue = {
-        "num_carga":carga_actividades.id
+        "num_carga":carga_actividades.id,
+        "estado":carga_actividades.estado,
+        "mensaje": "Carga en proceso"
     }
-
-    # for valores in dict_data['datos']:
-    #     error = 0
-    #     print("*"*100)
-    #     print(valores)
-    #     try:
-    #         actividad = Actividad()
-    #         actividad.tipo_fuente = "EXCEL"
-    #         actividad.tipo_documento = valores[0]
-    #         actividad.documento_paciente = valores[1]
-    #         actividad.nombre_paciente = f'{valores[4]} {valores[5]} {valores[2]} {valores[3]}' 
-    #         actividad.regional = valores[6]
-    #         actividad.fecha_servicio = str(valores[7])
-    #         actividad.nombre_actividad = (valores[8]).strip()
-    #         actividad.diagnostico_p = valores[9]
-
-    #         # Consultador datos del afiliado
-    #         ruta = f"/api/SisDeta/GetDatosBasicosPaciente?NumeroIdentificacion={actividad.documento_paciente}&TipoIdentificacion={actividad.tipo_documento}"
-    #         datos_afiliado = peticiones_http.consultar_data(ruta)
-
-    #         if len(datos_afiliado['Datos']):
-    #             # Atributos inferidos
-    #             regional = Regional.objects.get(regional = actividad.regional)
-    #             actividad.tipo_actividad = TipoActividad.objects.get(nombre = actividad.nombre_actividad)
-    #             actividad.parametros_programa = ParametrosAreaPrograma.objects.get(area_programa = actividad.tipo_actividad.area, regional = regional.id)
-                
-    #             # Validar si la actividad está repetida
-    #             if validador_actividades.valida_actividad_repectiva_paciente(actividad):
-    #                 print("ACTIVIDAD YA SE ENCUENTRA CARGADA PARA ESTE PACIENTE")
-    #                 valores[-1]="⚠️ Actividad repetida"
-    #             else:
-    #                 valores[-1]="✅"
-    #                 actividad.save()
-    #         else:
-    #             valores[-1]="⚠️" + "Paciente no está registrado en Zeus"
-            
-    #     except Exception as e:
-    #         error = e
-    #         valores[-1]="⚠️" + str(error)
-    #         print(e)
-        
-    #     resultados_cargue.append(valores)
 
     print("RESULTADOS DEL CARGUE",resultados_cargue)
        
 
     return JsonResponse(resultados_cargue, safe = False)
+
+# @login_required(login_url="/login/")
+# def ejecutar_carga(request, id_carga):
+#     cargas = Carga.objects.all()
+#     print(id_carga)
+    
+#     # Aquí se debe crear la tarea programa.
+#     task.procesar_cargue_actividades.delay(id_carga)
+#     print("Carga en proceso...")
+
+#     ctx = {
+#         "cargas":cargas,
+#         "mensaje_ejecutar_carga":"Carga en proceso"    
+#     }
+#     return render(request,"home/informeCargas.html",ctx)
+
 
 # GRABAR ADMISIONES
 @login_required(login_url="/login/")
@@ -385,6 +313,7 @@ def vista_administrador(request):
     ctx = {}
     return render(request,"home/administrador.html",ctx)
 
+@login_required(login_url="/login/")
 def cargar_configuracion_arranque(request):
     try:
         parametros_default = parametros_generales.cargar_configuracion_default()

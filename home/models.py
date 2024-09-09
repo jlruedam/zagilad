@@ -79,17 +79,20 @@ class Colaborador(models.Model):
 
 class Carga(models.Model):
     estados_carga = (
-        (0, 'eliminada'),
-        (1, 'creada'),
-        (2, 'procesada')
+        ('eliminada',"Carga eliminada"),
+        ('creada', "Carga creada"),
+        ('procesada', "Carga procesada"), 
     )
     id = models.AutoField(primary_key =True)
     usuario = models.ForeignKey(User, models.SET_NULL, blank=True,null=True)
     data = models.JSONField(blank=True,null=True)
-    estado = models.CharField(max_length=1, default=1, choices=estados_carga)
+    estado = models.CharField(max_length=10, default='creada', choices=estados_carga)
+    cantidad_actividades = models.IntegerField(default = 0)
+    cantidad_actividades_inconsistencias = models.IntegerField(default = 0)
+    cantidad_actividades_ok = models.IntegerField(default = 0)
+    tiempo_procesamiento = models.FloatField(default = 0)
     created_at = models.DateTimeField(auto_now_add = True)
     updated_at = models.DateTimeField(auto_now = True)
-
 
     def __str__(self) -> str:
         return "Carga # {} ".format(self.id)
@@ -133,6 +136,7 @@ class Actividad(models.Model):
     nombre_paciente = models.CharField(max_length= 50)
     parametros_programa =  models.ForeignKey(ParametrosAreaPrograma, models.SET_NULL, blank=True,null=True) 
     carga =  models.ForeignKey(Carga, models.SET_NULL, blank=True,null=True) 
+    inconsistencias = models.CharField(max_length= 250, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add = True)
     updated_at = models.DateTimeField(auto_now = True)
 

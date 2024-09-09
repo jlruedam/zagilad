@@ -18,10 +18,14 @@
                         <th>ID Carga</th>
                         <th>Usuario</th>
                         <th>Estado</th>
+                        <th>Total Actividades</th>
+                        <th>Actividades inconsistencias</th>
+                        <th>Actividades para admisionar</th>
+                        <th>Tiempo procesamiento</th>
                         <th>Created</th>
                         <th>Updated</th>
                         <th>Ver</th>
-                        <th>Ejecutar</th>
+                        <!-- <th>Ejecutar</th> -->
                     </tr>
                 </thead>
                 <tbody>
@@ -30,10 +34,14 @@
                         <td>{{carga.id}}</td>
                         <td>{{carga.usuario}}</td>
                         <td>{{carga.estado}}</td>
+                        <td>{{carga.cantidad_actividades}}</td>
+                        <td>{{carga.cantidad_actividades_inconsistencias}}</td>
+                        <td>{{carga.cantidad_actividades_ok}}</td>
+                        <td>{{carga.tiempo_procesamiento}} min</td>
                         <td>{{carga.created_at}}</td>
                         <td>{{carga.updated_at}}</td>
                         <td><a href="/verCarga/{{carga.id}}">👁️</a></td>
-                        <td><a href="/ejecutarCarga/{{carga.id}}">🆙</a></td>
+                        <!-- <td><a href="/ejecutarCarga/{{carga.id}}">🆙</a></td> -->
                     </tr>
                     {% endfor %}
                 </tbody>

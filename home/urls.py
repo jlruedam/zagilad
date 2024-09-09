@@ -20,7 +20,7 @@ urlpatterns = [
     path('procesarCargueActividades/', views.procesarCargue),
     path('informeCargas/', views.informe_cargas),
     path('verCarga/<id_carga>', views.ver_carga),
-    path('ejecutarCarga/<id_carga>', views.ejecutar_carga),
+    # path('ejecutarCarga/<id_carga>', views.ejecutar_carga),
     # Administración
     path('administrador/', views.vista_administrador),
     path('cargarConfiguracionArranque/', views.cargar_configuracion_arranque),

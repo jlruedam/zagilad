@@ -5,14 +5,48 @@
 {% block stylesheets %}{% endblock stylesheets %}
 
 {% block content %}
-    <div class="verCarga">
-        <h2>Ver carga {{carga}} - {{carga.usuario}} - {{carga.estado}} - {{carga.created_at}}</h2>
-        <div>
-            <p>
-                {{carga.data}}
-            </p>
-        </div>
+   
+    <div class = "bloqueTabla">
+        <table id="tablaActividadesCargadas">
+            <caption>
+                <h2>
+                    Actividades de la Carga {{carga.id}}
+                </h2>
+            </caption>
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Regional</th>
+                    <th>Fecha servicio</th>
+                    <th>Nombre actividad</th>
+                    <th>Diagnóstico</th>
+                    <th>Tipo documento</th>
+                    <th>Documento paciente</th>
+                    <th>Inconsistencias</th>
+                    <th>Gestion</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for actividad in actividades_carga %}
+                <tr>
+                    <td>{{actividad.id}}</td>
+                    <td>{{actividad.regional}}</td>
+                    <td>{{actividad.fecha_servicio}}</td>
+                    <td>{{actividad.nombre_actividad}}</td>
+                    <td>{{actividad.diagnostico_p}}</td>
+                    <td>{{actividad.tipo_documento}}</td>
+                    <td>{{actividad.documento_paciente}}</td>
+                    <td>{{actividad.inconsistencias}}</td>
+                    <td>
+                        <p>Eliminar</p>
+                        <p>Editar</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
+   
   
 {% endblock content %}
 
