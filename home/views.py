@@ -29,16 +29,12 @@ from  home.models import Regional, Admision, AreaPrograma, Colaborador, Carga
 @login_required(login_url="/login/")
 def index(request):
     print("INDEX")
-
     listado_tipo_actividad = TipoActividad.objects.all()
     listado_actividades = Actividad.objects.all()
-
     ctx = {
         "listado_tipo_actividad":listado_tipo_actividad,
         "listado_actividades":listado_actividades
     }
-
-
     return render(request,"home/index.html",ctx)
 
 @login_required(login_url="/login/")
