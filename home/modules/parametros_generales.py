@@ -162,14 +162,14 @@ parametros_arranque = {
     ]
 }
 
-def cargar_configuracion_default():
+async def cargar_configuracion_default():
 
-    listar_unidades_funcionales(0)
-    listar_centros_costos(0)
-    listar_puntos_atencion(0)
-    listar_contratos(0)
-    listar_seriales_sedes(0)
-    listar_tipos_servicios(0)
+    await listar_unidades_funcionales(0)
+    await listar_centros_costos(0)
+    await listar_puntos_atencion(0)
+    await listar_contratos(0)
+    await listar_seriales_sedes(0)
+    await listar_tipos_servicios(0)
 
     regionales = Regional.objects.count()
     if not regionales:
