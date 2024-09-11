@@ -12,9 +12,12 @@ urlpatterns = [
     path('cargaActividades/', views.cargar_actividades),
     path('cargarTiposActividad/', views.cargar_tipos_actividad),
     path('vistaActividadesAdmisionadas/', views.vista_actividades_admisionadas),
-    # Grabar adminsiones
+    path('vistaActividadesInconsistencias/', views.vista_actividades_inconsistencias),
+    # Grabar admisiones
     path('grabarAdmisionPrueba/', views.grabar_admision_prueba),
     path('grabarAdmisiones/', views.grabar_admisiones),
+    path('admisionarActividadesCarga/<id_carga>', views.admisionar_actividades_carga),
+    path('eliminarActividadesInconsistenciaCarga/<id_carga>', views.eliminar_actividades_inconsistencia_carga),
     # Carga de Archivos
     path('cargarActividades/', views.cargar_actividades),
     path('procesarCargueActividades/', views.procesarCargue),

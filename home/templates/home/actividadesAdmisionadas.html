@@ -18,7 +18,7 @@
         <table id="tablaActividadesAdmisionadas">
             <caption>
                 <h2>
-                    Actividades a procesar
+                    Actividades admisionadas
                 </h2>
             </caption>
             <thead>
@@ -30,6 +30,7 @@
                     <th>Fecha servicio</th>
                     <th>Nombre</th>
                     <th>CieX</th>
+                    <th>Carga</th>
                     <th>Admisión</th>
                 </tr>
             </thead>
@@ -43,6 +44,7 @@
                         <td>{{actividad.fecha_servicio}}</td>
                         <td>{{actividad.nombre_actividad}}</td>
                         <td>{{actividad.diagnostico_p}}</td>
+                        <td>{{actividad.carga}}</td>
                         <td><a href="">{{actividad.admision.numero_estudio}}</a></td>
                     </tr>
                 {% endfor %}

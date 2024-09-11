@@ -1,6 +1,6 @@
 from home.models import Actividad
 
-def valida_actividad_repectiva_paciente(actividad):
+def valida_actividad_repectiva_paciente(actividad, carga_actual = []):
     actividades_repetidas = Actividad.objects.filter(
         regional = actividad.regional,
         fecha_servicio = actividad.fecha_servicio,
@@ -13,10 +13,16 @@ def valida_actividad_repectiva_paciente(actividad):
         tipo_documento = actividad.tipo_documento,
         documento_paciente = actividad.documento_paciente,
         nombre_paciente = actividad.nombre_paciente
-    ).exists()
+    )
+    if carga_actual:
+       repetida = actividades_repetidas.exclude(carga = carga_actual).exists()
+       print(actividades_repetidas.exclude(carga = carga_actual))
+    else:
+        repetida = actividades_repetidas.exists()
+    
 
 
-    return actividades_repetidas
+    return repetida
     
 
         

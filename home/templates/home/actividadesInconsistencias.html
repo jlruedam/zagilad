@@ -1,21 +1,24 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} Consultas Zeus {% endblock %} 
+{% block title %} Carga de actividades {% endblock %} 
 
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+
+{% endblock stylesheets %}
 
 {% block content %}
-   
 
-<section class="section" id ="seccionGrabarAdmisiones">
-    <div class="bloqueTitulo">
-        <h2>Enviar admisiones</h2>
-    </div>
+<section class="section" id="">
+           
+    <h2 class="tituloSection">
+        ACTIVIDADES INCONSISTENCIAS
+    </h2>
+
     <div class = "bloqueTabla">
-        <table id="tablaActividadesAdmisionar">
+        <table id="tablaActividadesInconsistencias">
             <caption>
                 <h2>
-                    Actividades a admisionar
+                    Actividades inconsistencias
                 </h2>
             </caption>
             <thead>
@@ -28,11 +31,11 @@
                     <th>Nombre</th>
                     <th>CieX</th>
                     <th>Incosistencias</th>
-
+                    <th>Admisión</th>
                 </tr>
             </thead>
             <tbody>
-                {% for actividad in actividadesAdmisionar %}
+                {% for actividad in listado_actividades %}
                     <tr>
                         <td>{{actividad.tipo_documento}}</td>
                         <td>{{actividad.documento_paciente}}</td>
@@ -41,22 +44,20 @@
                         <td>{{actividad.fecha_servicio}}</td>
                         <td>{{actividad.nombre_actividad}}</td>
                         <td>{{actividad.diagnostico_p}}</td>
-                        <td>{{actividad.Incosistencias}}</td>
-
+                        <td>{{actividad.inconsistencias}}</td>
+                        <td><a href="">{{actividad.admision.numero_estudio}}</a></td>
                     </tr>
-
                 {% endfor %}
-            </tbody>
         </table>
     </div>
-    <div class="bloqueBoton">
-        <button id="btnGrabarAdmisiones" onclick="grabarAdmisiones()">Grabar admisiones</button>
-    </div>
     
-    <div class="admisionesCargadas">
-        
-    </div>
+    
+
+    
 </section>
+
+
+  
 {% endblock content %}
 
 <!-- Specific Page JS goes HERE  -->

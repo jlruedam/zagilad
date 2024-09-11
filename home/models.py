@@ -90,12 +90,21 @@ class Carga(models.Model):
     cantidad_actividades = models.IntegerField(default = 0)
     cantidad_actividades_inconsistencias = models.IntegerField(default = 0)
     cantidad_actividades_ok = models.IntegerField(default = 0)
+    cantidad_actividades_admisionadas = models.IntegerField(default = 0)
     tiempo_procesamiento = models.FloatField(default = 0)
     created_at = models.DateTimeField(auto_now_add = True)
     updated_at = models.DateTimeField(auto_now = True)
 
     def __str__(self) -> str:
         return "Carga # {} ".format(self.id)
+    
+    def actualizar_info_actividades(self):
+        actividades_carga = Actividad.objects.filter(carga = self)
+        self.cantidad_actividades = actividades_carga.count()
+        self.cantidad_actividades_ok = actividades_carga.filter(inconsistencias = None, admision = None).count()
+        self.cantidad_actividades_admisionadas = actividades_carga.exclude(admision = None).filter(inconsistencias = None).count()
+        self.cantidad_actividades_inconsistencias = self.cantidad_actividades - self.cantidad_actividades_ok - self.cantidad_actividades_admisionadas
+    
 
 class TipoActividad(models.Model):
     id = models.AutoField(primary_key =True)

@@ -5,7 +5,11 @@
 {% block stylesheets %}{% endblock stylesheets %}
 
 {% block content %}
-   
+    <div class = "bloqueBtn">
+        <div class="mybtn"><a href="/admisionarActividadesCarga/{{carga.id}}" onclick="alert('🔃Admisiones en proceso!')">Admisionar actividades</a></div>
+        <div class="mybtn"><a href="/eliminarActividadesInconsistenciaCarga/{{carga.id}}">Eliminar actividades con inconsistencias</a></div>
+        <div class="mybtn"><a href="/informeCargas/">↩️</a></div>
+    </div>
     <div class = "bloqueTabla">
         <table id="tablaActividadesCargadas">
             <caption>
@@ -22,9 +26,12 @@
                     <th>Diagnóstico</th>
                     <th>Tipo documento</th>
                     <th>Documento paciente</th>
+                    <th>Nombre paciente</th>
+                    <th>Admisión</th>
                     <th>Inconsistencias</th>
                     <th>Gestion</th>
                 </tr>
+    
             </thead>
             <tbody>
                 {% for actividad in actividades_carga %}
@@ -36,15 +43,28 @@
                     <td>{{actividad.diagnostico_p}}</td>
                     <td>{{actividad.tipo_documento}}</td>
                     <td>{{actividad.documento_paciente}}</td>
+                    <td>{{actividad.nombre_paciente}}</td>
+                    <td>{{actividad.admision.numero_estudio}}</td>
                     <td>{{actividad.inconsistencias}}</td>
                     <td>
-                        <p>Eliminar</p>
-                        <p>Editar</p>
+                        <div class="btns-gestion">
+                            {% if actividad.admision %}
+                                Admisionada
+                            {% else %}
+                                <span class = "mybtn-emoji"><a href="" title="Admisionar">🆙</a></span>
+                                <span class = "mybtn-emoji"><a href="" title="Editar">📝</a></span>
+                                <span class = "mybtn-emoji"><a href="" title="Eliminar">🗑️</a></span>
+                            {% endif %}
+                            
+                            
+
+                        </div> 
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+        
     </div>
    
   

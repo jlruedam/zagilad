@@ -1,5 +1,5 @@
 # DJANGO
-from django.shortcuts import render 
+from django.shortcuts import render, redirect 
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect, JsonResponse, FileResponse
 from django.core.serializers import json
 from django.core import serializers
@@ -10,17 +10,14 @@ import ast, time
 import pandas as pd
 import numpy as np
 import json
-import datetime
-import math
 
 # ZAGILAD
 from .modules import peticiones_http
 from .modules import admision
 from .modules import parametros_generales
-from .modules import validador_actividades
 from .modules import task
-from  home.models import TipoActividad, Actividad, ParametrosAreaPrograma
-from  home.models import Regional, Admision, AreaPrograma, Colaborador, Carga
+from  home.models import TipoActividad, Actividad
+from  home.models import Admision, AreaPrograma, Colaborador, Carga
 
 
 # Create your views here.
@@ -88,8 +85,23 @@ def vista_actividades_admisionadas(request):
     return render(request,"home/actividadesAdmisionadas.html",ctx)
 
 @login_required(login_url="/login/")
+def vista_actividades_inconsistencias(request):
+    
+    listado_actividades = Actividad.objects.exclude(inconsistencias = None)
+
+    ctx = {
+        "listado_actividades":listado_actividades
+    }
+
+    return render(request,"home/actividadesInconsistencias.html",ctx)
+
+@login_required(login_url="/login/")
 def informe_cargas(request):
     cargas = Carga.objects.all()
+
+    for carga in cargas:
+        carga.actualizar_info_actividades()
+
     ctx = {"cargas":cargas}
     return render(request,"home/informeCargas.html",ctx)
 
@@ -103,7 +115,6 @@ def ver_carga(request, id_carga):
         "actividades_carga":actividades_carga
     }
     return render(request,"home/verCarga.html",ctx)
-
 
 # PROCESAMIENTO DE ACTIVIDADES
 @login_required(login_url="/login/")
@@ -150,10 +161,10 @@ def procesarCargue(request):
     carga_actividades = Carga(
         usuario = usuario_actual,
         data = json.dumps(dict_data), #Quitar esto y enviar a archivo json en el servidor
-        cantidad_actividades = cant_act
     )
     carga_actividades.save()
 
+    
     # Aquí se debe crear la tarea programa.
     task.procesar_cargue_actividades.delay(carga_actividades.id)
     print("Carga en proceso...")
@@ -168,22 +179,6 @@ def procesarCargue(request):
        
 
     return JsonResponse(resultados_cargue, safe = False)
-
-# @login_required(login_url="/login/")
-# def ejecutar_carga(request, id_carga):
-#     cargas = Carga.objects.all()
-#     print(id_carga)
-    
-#     # Aquí se debe crear la tarea programa.
-#     task.procesar_cargue_actividades.delay(id_carga)
-#     print("Carga en proceso...")
-
-#     ctx = {
-#         "cargas":cargas,
-#         "mensaje_ejecutar_carga":"Carga en proceso"    
-#     }
-#     return render(request,"home/informeCargas.html",ctx)
-
 
 # GRABAR ADMISIONES
 @login_required(login_url="/login/")
@@ -219,90 +214,29 @@ def grabar_admision_prueba(request):
 def grabar_admisiones(request):
     token = peticiones_http.obtener_token()
     
-    inconsistencias_actividades = []
-
-    # Actividades a procesar como admisión
-    actividades = Actividad.objects.filter(admision = None)
-    for actividad in actividades:
-
-        # Consultador datos del afiliado
-        ruta = f"/api/SisDeta/GetDatosBasicosPaciente?NumeroIdentificacion={actividad.documento_paciente}&TipoIdentificacion={actividad.tipo_documento}"
-        datos_afiliado = peticiones_http.consultar_data(ruta)
-        # print(datos_afiliado)
-        try:
-          
-            auto_id = datos_afiliado['Datos'][0]['autoid']
-            regimen = datos_afiliado['Datos'][0]['NombreRegimen']
-
-            # print(auto_id, regimen)
-            
-            admision_actividad = admision.crear_admision(
-                autoid = auto_id,
-                regimen = regimen,
-                codigo_entidad = parametros_generales.CODIGO_ENTIDAD[regimen],
-                medico = parametros_generales.CODIGO_MEDICO,
-                num_usuario =parametros_generales.NUMERO_USUARIO,
-                usuario_id = parametros_generales.IDENTIFICACION_USUARIO,
-                usuario_nombre = parametros_generales.NOMBRE_USUARIO,
-                tipo_diag = parametros_generales.TIPO_DIAGNOSTICO,
-                actividad = actividad
-            )
-
-            print("ADMISION:",admision_actividad)
-
-            # BLOQUE DE ENVÍO DE LA ADMISIÓN A ZEUS
-            respuesta = peticiones_http.crear_admision(admision_actividad,token)
-            print("CARGUE DE ADMISIÓN: ",respuesta['Datos'][0]['infoTrasaction'], type(respuesta['Datos'][0]['infoTrasaction']))
-
-            respuesta_admision = ast.literal_eval(respuesta['Datos'][0]['infoTrasaction'])
-
-            print("RESPUESTA ADMISIÓN:",respuesta_admision[0], type(respuesta_admision[0]))
-            
-            datos_error = respuesta_admision[0]['DatosEnError']
-            datos_guardados = respuesta_admision[0]['DatosGuardados']
-            print(datos_error, datos_guardados)
-
-            if datos_error:
-                print("INCONSISTENCIA")
-                inconsistencias_actividades.append({
-                "actividad":actividad.id,
-                "identificador":actividad.identificador,
-                "id_paciente":actividad.documento_paciente,
-                "nombre_paciente":actividad.nombre_paciente,
-                "descripcion": datos_error[0]
-                })
-            
-            if datos_guardados:
-
-                numero_estudio = datos_guardados[0]['Estudio']
-                print("NÚMERO DE ESTUDIO:", numero_estudio)
-
-                nueva_admision = Admision()
-                nueva_admision.documento_paciente = actividad.documento_paciente
-                nueva_admision.numero_estudio = numero_estudio
-                nueva_admision.json = json.dumps(admision_actividad)
-                nueva_admision.save()
-
-                actividad.admision = nueva_admision
-                actividad.save()
-
-        except Exception as e:
-            print(e, "Error al cargar la admisión")
-            inconsistencias_actividades.append({
-                "actividad":actividad.id,
-                "identificador":actividad.identificador,
-                "id_paciente":actividad.documento_paciente,
-                "nombre_paciente":actividad.nombre_paciente,
-                "descripcion": str(e)
-            })
-        print("----------------------------------------------------------------------------------------------------------------")
-
-    print(inconsistencias_actividades)
+    task.tarea_grabar_admisiones.delay(token)
+    
     respuesta = {
-        "inconsistencias":inconsistencias_actividades
+        "inconsistencias":"0"
     }
     return JsonResponse(respuesta)
 
+@login_required(login_url="/login/")
+def admisionar_actividades_carga(request, id_carga):
+    token = peticiones_http.obtener_token()
+    task.tarea_admisionar_actividades_carga.delay(token, id_carga)
+    
+    return redirect(f'/verCarga/{id_carga}')
+
+@login_required(login_url="/login/")
+def eliminar_actividades_inconsistencia_carga(request, id_carga):
+    carga = Carga.objects.get(id = int(id_carga))
+    
+    # Buscar las actividades sin admisión relacionadas a la carga
+    actividades_carga_inconsistencia = Actividad.objects.filter(carga=carga).exclude(inconsistencias = None).delete()
+    carga.actualizar_info_actividades()
+    carga.save()
+    return redirect(f'/verCarga/{id_carga}')
 # ADMISTRACIÓN 
 @login_required(login_url="/login/")
 def vista_administrador(request):
