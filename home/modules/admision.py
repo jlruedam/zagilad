@@ -111,8 +111,8 @@ def crear_admision(autoid, regimen, codigo_entidad, medico, num_usuario,
                 "fecha_servicio": (actividad.fecha_servicio).isoformat(),#CALCULADO
                 "descripcion": actividad.tipo_actividad.nombre,#VARIABLE
                 "cantidad": 1, #PARÁMETRO
-                "vlr_servicio": 2000,#PARÁMETRO
-                "total": 2000,#PARAMETRO
+                "vlr_servicio": 0,#PARÁMETRO
+                "total": 0,#PARAMETRO
                 "personal_ate": medico,#QUEMADO
                 "cod_medico": medico,#QUEMADO
                 "tipo_diag": tipo_diag,#VARIABLE

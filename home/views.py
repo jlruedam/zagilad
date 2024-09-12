@@ -224,9 +224,20 @@ def grabar_admisiones(request):
 @login_required(login_url="/login/")
 def admisionar_actividades_carga(request, id_carga):
     token = peticiones_http.obtener_token()
+    carga = Carga.objects.get(id = int(id_carga))
+    carga.estado = "admisionando"
+    carga.save()
     task.tarea_admisionar_actividades_carga.delay(token, id_carga)
     
-    return redirect(f'/verCarga/{id_carga}')
+    return redirect(f'/informeCargas/')
+
+@login_required(login_url="/login/")
+def admisionar_actividad_individual(request, id_actividad):
+    token = peticiones_http.obtener_token()
+    actividad = Actividad.objects.get(id = id_actividad)
+    task.tarea_admisionar_actividad_individual.delay(token, id_actividad)
+
+    return redirect(f'/verCarga/{actividad.carga.id}')
 
 @login_required(login_url="/login/")
 def eliminar_actividades_inconsistencia_carga(request, id_carga):
@@ -237,6 +248,16 @@ def eliminar_actividades_inconsistencia_carga(request, id_carga):
     carga.actualizar_info_actividades()
     carga.save()
     return redirect(f'/verCarga/{id_carga}')
+
+@login_required(login_url="/login/")
+def eliminar_actividad_individual(request, id_actividad):
+    actividad = Actividad.objects.get(id = int(id_actividad))
+    carga = actividad.carga
+    actividad.delete()
+
+    carga.actualizar_info_actividades()
+    carga.save()
+    return redirect(f'/verCarga/{carga.id}')
 # ADMISTRACIÓN 
 @login_required(login_url="/login/")
 def vista_administrador(request):

@@ -40,3 +40,24 @@ def notificar_carga_procesada(carga, receptores =[]):
 
 
     return True
+
+
+def notificar_carga_admisionada(carga, receptores =[]):
+    '''Colabordor realiza la solicitud, se notifica al colaborador que realiza la solicitud ya su jefe inmediato'''
+    asunto = f'''{FUENTE_CORREO} - Carga #{carga.id}'''
+
+    # Mensaje a enviar
+    mensaje = f'''
+        <div>
+            <h4>
+                Se informa que  las actividades de la {carga} han sido admisioandas. 
+                Ingrese a la plataforma para realizar su respectiva gestión.
+            </h4>
+            <a href={URL_VER_CARGA + str(carga.id)}>Ver carga...</a>
+        </div>
+    '''
+    
+    email.enviar_email(asunto, mensaje, receptores)
+
+
+    return True

@@ -25,3 +25,6 @@
     background-color: aquamarine;
     opacity: 0.5;
  }
+.bloqueTabla table{
+    text-decoration: none!important;
+}

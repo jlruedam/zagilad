@@ -42,8 +42,13 @@
                         <td>{{carga.tiempo_procesamiento}} min</td>
                         <td>{{carga.created_at}}</td>
                         <td>{{carga.updated_at}}</td>
-                        <td><a href="/verCarga/{{carga.id}}">👁️</a></td>
-                        <!-- <td><a href="/ejecutarCarga/{{carga.id}}">🆙</a></td> -->
+                        {% if carga.estado == "procesada" %}
+                            <td><a href="/verCarga/{{carga.id}}">👁️</a></td>
+                            <!-- <td><a href="/ejecutarCarga/{{carga.id}}">🆙</a></td> -->
+                        {% else %}
+                            <td>🕰️</td>
+                        {% endif %}
+                        
                     </tr>
                     {% endfor %}
                 </tbody>

@@ -82,11 +82,12 @@ class Carga(models.Model):
         ('eliminada',"Carga eliminada"),
         ('creada', "Carga creada"),
         ('procesada', "Carga procesada"), 
+        ('admisionando', "Carga en proceso de creación de admisiones"), 
     )
     id = models.AutoField(primary_key =True)
     usuario = models.ForeignKey(User, models.SET_NULL, blank=True,null=True)
     data = models.JSONField(blank=True,null=True)
-    estado = models.CharField(max_length=10, default='creada', choices=estados_carga)
+    estado = models.CharField(max_length=20, default='creada', choices=estados_carga)
     cantidad_actividades = models.IntegerField(default = 0)
     cantidad_actividades_inconsistencias = models.IntegerField(default = 0)
     cantidad_actividades_ok = models.IntegerField(default = 0)

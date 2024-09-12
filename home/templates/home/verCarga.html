@@ -51,9 +51,9 @@
                             {% if actividad.admision %}
                                 Admisionada
                             {% else %}
-                                <span class = "mybtn-emoji"><a href="" title="Admisionar">🆙</a></span>
+                                <span class = "mybtn-emoji"><a href="/admisionarActividadIndividual/{{actividad.id}}" title="Admisionar">🆙</a></span>
                                 <span class = "mybtn-emoji"><a href="" title="Editar">📝</a></span>
-                                <span class = "mybtn-emoji"><a href="" title="Eliminar">🗑️</a></span>
+                                <span class = "mybtn-emoji"><a href="/eliminarActividadIndividual/{{actividad.id}}" title="Eliminar">🗑️</a></span>
                             {% endif %}
                             
                             
