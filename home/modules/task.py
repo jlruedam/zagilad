@@ -10,7 +10,7 @@ from celery.utils.log import get_task_logger
 
 # ZAGILAD
 from home.models import TipoActividad, Actividad, ParametrosAreaPrograma 
-from home.models import Regional, Admision, AreaPrograma, Colaborador, Carga
+from home.models import Regional, Admision, AreaPrograma, Carga
 from home.modules import peticiones_http
 from home.modules import validador_actividades
 from home.modules import notificaciones_email
@@ -83,10 +83,15 @@ def procesar_cargue_actividades(id_carga, dict_data):
     
     # Enviar un correo de notificación cuando termine el Cargue
     
-    colaborador = Colaborador.objects.filter(usuario = carga.usuario)
-    if colaborador:
-        if len(colaborador[0].email):
-            notificaciones_email.notificar_carga_procesada(carga, [colaborador[0].email])
+    # colaborador = Colaborador.objects.filter(usuario = carga.usuario)
+    # if colaborador:
+    #     if len(colaborador[0].email):
+    #         notificaciones_email.notificar_carga_procesada(carga, [colaborador[0].email])
+
+    
+    
+    if len(carga.usuario.email):
+        notificaciones_email.notificar_carga_procesada(carga, [carga.usuario.email])
 
     # resultados_cargue.append(valores)
     return "CARGUE PROCESADO"
@@ -174,11 +179,13 @@ def tarea_admisionar_actividades_carga(token, id_carga):
 
     # Enviar un correo de notificación cuando termine el Cargue
     
-    colaborador = Colaborador.objects.filter(usuario = carga.usuario)
-    if colaborador:
-        if len(colaborador[0].email):
-            notificaciones_email.notificar_carga_admisionada(carga, [colaborador[0].email])
-
+    # colaborador = Colaborador.objects.filter(usuario = carga.usuario)
+    # if colaborador:
+    #     if len(colaborador[0].email):
+            # notificaciones_email.notificar_carga_admisionada(carga, [colaborador[0].email])
+    
+    if len(carga.usuario.email):
+        notificaciones_email.notificar_carga_admisionada(carga, [carga.usuario.email])
 
     return f"CARGA PROCESADA"
 

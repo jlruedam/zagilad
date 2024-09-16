@@ -17,7 +17,7 @@ from .modules import admision
 from .modules import parametros_generales
 from .modules import task
 from home.models import TipoActividad, Actividad
-from home.models import Admision, AreaPrograma, Colaborador, Carga
+from home.models import Admision, AreaPrograma, Carga
 from home.modules import forms
 
 

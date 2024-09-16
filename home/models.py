@@ -57,25 +57,25 @@ class ParametrosAreaPrograma(models.Model):
     def __str__(self):
         return f'ParametrosAP - {self.id} - {self.regional} - {self.unidad_funcional} - {self.punto_atencion} - {self.centro_costo}' 
     
-class Colaborador(models.Model):
-    id = models.AutoField(primary_key =True)
-    usuario = models.ForeignKey(User, models.SET_NULL, blank=True,null=True)
-    identificacion = models.CharField(max_length = 20, unique = True)
-    nombre = models.CharField(max_length = 100)
-    cargo = models.CharField(max_length = 100)
-    email = models.CharField(max_length = 150, blank=True,null=True)
-    is_active = models.BooleanField(default = False)
-    created_at = models.DateTimeField(auto_now_add = True)
-    updated_at = models.DateTimeField(auto_now = True)
+# class Colaborador(models.Model):
+#     id = models.AutoField(primary_key =True)
+#     usuario = models.ForeignKey(User, models.SET_NULL, blank=True,null=True)
+#     identificacion = models.CharField(max_length = 20, unique = True)
+#     nombre = models.CharField(max_length = 100)
+#     cargo = models.CharField(max_length = 100)
+#     email = models.CharField(max_length = 150, blank=True,null=True)
+#     is_active = models.BooleanField(default = False)
+#     created_at = models.DateTimeField(auto_now_add = True)
+#     updated_at = models.DateTimeField(auto_now = True)
 
-    class meta:
-        verbose_name="Colaborador"
-        verbose_name_plural="Colaboradores"
-        db_table="colaborador"
-        ordering=["id","identificacion","nombre"]
+#     class meta:
+#         verbose_name="Colaborador"
+#         verbose_name_plural="Colaboradores"
+#         db_table="colaborador"
+#         ordering=["id","identificacion","nombre"]
 
-    def __str__(self) -> str:
-        return "{} - {}".format(self.identificacion,self.nombre)
+#     def __str__(self) -> str:
+#         return "{} - {}".format(self.identificacion,self.nombre)
 
 class Carga(models.Model):
     estados_carga = (
