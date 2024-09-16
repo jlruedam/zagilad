@@ -38,14 +38,6 @@ def index(request):
 @login_required(login_url="/login/")
 def vista_carga_actividades(request):
 
-    usuario_actual = User.objects.get(username=request.user.username)
-
-    print(usuario_actual)
-    colaborador_actual = Colaborador.objects.filter(usuario = usuario_actual)
-    if not colaborador_actual:
-        colaborador_actual = [""]
-
-    print("CARGA ACTIVIDADES")
     listado_tipo_actividad = TipoActividad.objects.all()
     listado_actividades = Actividad.objects.all()
     areas_programas = AreaPrograma.objects.all()
@@ -54,7 +46,6 @@ def vista_carga_actividades(request):
         "listado_tipo_actividad":listado_tipo_actividad,
         "listado_actividades":listado_actividades,
         "areas_programas":areas_programas,
-        "colaborador_actual":colaborador_actual[0]
     }
     return render(request,"home/cargaActividades.html",ctx)
 
