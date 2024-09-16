@@ -16,8 +16,9 @@ from .modules import peticiones_http
 from .modules import admision
 from .modules import parametros_generales
 from .modules import task
-from  home.models import TipoActividad, Actividad
-from  home.models import Admision, AreaPrograma, Colaborador, Carga
+from home.models import TipoActividad, Actividad
+from home.models import Admision, AreaPrograma, Colaborador, Carga
+from home.modules import forms
 
 
 # Create your views here.
@@ -95,6 +96,7 @@ def vista_actividades_inconsistencias(request):
 
     return render(request,"home/actividadesInconsistencias.html",ctx)
 
+
 @login_required(login_url="/login/")
 def informe_cargas(request):
     cargas = Carga.objects.all()
@@ -160,13 +162,14 @@ def procesarCargue(request):
     # Crear carga:
     carga_actividades = Carga(
         usuario = usuario_actual,
-        data = json.dumps(dict_data), #Quitar esto y enviar a archivo json en el servidor
+        estado = "procesando"
+        # data = json.dumps(dict_data), #Quitar esto y enviar a archivo json en el servidor
     )
     carga_actividades.save()
 
     
     # Aquí se debe crear la tarea programa.
-    task.procesar_cargue_actividades.delay(carga_actividades.id)
+    task.procesar_cargue_actividades.delay(carga_actividades.id, dict_data)
     print("Carga en proceso...")
 
     resultados_cargue = {
@@ -282,3 +285,10 @@ def cargar_configuracion_arranque(request):
     }   
     
     return render(request,"home/administrador.html",ctx)
+
+
+@login_required(login_url="/login/")    
+def descargar_archivo(request, nombre_archivo):
+    print("Archivo a descargar:",nombre_archivo)
+    FOLDER_MEDIA = 'media/'    
+    return FileResponse(open(FOLDER_MEDIA+nombre_archivo, 'rb'), as_attachment=True, filename = nombre_archivo)

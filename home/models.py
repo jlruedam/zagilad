@@ -81,6 +81,7 @@ class Carga(models.Model):
     estados_carga = (
         ('eliminada',"Carga eliminada"),
         ('creada', "Carga creada"),
+        ('procesando', "Carga en proceso"),
         ('procesada', "Carga procesada"), 
         ('admisionando', "Carga en proceso de creación de admisiones"), 
     )
@@ -146,7 +147,7 @@ class Actividad(models.Model):
     nombre_paciente = models.CharField(max_length= 50)
     parametros_programa =  models.ForeignKey(ParametrosAreaPrograma, models.SET_NULL, blank=True,null=True) 
     carga =  models.ForeignKey(Carga, models.SET_NULL, blank=True,null=True) 
-    inconsistencias = models.CharField(max_length= 250, null=True, blank=True)
+    inconsistencias = models.CharField(max_length= 500, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add = True)
     updated_at = models.DateTimeField(auto_now = True)
 

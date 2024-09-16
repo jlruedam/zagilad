@@ -31,7 +31,8 @@
                     <th>Nombre</th>
                     <th>CieX</th>
                     <th>Incosistencias</th>
-                    <th>Admisión</th>
+                    <th>Carga</th>
+                    <!-- <th>Admisión</th> -->
                 </tr>
             </thead>
             <tbody>
@@ -45,7 +46,8 @@
                         <td>{{actividad.nombre_actividad}}</td>
                         <td>{{actividad.diagnostico_p}}</td>
                         <td>{{actividad.inconsistencias}}</td>
-                        <td><a href="">{{actividad.admision.numero_estudio}}</a></td>
+                        <td>{{actividad.carga}}</td>
+                        <!-- <td><a href="">{{actividad.admision.numero_estudio}}</a></td> -->
                     </tr>
                 {% endfor %}
         </table>

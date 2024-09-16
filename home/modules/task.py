@@ -22,12 +22,12 @@ logger = get_task_logger(__name__)
 
 
 @shared_task
-def procesar_cargue_actividades(id_carga):
+def procesar_cargue_actividades(id_carga, dict_data):
     inicio = time.time()
     cantidad_inconsistencias = 0
     carga = Carga.objects.get(id= id_carga)
     print(carga)
-    dict_data = ast.literal_eval(carga.data)
+    # dict_data = ast.literal_eval(carga.data)
     # resultados_cargue = []
     print("CARGA PROCESAR",carga.id)
     
@@ -144,7 +144,7 @@ def tarea_admisionar_actividades_carga(token, id_carga):
                     print(datos_error, datos_guardados)
 
                     if datos_error:
-                        actividad.inconsistencias += datos_error[0]
+                        actividad.inconsistencias = datos_error[0]
                         
                     
                     if datos_guardados:
@@ -181,7 +181,6 @@ def tarea_admisionar_actividades_carga(token, id_carga):
 
 
     return f"CARGA PROCESADA"
-
 
 @shared_task
 def tarea_admisionar_actividad_individual(token, id_actividad):
@@ -232,7 +231,7 @@ def tarea_admisionar_actividad_individual(token, id_actividad):
                 print(datos_error, datos_guardados)
 
                 if datos_error:
-                    actividad.inconsistencias += datos_error[0]
+                    actividad.inconsistencias = datos_error[0]
                     
                 
                 if datos_guardados:
