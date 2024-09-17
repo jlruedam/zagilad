@@ -26,6 +26,7 @@ urlpatterns = [
     path('informeCargas/', views.informe_cargas),
     path('verCarga/<id_carga>', views.ver_carga),
     path('descargarArchivo/<nombre_archivo>', views.descargar_archivo),
+    path('exportarCargaExcel/<id_carga>', views.exportar_carga_excel),
 
     # path('ejecutarCarga/<id_carga>', views.ejecutar_carga),
     # Administración

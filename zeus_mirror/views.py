@@ -198,7 +198,7 @@ def listar_contratos(request):
                 activo = contrato["Activo"],
             )
 
-            # Si no existe contratos existen sin cambios
+            # Si no existe contratos existente sin cambios
             if not contrato_existente_sin_cambios:
                 
                 # Consultar si ya existe por el código.
@@ -206,18 +206,20 @@ def listar_contratos(request):
                     codigo = contrato["Codigo"],
                 )
 
+                print("CONTRATO EXISTENTE:", contrato_existente)
+
                 if contrato_existente:
                     print("Actualizar Contrato")
                     # Entonces uno de sus campos cambió y se debe actualizar.
-                    contrato_existente[0].nombre(contrato["Nombre"])
-                    contrato_existente[0].empresa(contrato["Empresa"])
-                    contrato_existente[0].fecha_inicial(contrato["Fechai"])
-                    contrato_existente[0].fecha_final(contrato["Fechaf"])
-                    contrato_existente[0].observacion(contrato["Obs"])
-                    contrato_existente[0].numero(contrato["Numero"])
-                    contrato_existente[0].id_sede(contrato["IdSede"])
-                    contrato_existente[0].regimen(contrato["Regimen"])
-                    contrato_existente[0].activo(contrato["Activo"])
+                    contrato_existente[0].nombre = contrato["Nombre"]
+                    contrato_existente[0].empresa = contrato["Empresa"]
+                    contrato_existente[0].fecha_inicial = contrato["Fechai"]
+                    contrato_existente[0].fecha_final = contrato["Fechaf"]
+                    contrato_existente[0].observacion = contrato["Obs"]
+                    contrato_existente[0].numero = contrato["Numero"]
+                    contrato_existente[0].id_sede = contrato["IdSede"]
+                    contrato_existente[0].regimen = contrato["Regimen"]
+                    contrato_existente[0].activo = contrato["Activo"]
                     contrato_existente[0].save()
 
                 else:

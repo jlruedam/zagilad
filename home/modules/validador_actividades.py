@@ -15,10 +15,10 @@ def valida_actividad_repectiva_paciente(actividad, carga_actual = []):
         nombre_paciente = actividad.nombre_paciente
     )
     if carga_actual:
-       repetida = actividades_repetidas.exclude(carga = carga_actual).exists()
-       print(actividades_repetidas.exclude(carga = carga_actual))
+       repetida = actividades_repetidas.exclude(admision = None).exclude(carga = carga_actual).exists()
+       print(actividades_repetidas.exclude(admision = None).exclude(carga = carga_actual))
     else:
-        repetida = actividades_repetidas.exists()
+        repetida = actividades_repetidas.exclude(admision = None).exists()
     
 
 

@@ -12,13 +12,10 @@ import numpy as np
 import json
 
 # ZAGILAD
-from .modules import peticiones_http
-from .modules import admision
-from .modules import parametros_generales
-from .modules import task
+from home.modules import peticiones_http, admision, parametros_generales
+from home.modules import task, forms, generador_excel
 from home.models import TipoActividad, Actividad
 from home.models import Admision, AreaPrograma, Carga
-from home.modules import forms
 
 
 # Create your views here.
@@ -185,6 +182,7 @@ def grabar_admision_prueba(request):
     inicio = time.time()
     cantidad = int(request.GET['cantidad'])
     token = peticiones_http.obtener_token()
+    print(token)
     admision_enviar = admision.admision_prueba
     respuestas = []
     resultados = []
@@ -281,5 +279,14 @@ def cargar_configuracion_arranque(request):
 @login_required(login_url="/login/")    
 def descargar_archivo(request, nombre_archivo):
     print("Archivo a descargar:",nombre_archivo)
+    FOLDER_MEDIA = 'media/'    
+    return FileResponse(open(FOLDER_MEDIA+nombre_archivo, 'rb'), as_attachment=True, filename = nombre_archivo)
+
+
+@login_required(login_url="/login/")    
+def exportar_carga_excel(request, id_carga):
+    actividades_carga = Actividad.objects.filter(carga = id_carga)
+    generador_excel.genera_excel_carga(actividades_carga)
+    nombre_archivo = 'listado_actividades_carga.xlsx'
     FOLDER_MEDIA = 'media/'    
     return FileResponse(open(FOLDER_MEDIA+nombre_archivo, 'rb'), as_attachment=True, filename = nombre_archivo)

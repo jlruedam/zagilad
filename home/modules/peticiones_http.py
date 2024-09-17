@@ -37,6 +37,7 @@ def crear_admision(admision, token):
     }
 
     respuesta = requests.post(URL_API_ZEUS + ruta_endpoint, headers=cabeceras, data = json.dumps(admision) ) 
+    print(respuesta)
     if respuesta.status_code == 200:
         respuesta = respuesta.json()
        

@@ -8,7 +8,8 @@
     <div class = "bloqueBtn">
         <div class="mybtn"><a href="/admisionarActividadesCarga/{{carga.id}}" onclick="alert('🔃Admisiones en proceso!')">Admisionar actividades</a></div>
         <div class="mybtn"><a href="/eliminarActividadesInconsistenciaCarga/{{carga.id}}">Eliminar actividades con inconsistencias</a></div>
-        <div class="mybtn"><a href="/informeCargas/">↩️</a></div>
+        <div class="mybtn"><a href="/exportarCargaExcel/{{carga.id}}"><img width="80" height="80" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/></a></div>
+        <div class="mybtn"><a href="/informeCargas/">🔙</a></div>
     </div>
     <div class = "bloqueTabla">
         <table id="tablaActividadesCargadas">
