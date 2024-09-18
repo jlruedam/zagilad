@@ -5,7 +5,8 @@ const tablaCargas =  $('#tablaCargas').DataTable({
 });
 const tablaActividadesCargadas =  $('#tablaActividadesCargadas').DataTable({
     paging: false,
-    info:false
+    info:false,
+    searching: false
 });
 const tablaActividades = $('#tablaActividades').DataTable(); 
 const tablaActividadesAdmisionar = $('#tablaActividadesAdmisionar').DataTable(); 

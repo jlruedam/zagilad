@@ -232,12 +232,12 @@ def admisionar_actividades_carga(request, id_carga):
     return redirect(f'/informeCargas/')
 
 @login_required(login_url="/login/")
-def admisionar_actividad_individual(request, id_actividad):
+def admisionar_actividad_individual(request, id_actividad, pagina):
     token = peticiones_http.obtener_token()
     actividad = Actividad.objects.get(id = id_actividad)
     task.tarea_admisionar_actividad_individual.delay(token, id_actividad)
 
-    return redirect(f'/verCarga/{actividad.carga.id}')
+    return redirect(f'/verCarga/{actividad.carga.id}/{pagina}')
 
 @login_required(login_url="/login/")
 def eliminar_actividades_inconsistencia_carga(request, id_carga):
@@ -250,14 +250,14 @@ def eliminar_actividades_inconsistencia_carga(request, id_carga):
     return redirect(f'/verCarga/{id_carga}')
 
 @login_required(login_url="/login/")
-def eliminar_actividad_individual(request, id_actividad):
+def eliminar_actividad_individual(request, id_actividad, pagina):
     actividad = Actividad.objects.get(id = int(id_actividad))
     carga = actividad.carga
     actividad.delete()
 
     carga.actualizar_info_actividades()
     carga.save()
-    return redirect(f'/verCarga/{carga.id}')
+    return redirect(f'/verCarga/{carga.id}/{pagina}')
 # ADMISTRACIÓN 
 @login_required(login_url="/login/")
 def vista_administrador(request):
