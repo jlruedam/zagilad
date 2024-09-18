@@ -5,6 +5,7 @@ from django.core.serializers import json
 from django.core import serializers
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.paginator import Paginator
 # PYTHON
 import ast, time
 import pandas as pd
@@ -84,7 +85,6 @@ def vista_actividades_inconsistencias(request):
 
     return render(request,"home/actividadesInconsistencias.html",ctx)
 
-
 @login_required(login_url="/login/")
 def informe_cargas(request):
     cargas = Carga.objects.all()
@@ -96,13 +96,21 @@ def informe_cargas(request):
     return render(request,"home/informeCargas.html",ctx)
 
 @login_required(login_url="/login/")
-def ver_carga(request, id_carga):
-    print(id_carga)
+def ver_carga(request, id_carga, pagina):
+
     carga = Carga.objects.get(id= id_carga)
     actividades_carga = Actividad.objects.filter(carga = carga)
+
+    paginador = Paginator(actividades_carga, 10)
+    pagina_previa = int(pagina)-1
+    pagina_siguiente = int(pagina)+1
+    
     ctx = {
         "carga":carga,
-        "actividades_carga":actividades_carga
+        "pagina":paginador.page(pagina),
+        "pagina_previa":pagina_previa,
+        "pagina_siguiente":pagina_siguiente,
+        "total_paginas":paginador.num_pages
     }
     return render(request,"home/verCarga.html",ctx)
 
@@ -275,13 +283,11 @@ def cargar_configuracion_arranque(request):
     
     return render(request,"home/administrador.html",ctx)
 
-
 @login_required(login_url="/login/")    
 def descargar_archivo(request, nombre_archivo):
     print("Archivo a descargar:",nombre_archivo)
     FOLDER_MEDIA = 'media/'    
     return FileResponse(open(FOLDER_MEDIA+nombre_archivo, 'rb'), as_attachment=True, filename = nombre_archivo)
-
 
 @login_required(login_url="/login/")    
 def exportar_carga_excel(request, id_carga):

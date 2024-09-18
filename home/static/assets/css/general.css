@@ -25,3 +25,25 @@
     background-color: aquamarine;
     opacity: 0.5;
  }
+
+.bloquePaginacion {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+ .bloquePaginacion .nav_paginacion .list_paginacion{
+    display: flex;
+ }
+
+ .list_paginacion .list_paginacion__item {
+    list-style: none;
+    padding: 10px;
+ }
+
+ .list_paginacion__item .list_paginacion__link {
+    text-decoration: none;
+    color: gray;
+    font-size: 20px;
+ }

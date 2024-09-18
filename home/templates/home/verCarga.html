@@ -35,7 +35,7 @@
     
             </thead>
             <tbody>
-                {% for actividad in actividades_carga %}
+                {% for actividad in pagina.object_list %}
                 <tr>
                     <td>{{actividad.id}}</td>
                     <td>{{actividad.regional}}</td>
@@ -65,6 +65,38 @@
             </tbody>
         </table>
         
+    </div>
+    <div class = "bloquePaginacion">
+        <nav class="nav_paginacion">
+            <ul class="list_paginacion">
+                {% if pagina_previa  %}
+                <li class="list_paginacion__item"><a class="list_paginacion__link" href="/verCarga/{{carga.id}}/{{pagina_previa}}" >Previous</a></li>
+                
+                <!-- <li class="list_paginacion__item">
+                    <a class="list_paginacion__link" href="">
+                    {{pagina_previa}}
+                    </a>
+                </li> -->
+                <li class="list_paginacion__item"><a class="list_paginacion__link" href="/verCarga/{{carga.id}}/1">1...</a></li>
+                {% endif %}
+                
+                <li class="list_paginacion__item">
+                    <a class="list_paginacion__link" href="">
+                        <i>{{pagina.number}}*</i>
+                    </a>
+                </li>
+                {% if pagina_siguiente <= total_paginas %}
+                <li class="list_paginacion__item">
+                    <a class="list_paginacion__link" href="/verCarga/{{carga.id}}/{{pagina_siguiente}}">
+                        {{pagina_siguiente}}  
+                    </a>
+                </li>
+                
+                <li class="list_paginacion__item"><a class="list_paginacion__link" href="/verCarga/{{carga.id}}/{{total_paginas}}">...{{total_paginas}}</a></li>
+                <li class="list_paginacion__item"><a class="list_paginacion__link" href="/verCarga/{{carga.id}}/{{pagina_siguiente}}">Next</a></li>
+                {% endif %}
+            </ul>
+        </nav>
     </div>
    
   

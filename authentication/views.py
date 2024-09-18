@@ -1,14 +1,13 @@
-from django.shortcuts import render
-
-# Create your views here.
+# Django
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
+
+# Python
+
+
+# Zagilad
 from .forms import LoginForm
-from django.http import  JsonResponse, HttpResponse, HttpResponseBadRequest
-from django.contrib.auth.models import User
-import secrets
-import random
-import json
+
 
 
 def login_view(request):
