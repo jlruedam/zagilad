@@ -8,6 +8,8 @@ const tablaActividadesCargadas =  $('#tablaActividadesCargadas').DataTable({
     info:false,
     searching: false
 });
+
+const tablaTiposActividad = $('#tablaTiposActividad').DataTable(); 
 const tablaActividades = $('#tablaActividades').DataTable(); 
 const tablaActividadesAdmisionar = $('#tablaActividadesAdmisionar').DataTable(); 
 const tablaActividadesAdmisionadas =  $('#tablaActividadesAdmisionadas').DataTable();

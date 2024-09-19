@@ -85,6 +85,14 @@ def vista_actividades_inconsistencias(request):
 
     return render(request,"home/actividadesInconsistencias.html",ctx)
 
+
+@login_required(login_url="/login/")
+def tipos_actividad(request):
+    tipos_actividad = TipoActividad.objects.all()
+    ctx = {"tipos_actividad":tipos_actividad}
+    return render(request,"home/tiposActividad.html",ctx)
+
+
 @login_required(login_url="/login/")
 def informe_cargas(request):
     cargas = Carga.objects.all()

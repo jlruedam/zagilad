@@ -25,6 +25,7 @@
                         <th>Tiempo procesamiento</th>
                         <th>Created</th>
                         <th>Updated</th>
+                        <th>Exportar</th>
                         <th>Ver</th>
                         <!-- <th>Ejecutar</th> -->
                     </tr>
@@ -42,10 +43,11 @@
                         <td>{{carga.tiempo_procesamiento}} min</td>
                         <td>{{carga.created_at}}</td>
                         <td>{{carga.updated_at}}</td>
+                        <td><a href="/exportarCargaExcel/{{carga.id}}"><img width="30" height="30" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/></a></td>
                         {% if carga.estado == "procesada" %}
-                            <td><a href="/verCarga/{{carga.id}}/1">👁️</a></td>
+                            <td><span class = "iconosGestion"><a href="/verCarga/{{carga.id}}/1">👁️</a></span></td>
                         {% else %}
-                            <td>🕰️</td>
+                            <td><span class = "iconosGestion">🕰️</span></td>
                         {% endif %}
                         
                     </tr>
