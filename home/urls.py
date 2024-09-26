@@ -14,6 +14,8 @@ urlpatterns = [
     path('vistaActividadesAdmisionadas/', views.vista_actividades_admisionadas),
     path('vistaActividadesInconsistencias/', views.vista_actividades_inconsistencias),
     path('tiposActividad/', views.tipos_actividad),
+    path('parametrosAreaPrograma/', views.parametros_area_programa),
+    path('listarActividadesInconsistencias/', views.listar_actividades_inconsistencias),
     # Grabar admisiones
     path('grabarAdmisionPrueba/', views.grabar_admision_prueba),
     path('grabarAdmisiones/', views.grabar_admisiones),

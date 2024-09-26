@@ -10,7 +10,8 @@ const tablaActividadesCargadas =  $('#tablaActividadesCargadas').DataTable({
 });
 
 const tablaTiposActividad = $('#tablaTiposActividad').DataTable(); 
+const tablaParametrosPrograma = $('#tablaParametrosPrograma').DataTable(); 
 const tablaActividades = $('#tablaActividades').DataTable(); 
 const tablaActividadesAdmisionar = $('#tablaActividadesAdmisionar').DataTable(); 
 const tablaActividadesAdmisionadas =  $('#tablaActividadesAdmisionadas').DataTable();
-const tablaActividadesInconsistencias =  $('#tablaActividadesInconsistencias').DataTable();
+// const tablaActividadesInconsistencias =  $('#tablaActividadesInconsistencias').DataTable();

@@ -23,33 +23,23 @@
             </caption>
             <thead>
                 <tr>
-                    <th>Tipo identificación</th>
-                    <th>Número de identificación</th>
-                    <th>Nombre del paciente</th>
+                    <th>Id</th>
+                    <th>Tipo de fuente</th>
+                    <!-- <th>Admisión</th>
+                    <th>identificador</th> -->
                     <th>Regional</th>
                     <th>Fecha servicio</th>
-                    <th>Nombre</th>
-                    <th>CieX</th>
-                    <th>Incosistencias</th>
+                    <th>Nombre Actividad</th>
+                    <!-- <th>Tipo Actividad</th> -->
+                    <th>Diagnóstico Principal</th>
+                    <th>Tipo Documento</th>
+                    <th>Documento Paciente</th>
+                    <th>Nombre Paciente</th>
                     <th>Carga</th>
-                    <!-- <th>Admisión</th> -->
+                    <th>Inconsistencias</th>
                 </tr>
             </thead>
-            <tbody>
-                {% for actividad in listado_actividades %}
-                    <tr>
-                        <td>{{actividad.tipo_documento}}</td>
-                        <td>{{actividad.documento_paciente}}</td>
-                        <td>{{actividad.nombre_paciente}}</td>
-                        <td>{{actividad.regional}}</td>
-                        <td>{{actividad.fecha_servicio}}</td>
-                        <td>{{actividad.nombre_actividad}}</td>
-                        <td>{{actividad.diagnostico_p}}</td>
-                        <td>{{actividad.inconsistencias}}</td>
-                        <td>{{actividad.carga}}</td>
-                        <!-- <td><a href="">{{actividad.admision.numero_estudio}}</a></td> -->
-                    </tr>
-                {% endfor %}
+           
         </table>
     </div>
     
@@ -64,5 +54,5 @@
 
 <!-- Specific Page JS goes HERE  -->
 {% block javascripts %}
-
+<script src="../../static/assets/js/cargarActividadesInconsistencias.js"></script>
 {% endblock javascripts %}

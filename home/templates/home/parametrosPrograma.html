@@ -1,0 +1,53 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Home {% endblock %} 
+
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+    
+
+    <div class="bloqueParametrosPrograma">
+        <div class = "bloqueTabla">
+            <table id="tablaParametrosPrograma">
+                <caption>
+                    <h2>
+                        Parametros Programa
+                    </h2>
+                </caption>
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Area</th>
+                        <th>Regional</th>
+                        <th>Unidad Funcional</th>
+                        <th>Punto de Atención</th>
+                        <th>Centro de Costo</th>
+                        <th>Sede</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for areas in areas %}
+                    <tr>
+                        <td>{{areas.id}}</td>
+                        <td>{{areas.area_programa}}</td>
+                        <td>{{areas.regional}}</td>
+                        <td>{{areas.unidad_funcional}}</td>
+                        <td>{{areas.punto_atencion}}</td>
+                        <td>{{areas.centro_costo}}</td>
+                        <td>{{areas.sede}}</td>
+    
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+  
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+{% endblock javascripts %}

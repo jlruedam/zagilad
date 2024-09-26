@@ -5,8 +5,10 @@ from django.core.serializers import json
 from django.core import serializers
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.db.models import Q
 # PYTHON
+from datetime import datetime, date
 import ast, time
 import pandas as pd
 import numpy as np
@@ -15,7 +17,7 @@ import json
 # ZAGILAD
 from home.modules import peticiones_http, admision, parametros_generales
 from home.modules import task, forms, generador_excel
-from home.models import TipoActividad, Actividad
+from home.models import TipoActividad, Actividad, ParametrosAreaPrograma
 from home.models import Admision, AreaPrograma, Carga
 
 
@@ -76,14 +78,62 @@ def vista_actividades_admisionadas(request):
 
 @login_required(login_url="/login/")
 def vista_actividades_inconsistencias(request):
-    
     listado_actividades = Actividad.objects.exclude(inconsistencias = None)
-
-    ctx = {
-        "listado_actividades":listado_actividades
-    }
-
+    ctx = {}
     return render(request,"home/actividadesInconsistencias.html",ctx)
+
+@login_required(login_url="/login/")
+def listar_actividades_inconsistencias(request):
+    context = {}
+    dt = request.GET
+    draw = int(dt.get("draw"))
+    start = int(dt.get("start"))
+    length = int(dt.get("length"))
+    search = dt.get("search[value]")
+    actividades = Actividad.objects.exclude(inconsistencias = None).order_by("id")
+    print("SEARCH:", search)
+    print("START:", start)
+    print("LENGTH:", length)
+
+    if search:
+        # Filtrar los campos que son texto
+        filtros = Q(id__icontains=search)|Q(tipo_fuente__icontains=search)|Q(regional__icontains=search)
+        filtros |= Q(nombre_actividad__icontains=search)|Q(diagnostico_p__icontains=search)|Q(documento_paciente__icontains=search)
+        filtros |= Q(nombre_paciente__icontains=search)|Q(inconsistencias__icontains=search)
+        filtros |= Q(tipo_documento=search)
+        # Intentamos convertir el valor a una fecha 
+        try:
+            fecha = datetime.strptime(search, "%d/%m/%Y").date()
+            filtros |= Q(fecha_servicio=fecha)
+        except ValueError:
+            pass
+
+        
+        actividades = actividades.filter(filtros )
+
+    # Preparamos la salida
+    total_registros = actividades.count()
+    context["draw"] = draw
+    context["recordsTotal"] = total_registros
+    context["recordsFiltered"] = total_registros
+
+    registros = actividades[start:(start + length)]
+    paginator = Paginator(registros, length)
+
+    # https://www.youtube.com/watch?v=UP9qBWI5G4E
+    try:
+        obj = paginator.page(draw).object_list
+    except PageNotAnInteger:
+        obj = paginator.page(draw).object_list
+    except EmptyPage:
+        obj = paginator.page(paginator.num_pages).object_list
+
+    context["datos"] = list((obj).values_list('id', 'tipo_fuente', 'regional', 'fecha_servicio', 
+                                              'nombre_actividad','diagnostico_p', 'tipo_documento', 'documento_paciente',
+                                              'nombre_paciente', 'carga', 'inconsistencias'))
+    print("datos pagínados: ", context["datos"])
+    return JsonResponse(context, safe = False)
+
 
 
 @login_required(login_url="/login/")
@@ -91,6 +141,12 @@ def tipos_actividad(request):
     tipos_actividad = TipoActividad.objects.all()
     ctx = {"tipos_actividad":tipos_actividad}
     return render(request,"home/tiposActividad.html",ctx)
+
+@login_required(login_url="/login/")
+def parametros_area_programa(request):
+    areas = ParametrosAreaPrograma.objects.all()
+    ctx = {"areas":areas}
+    return render(request,"home/parametrosPrograma.html",ctx)
 
 
 @login_required(login_url="/login/")

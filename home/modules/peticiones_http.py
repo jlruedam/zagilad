@@ -1,6 +1,14 @@
 import requests
 import json
-URL_API_ZEUS = "http://10.244.21.17:8022"
+
+ZEUS_API = {
+    "prueba":"http://10.244.21.17:8022",
+    "produccion":"http://131.0.170.93:8030"
+}
+
+# URL_API_ZEUS = ZEUS_API['prueba']
+URL_API_ZEUS = ZEUS_API['prueba']
+
 USERNAME = "administrador"
 PASSWORD = "123456"
 
@@ -44,7 +52,7 @@ def crear_admision(admision, token):
     return respuesta
 
 def consultar_data(ruta, data = [], token = ""):
-
+    print(URL_API_ZEUS)
     respuesta = []
     ruta_endpoint = ruta
     cabeceras = {
