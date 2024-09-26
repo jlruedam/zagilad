@@ -85,7 +85,7 @@ def vista_actividades_inconsistencias(request):
 @login_required(login_url="/login/")
 def listar_actividades_inconsistencias(request):
     context = {}
-    dt = request.GET
+    dt = request.POST
     draw = int(dt.get("draw"))
     start = int(dt.get("start"))
     length = int(dt.get("length"))
@@ -128,10 +128,10 @@ def listar_actividades_inconsistencias(request):
     except EmptyPage:
         obj = paginator.page(paginator.num_pages).object_list
 
-    context["datos"] = list((obj).values_list('id', 'tipo_fuente', 'regional', 'fecha_servicio', 
+    context["data"] = list((obj).values_list('id', 'tipo_fuente', 'regional', 'fecha_servicio', 
                                               'nombre_actividad','diagnostico_p', 'tipo_documento', 'documento_paciente',
                                               'nombre_paciente', 'carga', 'inconsistencias'))
-    print("datos pagínados: ", context["datos"])
+    print("datos pagínados: ", context["data"])
     return JsonResponse(context, safe = False)
 
 
