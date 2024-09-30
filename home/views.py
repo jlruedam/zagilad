@@ -89,6 +89,14 @@ def listar_actividades_inconsistencias(request):
     actividades = Actividad.objects.exclude(inconsistencias = None).order_by("id")
     context = paginacion_actividades.actividades_paginadas(dt,actividades)
     return JsonResponse(context, safe = False)
+
+
+@login_required(login_url="/login/")
+def listar_actividades_admisionadas(request):
+    dt = request.POST
+    actividades = Actividad.objects.exclude(admision = None).order_by("id")
+    context = paginacion_actividades.actividades_paginadas(dt,actividades)
+    return JsonResponse(context, safe = False)
     
 
 @login_required(login_url="/login/")
