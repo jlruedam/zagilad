@@ -7,7 +7,7 @@ def genera_excel_carga(actividades_carga):
 
     dict_carga = {
         'id':list(actividades_carga.values_list('id', flat=True)),
-        'admision':list(actividades_carga.values_list('admision', flat=True)),
+        'admision':list(actividades_carga.values_list('admision__numero_estudio', flat=True)),
         'identificador':list(actividades_carga.values_list('identificador', flat=True)),
         'regional':list(actividades_carga.values_list('regional', flat=True)),
         'fecha_servicio':list(actividades_carga.values_list('fecha_servicio', flat=True)),

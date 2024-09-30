@@ -19,6 +19,7 @@ from home.modules import peticiones_http, admision, parametros_generales
 from home.modules import task, forms, generador_excel
 from home.models import TipoActividad, Actividad, ParametrosAreaPrograma
 from home.models import Admision, AreaPrograma, Carga
+from home.modules import paginacion_actividades
 
 
 # Create your views here.
@@ -84,57 +85,18 @@ def vista_actividades_inconsistencias(request):
 
 @login_required(login_url="/login/")
 def listar_actividades_inconsistencias(request):
-    context = {}
     dt = request.POST
-    draw = int(dt.get("draw"))
-    start = int(dt.get("start"))
-    length = int(dt.get("length"))
-    search = dt.get("search[value]")
     actividades = Actividad.objects.exclude(inconsistencias = None).order_by("id")
-    print("SEARCH:", search)
-    print("START:", start)
-    print("LENGTH:", length)
-
-    if search:
-        # Filtrar los campos que son texto
-        filtros = Q(id__icontains=search)|Q(tipo_fuente__icontains=search)|Q(regional__icontains=search)
-        filtros |= Q(nombre_actividad__icontains=search)|Q(diagnostico_p__icontains=search)|Q(documento_paciente__icontains=search)
-        filtros |= Q(nombre_paciente__icontains=search)|Q(inconsistencias__icontains=search)
-        filtros |= Q(tipo_documento=search)
-        # Intentamos convertir el valor a una fecha 
-        try:
-            fecha = datetime.strptime(search, "%d/%m/%Y").date()
-            filtros |= Q(fecha_servicio=fecha)
-        except ValueError:
-            pass
-
-        
-        actividades = actividades.filter(filtros )
-
-    # Preparamos la salida
-    total_registros = actividades.count()
-    context["draw"] = draw
-    context["recordsTotal"] = total_registros
-    context["recordsFiltered"] = total_registros
-
-    registros = actividades[start:(start + length)]
-    paginator = Paginator(registros, length)
-
-    # https://www.youtube.com/watch?v=UP9qBWI5G4E
-    try:
-        obj = paginator.page(draw).object_list
-    except PageNotAnInteger:
-        obj = paginator.page(draw).object_list
-    except EmptyPage:
-        obj = paginator.page(paginator.num_pages).object_list
-
-    context["data"] = list((obj).values_list('id', 'tipo_fuente', 'regional', 'fecha_servicio', 
-                                              'nombre_actividad','diagnostico_p', 'tipo_documento', 'documento_paciente',
-                                              'nombre_paciente', 'carga', 'inconsistencias'))
-    print("datos pagínados: ", context["data"])
+    context = paginacion_actividades.actividades_paginadas(dt,actividades)
     return JsonResponse(context, safe = False)
+    
 
-
+@login_required(login_url="/login/")
+def listar_actividades_carga(request, num_carga):
+    dt = request.POST
+    actividades = Actividad.objects.filter(carga = num_carga).order_by("id")
+    context = paginacion_actividades.actividades_paginadas(dt,actividades)
+    return JsonResponse(context, safe = False)
 
 @login_required(login_url="/login/")
 def tipos_actividad(request):
@@ -147,7 +109,6 @@ def parametros_area_programa(request):
     areas = ParametrosAreaPrograma.objects.all()
     ctx = {"areas":areas}
     return render(request,"home/parametrosPrograma.html",ctx)
-
 
 @login_required(login_url="/login/")
 def informe_cargas(request):
@@ -163,18 +124,18 @@ def informe_cargas(request):
 def ver_carga(request, id_carga, pagina):
 
     carga = Carga.objects.get(id= id_carga)
-    actividades_carga = Actividad.objects.filter(carga = carga)
+    # actividades_carga = Actividad.objects.filter(carga = carga)
 
-    paginador = Paginator(actividades_carga, 10)
-    pagina_previa = int(pagina)-1
-    pagina_siguiente = int(pagina)+1
+    # paginador = Paginator(actividades_carga, 10)
+    # pagina_previa = int(pagina)-1
+    # pagina_siguiente = int(pagina)+1
     
     ctx = {
         "carga":carga,
-        "pagina":paginador.page(pagina),
-        "pagina_previa":pagina_previa,
-        "pagina_siguiente":pagina_siguiente,
-        "total_paginas":paginador.num_pages
+        # "pagina":paginador.page(pagina),
+        # "pagina_previa":pagina_previa,
+        # "pagina_siguiente":pagina_siguiente,
+        # "total_paginas":paginador.num_pages
     }
     return render(request,"home/verCarga.html",ctx)
 

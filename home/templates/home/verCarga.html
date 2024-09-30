@@ -14,7 +14,7 @@
         <div class="mybtn"><a href=""><img width="20" height="20" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>Actividades inconsistencias: <br> {{carga.cantidad_actividades_inconsistencias}}</a></div>
         <div class="mybtn"><a href=""><img width="20" height="20" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>Actividades para admisionar: <br> {{carga.cantidad_actividades_ok}}</a></div>
         <div class="mybtn"><a href=""><img width="20" height="20" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>Actividades admisionadas: <br> {{carga.cantidad_actividades_admisionadas}}</a></div>
-        <div class="mybtn">Tiempo procesamiento:<br>{{carga.tiempo_procesamiento|stringformat:"1.2f"}} min</div>
+        <div class="mybtn">Tiempo de carga inicial:<br>{{carga.tiempo_procesamiento|stringformat:"1.2f"}} min</div>
     </div>
     <!-- <div class="bloqueInfo">
         <div class="mybtn">Actividades en total: {{carga.cantidad_actividades}}</div>
@@ -24,7 +24,7 @@
         <div class="mybtn">Tiemdivo procesamiento:{{carga.tiempo_procesamiento}} min</div>
     </div> -->
     <div class = "bloqueTabla">
-        <table id="tablaActividadesCargadas">
+        <table id="tablaActividadesCargadas" carga="{{carga.id}}">
             <caption>
                 <h2>
                     Actividades de la Carga {{carga.id}}
@@ -36,85 +36,26 @@
                     <th>Regional</th>
                     <th>Fecha servicio</th>
                     <th>Nombre actividad</th>
-                    <th>Diagnóstico</th>
+                    <th>Diagnóstico Principal</th>
                     <th>Tipo documento</th>
                     <th>Documento paciente</th>
                     <th>Nombre paciente</th>
+                    <th>Carga</th>
                     <th>Admisión</th>
                     <th>Inconsistencias</th>
                     <th>Gestion</th>
                 </tr>
-    
             </thead>
-            <tbody>
-                {% for actividad in pagina.object_list %}
-                <tr>
-                    <td>{{actividad.id}}</td>
-                    <td>{{actividad.regional}}</td>
-                    <td>{{actividad.fecha_servicio}}</td>
-                    <td>{{actividad.nombre_actividad}}</td>
-                    <td>{{actividad.diagnostico_p}}</td>
-                    <td>{{actividad.tipo_documento}}</td>
-                    <td>{{actividad.documento_paciente}}</td>
-                    <td>{{actividad.nombre_paciente}}</td>
-                    <td>{{actividad.admision.numero_estudio}}</td>
-                    <td>{{actividad.inconsistencias}}</td>
-                    <td>
-                        <div class="btns-gestion">
-                            {% if actividad.admision %}
-                                Admisionada
-                            {% else %}
-                                <span class = "mybtn-emoji"><a href="/admisionarActividadIndividual/{{actividad.id}}/{{pagina.number}}" title="Admisionar">🆙</a></span>
-                                <span class = "mybtn-emoji"><a href="/eliminarActividadIndividual/{{actividad.id}}/{{pagina.number}}" title="Eliminar">🗑️</a></span>
-                            {% endif %}
-                            
-                            
-
-                        </div> 
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
+           
         </table>
         
     </div>
-    <div class = "bloquePaginacion">
-        <nav class="nav_paginacion">
-            <ul class="list_paginacion">
-                {% if pagina_previa  %}
-                <li class="list_paginacion__item"><a class="list_paginacion__link" href="/verCarga/{{carga.id}}/{{pagina_previa}}" >Previous</a></li>
-                
-                <!-- <li class="list_paginacion__item">
-                    <a class="list_paginacion__link" href="">
-                    {{pagina_previa}}
-                    </a>
-                </li> -->
-                <li class="list_paginacion__item"><a class="list_paginacion__link" href="/verCarga/{{carga.id}}/1">1...</a></li>
-                {% endif %}
-                
-                <li class="list_paginacion__item">
-                    <a class="list_paginacion__link" href="">
-                        <i>{{pagina.number}}*</i>
-                    </a>
-                </li>
-                {% if pagina_siguiente <= total_paginas %}
-                <li class="list_paginacion__item">
-                    <a class="list_paginacion__link" href="/verCarga/{{carga.id}}/{{pagina_siguiente}}">
-                        {{pagina_siguiente}}  
-                    </a>
-                </li>
-                
-                <li class="list_paginacion__item"><a class="list_paginacion__link" href="/verCarga/{{carga.id}}/{{total_paginas}}">...{{total_paginas}}</a></li>
-                <li class="list_paginacion__item"><a class="list_paginacion__link" href="/verCarga/{{carga.id}}/{{pagina_siguiente}}">Next</a></li>
-                {% endif %}
-            </ul>
-        </nav>
-    </div>
+    
    
   
 {% endblock content %}
 
 <!-- Specific Page JS goes HERE  -->
 {% block javascripts %}
-
+<script src="../../static/assets/js/cargarActividadesCarga.js"></script>
 {% endblock javascripts %}
