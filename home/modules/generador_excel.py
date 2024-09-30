@@ -2,9 +2,31 @@ import pandas as pd
 from pandas import ExcelWriter
 import datetime
 
+
+
 #-------------------------------------------------------
+
+
 def genera_excel_carga(actividades_carga):
 
+    dict_carga = {
+        'id':[],
+        'admision':[],
+        'identificador':[],
+        'regional':[],
+        'fecha_servicio':[],
+        'nombre_actividad':[],
+        'diagnostico_p':[],
+        'diagnostico_1':[],
+        'diagnostico_2':[],
+        'diagnostico_3':[],
+        'tipo_documento':[],
+        'documento_paciente':[],
+        'nombre_paciente':[],
+        'carga':[],
+        'inconsistencias':[],
+    }
+    
     dict_carga = {
         'id':list(actividades_carga.values_list('id', flat=True)),
         'admision':list(actividades_carga.values_list('admision__numero_estudio', flat=True)),

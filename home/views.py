@@ -90,7 +90,6 @@ def listar_actividades_inconsistencias(request):
     context = paginacion_actividades.actividades_paginadas(dt,actividades)
     return JsonResponse(context, safe = False)
 
-
 @login_required(login_url="/login/")
 def listar_actividades_admisionadas(request):
     dt = request.POST
@@ -98,7 +97,6 @@ def listar_actividades_admisionadas(request):
     context = paginacion_actividades.actividades_paginadas(dt,actividades)
     return JsonResponse(context, safe = False)
     
-
 @login_required(login_url="/login/")
 def listar_actividades_carga(request, num_carga):
     dt = request.POST
@@ -323,9 +321,23 @@ def descargar_archivo(request, nombre_archivo):
     return FileResponse(open(FOLDER_MEDIA+nombre_archivo, 'rb'), as_attachment=True, filename = nombre_archivo)
 
 @login_required(login_url="/login/")    
-def exportar_carga_excel(request, id_carga):
-    actividades_carga = Actividad.objects.filter(carga = id_carga)
-    generador_excel.genera_excel_carga(actividades_carga)
+def exportar_carga_excel(request, id_carga,tipo):
+    FOLDER_MEDIA = 'media/'
     nombre_archivo = 'listado_actividades_carga.xlsx'
-    FOLDER_MEDIA = 'media/'    
+    print(id_carga)
+    if tipo == "all":
+        print(tipo)
+        actividades_carga = Actividad.objects.filter(carga = id_carga)
+    if tipo == 'inconsistencias':  
+        print(tipo)
+        actividades_carga = Actividad.objects.filter(carga = id_carga).exclude(inconsistencias = None)
+        print(actividades_carga)
+    if tipo == 'admisionadas':
+        print(tipo)
+        actividades_carga = Actividad.objects.filter(carga = id_carga).exclude(admision = None)
+    if tipo == 'admisionar':
+        print(tipo)
+        actividades_carga = Actividad.objects.filter(carga = id_carga).filter(admision = None, inconsistencias = None)
+    
+    generador_excel.genera_excel_carga(actividades_carga)
     return FileResponse(open(FOLDER_MEDIA+nombre_archivo, 'rb'), as_attachment=True, filename = nombre_archivo)

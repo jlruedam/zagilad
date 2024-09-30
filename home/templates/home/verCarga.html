@@ -10,10 +10,10 @@
         <div class="mybtn"><a href="/admisionarActividadesCarga/{{carga.id}}" onclick="alert('🔃Admisiones en proceso!')">Admisionar actividades</a></div>
         <div class="mybtn"><a href="/eliminarActividadesInconsistenciaCarga/{{carga.id}}">Eliminar actividades con inconsistencias</a></div>
         <!-- <div class="mybtn"><a href="/exportarCargaExcel/{{carga.id}}"><img width="80" height="80" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/></a></div> -->
-        <div class="mybtn"><a href=""><img width="20" height="20" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>Actividades en total: <br> {{carga.cantidad_actividades}}</a></div>
-        <div class="mybtn"><a href=""><img width="20" height="20" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>Actividades inconsistencias: <br> {{carga.cantidad_actividades_inconsistencias}}</a></div>
-        <div class="mybtn"><a href=""><img width="20" height="20" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>Actividades para admisionar: <br> {{carga.cantidad_actividades_ok}}</a></div>
-        <div class="mybtn"><a href=""><img width="20" height="20" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>Actividades admisionadas: <br> {{carga.cantidad_actividades_admisionadas}}</a></div>
+        <div class="mybtn"><a href="/exportarCargaExcel/{{carga.id}}/all"><img width="20" height="20" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>Actividades en total: <br> {{carga.cantidad_actividades}}</a></div>
+        <div class="mybtn"><a href="/exportarCargaExcel/{{carga.id}}/inconsistencias"><img width="20" height="20" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>Actividades inconsistencias: <br> {{carga.cantidad_actividades_inconsistencias}}</a></div>
+        <div class="mybtn"><a href="/exportarCargaExcel/{{carga.id}}/admisionar"><img width="20" height="20" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>Actividades para admisionar: <br> {{carga.cantidad_actividades_ok}}</a></div>
+        <div class="mybtn"><a href="/exportarCargaExcel/{{carga.id}}/admisionadas"><img width="20" height="20" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>Actividades admisionadas: <br> {{carga.cantidad_actividades_admisionadas}}</a></div>
         <div class="mybtn">Tiempo de carga inicial:<br>{{carga.tiempo_procesamiento|stringformat:"1.2f"}} min</div>
     </div>
     <!-- <div class="bloqueInfo">
