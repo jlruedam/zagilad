@@ -14,8 +14,10 @@
             <li><a href="/vistaActividadesInconsistencias/">Actividades con inconsistencias</a></li>
             <!-- <li><a href="/vistaListadoAdmisiones/">listado admisiones</a></li> -->
             <!-- <li><a href="/cargarTiposActividad/">Cargar tipos de actividades</a></li> -->
+            {% if request.user.is_staff %}
             <li><a href="/consultasZeus/">Consultas Zeus</a></li>
             <li><a href="/administrador/" target="">Administrador</a></li>
+            {% endif %}
             <!-- <li><a href="/perfilUsuario/">Perfil usuario</a></li> -->
         </ul>
     </div>
