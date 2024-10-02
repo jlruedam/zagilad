@@ -22,6 +22,7 @@ $(document).ready(async function () {
             {data:'admision__numero_estudio'},
             // {data:'inconsistencias'},
         ],
+        ordering:false,
         processing:true,
         serverSide:true,
         

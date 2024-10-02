@@ -110,7 +110,7 @@ def listar_unidades_funcionales(request):
     cantidad_bd_unidades = UnidadFuncional.objects.count()
     cantidad_respuesta = len(respuesta)
 
-    if cantidad_bd_unidades != cantidad_respuesta:
+    if cantidad_bd_unidades <= 0:
 
         for uf in respuesta:
             print("-"*100)
@@ -131,7 +131,7 @@ def listar_centros_costos(request):
     cantidad_bd_centros = PuntoAtencion.objects.count()
     cantidad_respuesta = len(respuesta)
 
-    if cantidad_bd_centros != cantidad_respuesta:
+    if cantidad_bd_centros <= 0:
 
         for centro in respuesta:
             print("-"*100)
@@ -154,7 +154,7 @@ def listar_puntos_atencion(request):
     cantidad_bd_puntos = PuntoAtencion.objects.count()
     cantidad_respuesta = len(respuesta)
 
-    if cantidad_bd_puntos != cantidad_respuesta:
+    if cantidad_bd_puntos <= 0:
 
         for punto in respuesta:
             print("-"*100)
@@ -179,7 +179,8 @@ def listar_contratos(request):
     respuesta = peticiones_http.consultar_data("/api/Contratos",token = token)
     cantidad_bd_contratos = Contrato.objects.count()
     cantidad_respuesta = len(respuesta)
-    if cantidad_bd_contratos != cantidad_respuesta:
+
+    if cantidad_bd_contratos <= 0:
 
         for contrato in respuesta:
             print("-"*100)
@@ -248,7 +249,7 @@ def listar_seriales_sedes(request):
     cantidad_bd_sedes = PuntoAtencion.objects.count()
     cantidad_respuesta = len(respuesta)
 
-    if cantidad_bd_sedes != cantidad_respuesta:
+    if cantidad_bd_sedes <= 0:
 
         for sede in respuesta:
             print("-"*100)
@@ -273,7 +274,7 @@ def listar_tipos_servicios(request):
     cantidad_bd_servicios = PuntoAtencion.objects.count()
     cantidad_respuesta = len(respuesta)
 
-    if cantidad_bd_servicios != cantidad_respuesta:
+    if cantidad_bd_servicios <= 0:
 
         for servicio in respuesta:
             print("-"*100)

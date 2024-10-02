@@ -5,6 +5,7 @@ $(document).ready(async function () {
             url:"/listarActividadesInconsistencias/",
             dataSrc:'data',
             type:'POST',
+            
             headers: {
                 'X-CSRFToken': csrftoken,
             },
@@ -18,10 +19,15 @@ $(document).ready(async function () {
             {data:'tipo_documento'}, 
             {data:'documento_paciente'},
             {data:'nombre_paciente'}, 
-            {data:'carga'},
+            {data:'carga',
+                "render": function(data, type, row) {
+                    return '<a href="/verCarga/'+data+'/1">'+data+'</a>'
+                 }
+            },
             {data:'admision__numero_estudio'},
             {data:'inconsistencias'},
         ],
+        ordering:false,
         processing:true,
         serverSide:true,
         

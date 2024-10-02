@@ -179,8 +179,7 @@ def cargar_configuracion_default():
                regional = regional
             )
             regional_nueva.save()
-
-        
+    
     areas = AreaPrograma.objects.count()
     if not areas:
         for identificador,nombre in (parametros_arranque["AREA"]).items():

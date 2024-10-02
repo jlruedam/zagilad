@@ -30,6 +30,7 @@ $(document).ready(async function () {
             },
             
         ],
+        ordering:false,
         processing:true,
         serverSide:true,
     }); 
