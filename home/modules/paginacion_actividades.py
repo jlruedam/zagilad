@@ -50,7 +50,7 @@ def actividades_paginadas(dt, actividades):
 
     context["data"] = list((obj).values('id','regional', 'fecha_servicio', 
                                               'nombre_actividad','diagnostico_p', 'tipo_documento', 'documento_paciente',
-                                              'nombre_paciente', 'carga','admision__numero_estudio','inconsistencias'))
+                                              'nombre_paciente', 'carga','admision__numero_estudio','inconsistencias', 'medico__documento'))
     print("datos pagínados: ", context["data"])
 
     return context

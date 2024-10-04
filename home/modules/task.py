@@ -11,6 +11,7 @@ from celery.utils.log import get_task_logger
 # ZAGILAD
 from home.models import TipoActividad, Actividad, ParametrosAreaPrograma 
 from home.models import Regional, Admision, AreaPrograma, Carga
+from zeus_mirror.models import Medico
 from home.modules import peticiones_http
 from home.modules import validador_actividades
 from home.modules import notificaciones_email
@@ -46,11 +47,14 @@ def procesar_cargue_actividades(id_carga, dict_data):
             actividad.fecha_servicio = str(valores[7])
             actividad.nombre_actividad = (valores[8]).strip()
             actividad.diagnostico_p = valores[9]
+            actividad.medico = Medico.objects.get(documento = valores[10])
 
             # Consultador datos del afiliado
             ruta = f"/api/SisDeta/GetDatosBasicosPaciente?NumeroIdentificacion={actividad.documento_paciente}&TipoIdentificacion={actividad.tipo_documento}"
             datos_afiliado = peticiones_http.consultar_data(ruta)
 
+
+            # Validar afiliado en Zeus
             if len(datos_afiliado['Datos']):
                 # Atributos inferidos
                 regional = Regional.objects.get(regional = actividad.regional)
@@ -97,13 +101,16 @@ def procesar_cargue_actividades(id_carga, dict_data):
     return "CARGUE PROCESADO"
 
 @shared_task
-def tarea_admisionar_actividades_carga(token, id_carga):
-    
+def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
+    respuesta = []
     carga = Carga.objects.get(id = int(id_carga))
-    
+
     # Buscar las actividades sin admisión relacionadas a la carga
     actividades_carga = Actividad.objects.filter(carga = carga).filter(admision = None)
-
+    
+    if id_actividad:
+        actividades_carga = Actividad.objects.filter(carga = carga, id=id_actividad).filter(admision = None)
+    
     for actividad in actividades_carga:
 
         # Consultador datos del afiliado
@@ -119,50 +126,60 @@ def tarea_admisionar_actividades_carga(token, id_carga):
                     print("ACTIVIDAD YA SE ENCUENTRA CARGADA PARA ESTE PACIENTE")
                     actividad.inconsistencias= "⚠️ Actividad repetida"
                 else:
-                    # AutoID y nombre del regimen del afiliado
-                    auto_id = datos_afiliado['Datos'][0]['autoid']
-                    regimen = datos_afiliado['Datos'][0]['NombreRegimen']
+                    try:
+                        # AutoID y nombre del regimen del afiliado
+                        auto_id = datos_afiliado['Datos'][0]['autoid']
+                        regimen = datos_afiliado['Datos'][0]['NombreRegimen']
 
-                    # Inicializo la admisión con los parametros generales y la información de la actividad
-                    admision_actividad = admision.crear_admision(
-                        autoid = auto_id,
-                        regimen = regimen,
-                        codigo_entidad = parametros_generales.CODIGO_ENTIDAD[regimen],
-                        medico = parametros_generales.CODIGO_MEDICO,
-                        num_usuario =parametros_generales.NUMERO_USUARIO,
-                        usuario_id = parametros_generales.IDENTIFICACION_USUARIO,
-                        usuario_nombre = parametros_generales.NOMBRE_USUARIO,
-                        tipo_diag = parametros_generales.TIPO_DIAGNOSTICO,
-                        actividad = actividad
-                    )
+                        # Inicializo la admisión con los parametros generales y la información de la actividad
+                        admision_actividad = admision.crear_admision(
+                            autoid = auto_id,
+                            regimen = regimen,
+                            codigo_entidad = parametros_generales.CODIGO_ENTIDAD[regimen],
+                            num_usuario =parametros_generales.NUMERO_USUARIO,
+                            usuario_id = parametros_generales.IDENTIFICACION_USUARIO,
+                            usuario_nombre = parametros_generales.NOMBRE_USUARIO,
+                            tipo_diag = parametros_generales.TIPO_DIAGNOSTICO,
+                            actividad = actividad
+                        )
 
-                    # Enviar Admisión a Zeus
-                    respuesta = peticiones_http.crear_admision(admision_actividad,token)
-                    print("CARGUE DE ADMISIÓN: ",respuesta['Datos'][0]['infoTrasaction'], type(respuesta['Datos'][0]['infoTrasaction']))
-
-                    respuesta_admision = ast.literal_eval(respuesta['Datos'][0]['infoTrasaction'])
-                    print("RESPUESTA ADMISIÓN:",respuesta_admision[0], type(respuesta_admision[0]))
-
-                    # Encapsular respuesta
-                    datos_error = respuesta_admision[0]['DatosEnError']
-                    datos_guardados = respuesta_admision[0]['DatosGuardados']
-                    print(datos_error, datos_guardados)
-
-                    if datos_error:
-                        actividad.inconsistencias = datos_error[0]
+                        try:
+                            # Enviar Admisión a Zeus
+                            respuesta = peticiones_http.crear_admision(admision_actividad,token)
+                            print("CARGUE DE ADMISIÓN: ",respuesta['Datos'][0]['infoTrasaction'], type(respuesta['Datos'][0]['infoTrasaction']))
                         
-                    
-                    if datos_guardados:
-                        numero_estudio = datos_guardados[0]['Estudio']
-                        print("NÚMERO DE ESTUDIO:", numero_estudio)
+                            if respuesta:
 
-                        nueva_admision = Admision()
-                        nueva_admision.documento_paciente = actividad.documento_paciente
-                        nueva_admision.numero_estudio = numero_estudio
-                        nueva_admision.json = json.dumps(admision_actividad)
-                        nueva_admision.save()
+                                respuesta_admision = ast.literal_eval(respuesta['Datos'][0]['infoTrasaction'])
+                                print("RESPUESTA ADMISIÓN:",respuesta_admision[0], type(respuesta_admision[0]))
 
-                        actividad.admision = nueva_admision
+                                # Encapsular respuesta
+                                datos_error = respuesta_admision[0]['DatosEnError']
+                                datos_guardados = respuesta_admision[0]['DatosGuardados']
+                                print(datos_error, datos_guardados)
+
+                                if datos_error:
+                                    actividad.inconsistencias = datos_error[0]
+                                    
+                                
+                                if datos_guardados:
+                                    numero_estudio = datos_guardados[0]['Estudio']
+                                    print("NÚMERO DE ESTUDIO:", numero_estudio)
+
+                                    nueva_admision = Admision()
+                                    nueva_admision.documento_paciente = actividad.documento_paciente
+                                    nueva_admision.numero_estudio = numero_estudio
+                                    nueva_admision.json = json.dumps(admision_actividad)
+                                    nueva_admision.save()
+
+                                    actividad.admision = nueva_admision
+                        except Exception as e:
+                            print("Error al enviar admisión: ", e)
+                            actividad.inconsistencias = "⚠️Error al enviar admisión: "+ str(e)
+                
+                    except Exception as e:
+                        print("Error al crear la admisión: ", e)
+                        actividad.inconsistencias = "⚠️Error al crear la admisión: "+ str(e)
             else:
                 actividad.inconsistencias = "⚠️" + "Paciente no está registrado en Zeus"
                 print("Paciente no está registrado en Zeus")
@@ -172,170 +189,14 @@ def tarea_admisionar_actividades_carga(token, id_carga):
             actividad.inconsistencias = str(e)
 
         actividad.save()  
+
     carga.estado = "procesada"
     carga.actualizar_info_actividades()
     carga.save()
 
-
     # Enviar un correo de notificación cuando termine el Cargue
-    
-    # colaborador = Colaborador.objects.filter(usuario = carga.usuario)
-    # if colaborador:
-    #     if len(colaborador[0].email):
-            # notificaciones_email.notificar_carga_admisionada(carga, [colaborador[0].email])
-    
-    if len(carga.usuario.email):
+    if len(carga.usuario.email) and len(actividades_carga > 1):
         notificaciones_email.notificar_carga_admisionada(carga, [carga.usuario.email])
 
     return f"CARGA PROCESADA"
 
-@shared_task
-def tarea_admisionar_actividad_individual(token, id_actividad):
-    
-
-    actividad = Actividad.objects.get(id = id_actividad)
-
-    # Consultador datos del afiliado
-    ruta = f"/api/SisDeta/GetDatosBasicosPaciente?NumeroIdentificacion={actividad.documento_paciente}&TipoIdentificacion={actividad.tipo_documento}"
-    datos_afiliado = peticiones_http.consultar_data(ruta)
-
-    try:
-        # Si el afiliado existe
-        if len(datos_afiliado['Datos']):
-
-            # Validar si la actividad está repetida
-            if validador_actividades.valida_actividad_repectiva_paciente(actividad, actividad.carga):
-                print("ACTIVIDAD YA SE ENCUENTRA CARGADA PARA ESTE PACIENTE")
-                actividad.inconsistencias= "⚠️ Actividad repetida"
-            else:
-                # AutoID y nombre del regimen del afiliado
-                auto_id = datos_afiliado['Datos'][0]['autoid']
-                regimen = datos_afiliado['Datos'][0]['NombreRegimen']
-
-                # Inicializo la admisión con los parametros generales y la información de la actividad
-                admision_actividad = admision.crear_admision(
-                    autoid = auto_id,
-                    regimen = regimen,
-                    codigo_entidad = parametros_generales.CODIGO_ENTIDAD[regimen],
-                    medico = parametros_generales.CODIGO_MEDICO,
-                    num_usuario =parametros_generales.NUMERO_USUARIO,
-                    usuario_id = parametros_generales.IDENTIFICACION_USUARIO,
-                    usuario_nombre = parametros_generales.NOMBRE_USUARIO,
-                    tipo_diag = parametros_generales.TIPO_DIAGNOSTICO,
-                    actividad = actividad
-                )
-
-                # Enviar Admisión a Zeus
-                respuesta = peticiones_http.crear_admision(admision_actividad,token)
-                print("CARGUE DE ADMISIÓN: ",respuesta['Datos'][0]['infoTrasaction'], type(respuesta['Datos'][0]['infoTrasaction']))
-
-                respuesta_admision = ast.literal_eval(respuesta['Datos'][0]['infoTrasaction'])
-                print("RESPUESTA ADMISIÓN:",respuesta_admision[0], type(respuesta_admision[0]))
-
-                # Encapsular respuesta
-                datos_error = respuesta_admision[0]['DatosEnError']
-                datos_guardados = respuesta_admision[0]['DatosGuardados']
-                print(datos_error, datos_guardados)
-
-                if datos_error:
-                    actividad.inconsistencias = datos_error[0]
-                    
-                
-                if datos_guardados:
-                    numero_estudio = datos_guardados[0]['Estudio']
-                    print("NÚMERO DE ESTUDIO:", numero_estudio)
-
-                    nueva_admision = Admision()
-                    nueva_admision.documento_paciente = actividad.documento_paciente
-                    nueva_admision.numero_estudio = numero_estudio
-                    nueva_admision.json = json.dumps(admision_actividad)
-                    nueva_admision.save()
-
-                    actividad.admision = nueva_admision
-        else:
-            actividad.inconsistencias = "⚠️" + "Paciente no está registrado en Zeus"
-            print("Paciente no está registrado en Zeus")
-
-    except Exception as e:
-        print(e)
-        actividad.inconsistencias = str(e)
-
-    actividad.save()  
-    actividad.carga.actualizar_info_actividades()
-    actividad.carga.save()
-
-    return f"CARGA PROCESADA"
-
-@shared_task
-def tarea_grabar_admisiones(token):
-    
-    cargas = Carga.objects.filter(estado = "procesada")
-    for carga in cargas: 
-        # Buscar las actividades sin inconsistencia al ser procesadas
-        actividades_carga = Actividad.objects.filter(carga = carga).filter(inconsistencias = None).filter(admision = None)
-
-        for actividad in actividades_carga:
-
-            # Consultador datos del afiliado
-            ruta = f"/api/SisDeta/GetDatosBasicosPaciente?NumeroIdentificacion={actividad.documento_paciente}&TipoIdentificacion={actividad.tipo_documento}"
-            datos_afiliado = peticiones_http.consultar_data(ruta)
-
-            try:
-                # AutoID y nombre del regimen del afiliado
-                auto_id = datos_afiliado['Datos'][0]['autoid']
-                regimen = datos_afiliado['Datos'][0]['NombreRegimen']
-
-                # Inicializo la admisión con los parametros generales y la informaciónde la actividad
-                admision_actividad = admision.crear_admision(
-                    autoid = auto_id,
-                    regimen = regimen,
-                    codigo_entidad = parametros_generales.CODIGO_ENTIDAD[regimen],
-                    medico = parametros_generales.CODIGO_MEDICO,
-                    num_usuario =parametros_generales.NUMERO_USUARIO,
-                    usuario_id = parametros_generales.IDENTIFICACION_USUARIO,
-                    usuario_nombre = parametros_generales.NOMBRE_USUARIO,
-                    tipo_diag = parametros_generales.TIPO_DIAGNOSTICO,
-                    actividad = actividad
-                )
-
-                # Enviar Admisión a Zeus
-                respuesta = peticiones_http.crear_admision(admision_actividad,token)
-                print("CARGUE DE ADMISIÓN: ",respuesta['Datos'][0]['infoTrasaction'], type(respuesta['Datos'][0]['infoTrasaction']))
-
-                respuesta_admision = ast.literal_eval(respuesta['Datos'][0]['infoTrasaction'])
-                print("RESPUESTA ADMISIÓN:",respuesta_admision[0], type(respuesta_admision[0]))
-
-                # Encapsular respuesta
-                datos_error = respuesta_admision[0]['DatosEnError']
-                datos_guardados = respuesta_admision[0]['DatosGuardados']
-                print(datos_error, datos_guardados)
-
-                if datos_error:
-                    if actividad.inconsistencias:
-                        actividad.inconsistencias += "/" + datos_error[0]
-                    else: 
-                        actividad.inconsistencias += datos_error[0]
-                
-                if datos_guardados:
-
-                    numero_estudio = datos_guardados[0]['Estudio']
-                    print("NÚMERO DE ESTUDIO:", numero_estudio)
-
-                    nueva_admision = Admision()
-                    nueva_admision.documento_paciente = actividad.documento_paciente
-                    nueva_admision.numero_estudio = numero_estudio
-                    nueva_admision.json = json.dumps(admision_actividad)
-                    nueva_admision.save()
-
-                    actividad.admision = nueva_admision
-                    actividad.save()
-
-            except Exception as e:
-                print(e)
-                if actividad.inconsistencias:
-                    actividad.inconsistencias += "/" + str(e)
-                else: 
-                    actividad.inconsistencias += str(e)
-           
-    
-    return "ACTIVIDADES ADMISIONADAS"

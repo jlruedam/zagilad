@@ -15,7 +15,7 @@ from home.modules import peticiones_http
 
 # MODELS zeus mirror
 from zeus_mirror.models import Contrato, UnidadFuncional, PuntoAtencion 
-from zeus_mirror.models import CentroCosto, Sede, TipoServicio
+from zeus_mirror.models import CentroCosto, Sede, TipoServicio, Medico
 
 # Create your views here.
 
@@ -47,15 +47,6 @@ def consultar_datos_paciente(request):
     ruta = f"/api/SisDeta/GetDatosBasicosPaciente?NumeroIdentificacion={id}&TipoIdentificacion={tipo}"
 
     respuesta = peticiones_http.consultar_data(ruta)
-    print(respuesta, type(respuesta))
-
-    # https://dev.to/chryzcode/django-json-response-safe-false-4f9i
-    return JsonResponse(respuesta, safe = False)
-
-def consultar_medicos(request):
-    
-    print(request.GET)
-    respuesta = peticiones_http.consultar_data("/api/SisMedi")
     print(respuesta, type(respuesta))
 
     # https://dev.to/chryzcode/django-json-response-safe-false-4f9i
@@ -128,7 +119,7 @@ def listar_unidades_funcionales(request):
 
 def listar_centros_costos(request):
     respuesta = peticiones_http.consultar_data("/api/CentroCostos")
-    cantidad_bd_centros = PuntoAtencion.objects.count()
+    cantidad_bd_centros = CentroCosto.objects.count()
     cantidad_respuesta = len(respuesta)
 
     if cantidad_bd_centros <= 0:
@@ -246,7 +237,7 @@ def listar_contratos(request):
 
 def listar_seriales_sedes(request):
     respuesta = peticiones_http.consultar_data("/api/Seriales")
-    cantidad_bd_sedes = PuntoAtencion.objects.count()
+    cantidad_bd_sedes = Sede.objects.count()
     cantidad_respuesta = len(respuesta)
 
     if cantidad_bd_sedes <= 0:
@@ -271,7 +262,7 @@ def listar_seriales_sedes(request):
 def listar_tipos_servicios(request):
     
     respuesta = peticiones_http.consultar_data("/api/SisTipo")
-    cantidad_bd_servicios = PuntoAtencion.objects.count()
+    cantidad_bd_servicios = TipoServicio.objects.count()
     cantidad_respuesta = len(respuesta)
 
     if cantidad_bd_servicios <= 0:
@@ -287,6 +278,26 @@ def listar_tipos_servicios(request):
             tipo_servicio.tipo = servicio['Tipo']
             tipo_servicio.tipo_servicio = servicio['Tiposervicio']
             tipo_servicio.save()
+
+    # https://dev.to/chryzcode/django-json-response-safe-false-4f9i
+    return JsonResponse(respuesta, safe = False)
+
+def consultar_medicos(request):
+    
+    respuesta = peticiones_http.consultar_data("/api/SisMedi")
+    cantidad_bd_medicos = Medico.objects.count()
+
+    if cantidad_bd_medicos <= 0:
+
+        for medico in respuesta:
+            # print("-"*100)
+            # print(medico)
+            # print("-"*100)
+            medico_bd = Medico()
+            medico_bd.codigo = medico['Codigo']
+            medico_bd.documento = medico['Cedula']
+            medico_bd.nombre = medico['Nombre']
+            medico_bd.save()
 
     # https://dev.to/chryzcode/django-json-response-safe-false-4f9i
     return JsonResponse(respuesta, safe = False)

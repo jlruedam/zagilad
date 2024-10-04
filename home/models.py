@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
-from zeus_mirror.models import Contrato, UnidadFuncional, CentroCosto, PuntoAtencion, Sede, TipoServicio
+from zeus_mirror.models import Contrato, UnidadFuncional, CentroCosto, PuntoAtencion
+from zeus_mirror.models import Sede, TipoServicio, Medico
 # Create your models here.
 
 class Admision(models.Model):
@@ -148,6 +149,7 @@ class Actividad(models.Model):
     parametros_programa =  models.ForeignKey(ParametrosAreaPrograma, models.SET_NULL, blank=True,null=True) 
     carga =  models.ForeignKey(Carga, models.SET_NULL, blank=True,null=True) 
     inconsistencias = models.CharField(max_length= 500, null=True, blank=True)
+    medico = models.ForeignKey(Medico, models.SET_NULL, blank=True,null=True) 
     created_at = models.DateTimeField(auto_now_add = True)
     updated_at = models.DateTimeField(auto_now = True)
 

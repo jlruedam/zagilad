@@ -26,6 +26,7 @@ $(document).ready(async function () {
             },
             {data:'admision__numero_estudio'},
             {data:'inconsistencias'},
+            {data:'medico__documento'},
         ],
         ordering:false,
         processing:true,

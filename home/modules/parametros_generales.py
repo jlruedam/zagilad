@@ -2,7 +2,7 @@ from ..models import ParametrosAreaPrograma,AreaPrograma, Regional
 from zeus_mirror.models import UnidadFuncional, CentroCosto, PuntoAtencion
 from zeus_mirror.views import listar_unidades_funcionales, listar_centros_costos
 from zeus_mirror.views import listar_puntos_atencion, listar_contratos
-from zeus_mirror.views import listar_seriales_sedes, listar_tipos_servicios
+from zeus_mirror.views import listar_seriales_sedes, listar_tipos_servicios, consultar_medicos
 
 # PARÁMETROS GENERALES
 CODIGO_MEDICO = 1
@@ -170,6 +170,8 @@ def cargar_configuracion_default():
     listar_contratos(0)
     listar_seriales_sedes(0)
     listar_tipos_servicios(0)
+    consultar_medicos(0)
+    
 
     regionales = Regional.objects.count()
     if not regionales:

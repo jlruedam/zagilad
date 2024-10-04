@@ -172,6 +172,7 @@ def cargar_actividades(request):
             valores[1] = (str(valores[1])).strip()
             valores[7] = (str(valores[7]).split(" "))[0]
             valores[9] = (str(valores[9])).strip()
+            valores[10] = (str(valores[10])).strip()
             valores.append("A procesar")
             respuesta.append(valores)
             
@@ -266,8 +267,7 @@ def admisionar_actividades_carga(request, id_carga):
 def admisionar_actividad_individual(request, id_actividad, pagina):
     token = peticiones_http.obtener_token()
     actividad = Actividad.objects.get(id = id_actividad)
-    task.tarea_admisionar_actividad_individual.delay(token, id_actividad)
-
+    task.tarea_admisionar_actividades_carga.delay(token, actividad.carga.id, id_actividad)
     return redirect(f'/verCarga/{actividad.carga.id}/{pagina}')
 
 @login_required(login_url="/login/")

@@ -19,6 +19,7 @@ $(document).ready(async function () {
             {data:'documento_paciente'},
             {data:'nombre_paciente'}, 
             {data:'carga'},
+            {data:'medico__documento'},
             {data:'admision__numero_estudio'},
             // {data:'inconsistencias'},
         ],

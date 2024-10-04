@@ -86,3 +86,15 @@ class TipoServicio(models.Model):
 
     def __str__(self):
         return f'TipoServicio - {self.id} - {self.id_zeus} - {self.nombre} - {self.tipo}'
+    
+class Medico(models.Model):
+    id = models.AutoField(primary_key =True)
+    codigo = models.CharField(max_length= 50)
+    documento = models.CharField(max_length= 50)
+    nombre = models.CharField(max_length= 250)
+    created_at = models.DateTimeField(auto_now_add = True)
+    updated_at = models.DateTimeField(auto_now = True)
+
+    def __str__(self):
+        return f'TipoServicio - {self.id} - {self.codigo} - {self.documento} - {self.nombre}'
+

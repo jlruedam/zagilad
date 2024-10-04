@@ -22,6 +22,7 @@ $(document).ready(async function () {
             {data:'carga'},
             {data:'admision__numero_estudio'},
             {data:'inconsistencias'},
+            {data:'medico__documento'},
             {
                 data:'id',
                 "render": function(data, type, row) {

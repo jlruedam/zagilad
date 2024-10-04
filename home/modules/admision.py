@@ -124,8 +124,11 @@ admision_prueba =  [{
 #     ]
 #   }
 # ]
-def crear_admision(autoid, regimen, codigo_entidad, medico, num_usuario, 
+def crear_admision(autoid, regimen, codigo_entidad, num_usuario, 
                    usuario_id, usuario_nombre, tipo_diag, actividad):
+    
+    if not actividad.tipo_actividad:
+        raise Exception("Tipo actividad no está definida")
     
     contrato = {
         "Subsidiado": actividad.tipo_actividad.contrato.contrato_subsidiado.codigo,
@@ -140,7 +143,7 @@ def crear_admision(autoid, regimen, codigo_entidad, medico, num_usuario,
         "Cod_clasi": "01",#QUEDMADO
         "Fecha_ing":(actividad.fecha_servicio).isoformat(),#CALCULADO
         "Hora_ing": "08:00",#QUEDMADO
-        "Cod_medico": medico,#PARAMETRO
+        "Cod_medico": actividad.medico.codigo,#PARAMETRO
         "Nro_factura": 0,#QUEDMADO
         "Estado": "A",#QUEDMADO
         "Obs": actividad.nombre_actividad,#VARIABLE
@@ -174,8 +177,8 @@ def crear_admision(autoid, regimen, codigo_entidad, medico, num_usuario,
                 "cantidad": 1, #PARÁMETRO
                 "vlr_servicio": 0,#PARÁMETRO
                 "total": 0,#PARAMETRO
-                "personal_ate": medico,#QUEMADO
-                "cod_medico": medico,#QUEMADO
+                "personal_ate": actividad.medico.codigo,#QUEMADO
+                "cod_medico":actividad.medico.codigo,#QUEMADO
                 "tipo_diag": tipo_diag,#VARIABLE
                 "cod_diap": "" if actividad.diagnostico_p == 'nan' or actividad.diagnostico_p == '0' else actividad.diagnostico_p.strip(),#VARIABLE
                 "cod_diagn1":"" if actividad.diagnostico_1 == 'nan' or actividad.diagnostico_1 == '0' else actividad.diagnostico_1.strip(),#VARIABLE

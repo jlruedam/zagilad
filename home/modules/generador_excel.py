@@ -5,8 +5,6 @@ import datetime
 
 
 #-------------------------------------------------------
-
-
 def genera_excel_carga(actividades_carga):
 
     dict_carga = {
@@ -25,6 +23,7 @@ def genera_excel_carga(actividades_carga):
         'nombre_paciente':[],
         'carga':[],
         'inconsistencias':[],
+        'medico':[]
     }
     
     dict_carga = {
@@ -43,6 +42,7 @@ def genera_excel_carga(actividades_carga):
         'nombre_paciente':list(actividades_carga.values_list('nombre_paciente', flat=True)),
         'carga':list(actividades_carga.values_list('carga', flat=True)),
         'inconsistencias':list(actividades_carga.values_list('inconsistencias', flat=True)),
+        'medico':list(actividades_carga.values_list('medico__documento', flat=True)),
     }
 
     df = pd.DataFrame(dict_carga)
