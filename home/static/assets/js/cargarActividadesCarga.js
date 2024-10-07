@@ -27,7 +27,6 @@ $(document).ready(async function () {
             {
                 data:'admision__numero_estudio',
                 "render": function(data, type, row) {
-                    admisionada = true;
                     if(data){
                         admisionada = true;
                         return '<div ><a href="">'+data+'</a></div>'
