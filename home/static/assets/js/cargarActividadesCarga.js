@@ -1,7 +1,8 @@
 $(document).ready(async function () {
     let num_carga = $('#tablaActividadesCargadas').attr('carga');
     console.log(num_carga);
-    $('#tablaActividadesCargadas').DataTable({
+    admisionada = false;
+    var tabla = $('#tablaActividadesCargadas').DataTable({
         ajax: {
             url:"/listarActividadesCarga/"+num_carga,
             dataSrc:'data',
@@ -9,6 +10,9 @@ $(document).ready(async function () {
             headers: {
                 'X-CSRFToken': csrftoken,
             },
+            data: function(d){
+                console.log(d.columns);
+            }
         },
         columns:[
             {data:'id'},
@@ -20,13 +24,27 @@ $(document).ready(async function () {
             {data:'documento_paciente'},
             {data:'nombre_paciente'}, 
             {data:'carga'},
-            {data:'admision__numero_estudio'},
+            {
+                data:'admision__numero_estudio',
+                "render": function(data, type, row) {
+                    if(data){
+                        admnisionada = true;
+                        return '<div ><a href="">'+data+'</a></div>'
+                    }
+                    return '<div ><a href=""></a></div>'
+                    
+                 }
+            },
             {data:'inconsistencias'},
             {data:'medico__documento'},
             {
                 data:'id',
                 "render": function(data, type, row) {
-                    return '<span class = "mybtn-emoji"><a href="/admisionarActividadIndividual/'+data+'/1" title="Admisionar">🆙</a></span><span class = "mybtn-emoji"><a href="/eliminarActividadIndividual/'+data+'/1" title="Eliminar">🗑️</a></span>'
+                    console.log(self.columns);
+                    if(admisionada){
+                        return '✅'
+                    }
+                    return '<div id="botonesGestionActividad"><span class = "mybtn-emoji"><a href="/admisionarActividadIndividual/'+data+'/1" title="Admisionar" id="botonesGestionActividad">🆙</a></span><span class = "mybtn-emoji"><a href="/eliminarActividadIndividual/'+data+'/1" title="Eliminar">🗑️</a></span></div>'
                  }
             },
             
@@ -34,6 +52,8 @@ $(document).ready(async function () {
         ordering:false,
         processing:true,
         serverSide:true,
-    }); 
+    });
+    
+    $('#botonesGestionActividad').html
 
 })
