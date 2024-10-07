@@ -27,8 +27,9 @@ $(document).ready(async function () {
             {
                 data:'admision__numero_estudio',
                 "render": function(data, type, row) {
+                    admisionada = true;
                     if(data){
-                        admnisionada = true;
+                        admisionada = true;
                         return '<div ><a href="">'+data+'</a></div>'
                     }
                     return '<div ><a href=""></a></div>'
@@ -41,7 +42,9 @@ $(document).ready(async function () {
                 data:'id',
                 "render": function(data, type, row) {
                     console.log(self.columns);
+                    console.log(admisionada);
                     if(admisionada){
+                        console.log(admisionada);
                         return '✅'
                     }
                     return '<div id="botonesGestionActividad"><span class = "mybtn-emoji"><a href="/admisionarActividadIndividual/'+data+'/1" title="Admisionar" id="botonesGestionActividad">🆙</a></span><span class = "mybtn-emoji"><a href="/eliminarActividadIndividual/'+data+'/1" title="Eliminar">🗑️</a></span></div>'
