@@ -1,7 +1,6 @@
 $(document).ready(async function () {
     let num_carga = $('#tablaActividadesCargadas').attr('carga');
     console.log(num_carga);
-    admisionada = false;
     var tabla = $('#tablaActividadesCargadas').DataTable({
         ajax: {
             url:"/listarActividadesCarga/"+num_carga,
@@ -27,6 +26,7 @@ $(document).ready(async function () {
             {
                 data:'admision__numero_estudio',
                 "render": function(data, type, row) {
+                    admisionada = false;
                     if(data){
                         admisionada = true;
                         return '<div ><a href="">'+data+'</a></div>'
