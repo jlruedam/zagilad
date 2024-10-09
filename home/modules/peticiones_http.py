@@ -1,6 +1,6 @@
 import requests
 import json
-
+from zagilad.settings import USUARIO_API_ZEUS, PASSWORD_API_ZEUS
 ZEUS_API = {
     "prueba":"http://10.244.21.17:8022",
     "produccion":"http://131.0.170.93:8030"
@@ -9,8 +9,8 @@ ZEUS_API = {
 # URL_API_ZEUS = ZEUS_API['prueba']
 URL_API_ZEUS = ZEUS_API['prueba']
 
-USERNAME = "administrador"
-PASSWORD = "123456"
+USERNAME = USUARIO_API_ZEUS
+PASSWORD = PASSWORD_API_ZEUS
 
 # Peticiones HTTP
 
@@ -26,7 +26,7 @@ def obtener_token():
         "UserName":USERNAME,
         "Password":PASSWORD
     }
-
+    print(auth_data)
     respuesta = requests.post(URL_API_ZEUS + ruta_endpoint, headers=cabeceras, data = json.dumps(auth_data) ) 
     if respuesta.status_code == 200:
         respuesta = respuesta.json()

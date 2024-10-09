@@ -153,7 +153,21 @@ def cargar_actividades(request):
     archivo_masivo = archivo_masivo.fillna("")
     archivo_dict = archivo_masivo.to_dict()
     respuesta = []
+
        
+   
+
+    encabezados = [ 
+        "tipo_identificacion",	"numero_identificacion", "primer_apellido",	
+        "segundo_apellido", "primer_nombre","segundo_nombre",	
+        "regional",	"fecha_gestion","nombre","ciex","medico_id"
+    ]
+
+    print(set(list(archivo_dict.keys())), set(encabezados) , set(list(archivo_dict.keys())) == set(encabezados) )
+
+    if set(list(archivo_dict.keys())) != set(encabezados):
+        raise Exception("Error en el formato")
+
     num_registros = []
     for columna in archivo_dict.values():
         num_registros.append(len(columna))
