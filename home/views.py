@@ -209,7 +209,6 @@ def procesarCargue(request):
     )
     carga_actividades.save()
 
-    
     # Aquí se debe crear la tarea programa.
     task.procesar_cargue_actividades.delay(carga_actividades.id, dict_data)
     print("Carga en proceso...")

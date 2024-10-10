@@ -85,6 +85,7 @@ class Carga(models.Model):
         ('procesando', "Carga en proceso"),
         ('procesada', "Carga procesada"), 
         ('admisionando', "Carga en proceso de creación de admisiones"), 
+        ('cancelada', "Carga presentó errores durante su procesamiento"), 
     )
     id = models.AutoField(primary_key =True)
     usuario = models.ForeignKey(User, models.SET_NULL, blank=True,null=True)
@@ -108,7 +109,6 @@ class Carga(models.Model):
         self.cantidad_actividades_admisionadas = actividades_carga.exclude(admision = None).filter(inconsistencias = None).count()
         self.cantidad_actividades_inconsistencias = self.cantidad_actividades - self.cantidad_actividades_ok - self.cantidad_actividades_admisionadas
     
-
 class TipoActividad(models.Model):
     id = models.AutoField(primary_key =True)
     grupo = models.CharField(max_length= 10, blank=True,null=True)
