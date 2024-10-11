@@ -132,6 +132,9 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
                     print("ACTIVIDAD YA SE ENCUENTRA CARGADA PARA ESTE PACIENTE")
                     actividad.inconsistencias= "⚠️ Actividad repetida"
                 else:
+                    if not actividad.tipo_actividad:
+                        actividad.tipo_actividad = TipoActividad.objects.get(nombre = actividad.nombre_actividad)
+                    
                     try:
                         # AutoID y nombre del regimen del afiliado
                         auto_id = datos_afiliado['Datos'][0]['autoid']
@@ -186,6 +189,7 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
                     except Exception as e:
                         print("Error al crear la admisión: ", e)
                         actividad.inconsistencias = "⚠️Error al crear la admisión: "+ str(e)
+                    
             else:
                 actividad.inconsistencias = "⚠️" + "Paciente no está registrado en Zeus"
                 print("Paciente no está registrado en Zeus")

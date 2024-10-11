@@ -128,7 +128,7 @@ def crear_admision(autoid, regimen, codigo_entidad, num_usuario,
                    usuario_id, usuario_nombre, tipo_diag, actividad):
     
     if not actividad.tipo_actividad:
-        raise Exception("Tipo actividad no está definida")
+        raise Exception("Tipo actividad no está definida para esta actividad")
     
     contrato = {
         "Subsidiado": actividad.tipo_actividad.contrato.contrato_subsidiado.codigo,

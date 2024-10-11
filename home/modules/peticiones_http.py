@@ -6,7 +6,7 @@ ZEUS_API = {
     "produccion":"http://131.0.170.93:8030"
 }
 
-# URL_API_ZEUS = ZEUS_API['prueba']
+# URL_API_ZEUS = ZEUS_API['produccion']
 URL_API_ZEUS = ZEUS_API['prueba']
 
 USERNAME = USUARIO_API_ZEUS
