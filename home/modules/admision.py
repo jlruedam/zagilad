@@ -63,72 +63,23 @@ admision_prueba =  [{
     }
 ]
 
-# admision_prueba = [
-#   {
-#     "autoid": 25995,
-#     "Cod_entidad": "ESS207",
-#     "tipo_estudio": "A",
-#     "nro_autoriza": "",
-#     "Cod_clasi": "01",
-#     "Fecha_ing": "2024-10-03",
-#     "Hora_ing": "08:00",
-#     "Cod_medico": 1,
-#     "Nro_factura": 123456,
-#     "Estado": "A",
-#     "Obs": "",
-#     "Cod_usuario": "1047394846",
-#     "Nom_usuario": "LUIS FERNANDO RODRIGUEZ",
-#     "Contrato": 150,
-#     "Status_regis": 0,
-#     "Estado_res": 0,
-#     "Usuario_estado_res": "1",
-#     "Codigo_servicio": 61,
-#     "Via_ingreso": 2,
-#     "Causa_ext": "13",
-#     "Terapia": 2,
-#     "Nit_asegura": "0",
-#     "Rs_asegura": "0",
-#     "Consec_soat": "",
-#     "No_poliza": 0,
-#     "Ufuncional": 61,
-#     "Embarazo": "",
-#     "Id_sede": 1,
-#     "PuntoAtencion": 20,
-#     "PolizaSalud": "",
-#     "serviciosObjDTOS": [
-#       {
-#         "autoid": 25995,
-#         "fuente_tips": 87,
-#         "num_servicio": 1,
-#         "cod_servicio": "890105",
-#         "fecha_servicio": "2024-10-03",
-#         "descripcion": "SP_MORBILIDAD_MATERNO_EXTREMA - MME",
-#         "cantidad": 1,
-#         "vlr_servicio": 0,
-#         "total": 0,
-#         "personal_ate": "1",
-#         "cod_medico": "1",
-#         "tipo_diag": 0,
-#         "cod_diap": "Z768",
-#         "cod_diagn1": "",
-#         "cod_diagn2": "",
-#         "cod_diagn3": "",
-#         "finalidad": 10,
-#         "ambito_proc": 1,
-#         "ccosto": "20",
-#         "tipo_estudio": "A",
-#         "ufuncional": 61,
-#         "usuario": 1,
-#         "tipoItem": "Procedimiento"
-#       }
-#     ]
-#   }
-# ]
-def crear_admision(autoid, regimen, codigo_entidad, num_usuario, 
-                   usuario_id, usuario_nombre, tipo_diag, actividad):
+# def crear_admision(autoid, regimen, codigo_entidad, num_usuario, 
+#                    usuario_id, usuario_nombre, tipo_diag, actividad):
     
+
+def crear_admision(autoid, regimen, codigo_entidad, tipo_diag, actividad):
+
+    # Validar tipo de actividad
     if not actividad.tipo_actividad:
-        raise Exception("Tipo actividad no está definida para esta actividad")
+        raise Exception("⚠️Tipo actividad no está definida para esta actividad")
+    
+    # Validar médico
+    if not actividad.medico:
+        raise Exception("⚠️No se tiene médico asignado")
+    
+    # Validar médico
+    if not actividad.parametros_programa:
+        raise Exception("⚠️Párametros del programa no están configurados")
     
     contrato = {
         "Subsidiado": actividad.tipo_actividad.contrato.contrato_subsidiado.codigo,
@@ -147,12 +98,14 @@ def crear_admision(autoid, regimen, codigo_entidad, num_usuario,
         "Nro_factura": 0,#QUEDMADO
         "Estado": "A",#QUEDMADO
         "Obs": actividad.nombre_actividad,#VARIABLE
-        "Cod_usuario": usuario_id,#PARÁMETRO
-        "Nom_usuario": usuario_nombre,#PARÁMETRO
+        "Cod_usuario": actividad.medico.documento,#PARÁMETRO
+        "Nom_usuario": actividad.medico.nombre,#PARÁMETRO
+        # "Cod_usuario": usuario_id,#PARÁMETRO
+        # "Nom_usuario": usuario_nombre,#PARÁMETRO
         "Contrato": contrato[regimen],#endpoint no funciona #PARÁMETRO
         "Status_regis": 0,#QUEDMADO
         # "Estado_res": 0,
-        "Usuario_estado_res": usuario_id,#PARÁMETRO
+        "Usuario_estado_res": actividad.medico.documento,#PARÁMETRO
         "Codigo_servicio":str(actividad.parametros_programa.unidad_funcional.id_zeus), #VARIABLE // **Es realente unidad funcional
         "Via_ingreso": 2,#QUEMADO
         "Causa_ext": "13",#QUEMADO
@@ -189,7 +142,7 @@ def crear_admision(autoid, regimen, codigo_entidad, num_usuario,
                 "ccosto": actividad.parametros_programa.centro_costo.codigo,#PARÁMETRO
                 "tipo_estudio": "A",#QUEMADO
                 "ufuncional": actividad.parametros_programa.unidad_funcional.id_zeus,#VARIABLE
-                "usuario": num_usuario,#PARÁMETRO
+                "usuario": actividad.medico.codigo,#PARÁMETRO
                 "tipoItem": "Procedimiento"#PARÁMETRO
             }
         ]
