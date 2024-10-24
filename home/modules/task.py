@@ -25,7 +25,6 @@ logger = get_task_logger(__name__)
 @shared_task
 def procesar_cargue_actividades(id_carga, dict_data):
     inicio = time.time()
-    cantidad_inconsistencias = 0
     carga = Carga.objects.get(id= id_carga)
     try:
         for valores in dict_data['datos']:
@@ -42,6 +41,7 @@ def procesar_cargue_actividades(id_carga, dict_data):
                 actividad.fecha_servicio = str(valores[7])
                 actividad.nombre_actividad = (valores[8]).strip()
                 actividad.diagnostico_p = valores[9]
+
                 # Consultar médico
                 actividad.medico = Medico.objects.get(documento = (valores[10]).strip())
 
@@ -50,26 +50,27 @@ def procesar_cargue_actividades(id_carga, dict_data):
                 datos_afiliado = peticiones_http.consultar_data(ruta)
 
                 # Validar afiliado en Zeus
-                if len(datos_afiliado['Datos']):
+                if not len(datos_afiliado['Datos']):
+                    raise Exception("Paciente no está registrado en Zeus")
 
-                    # Atributos inferidos
-                    regional = Regional.objects.get(regional = actividad.regional)
-                    actividad.tipo_actividad = TipoActividad.objects.get(nombre = actividad.nombre_actividad)
-                    actividad.parametros_programa = ParametrosAreaPrograma.objects.get(area_programa = actividad.tipo_actividad.area, regional = regional.id)
-                    
-                    # Validar si la actividad está repetida
-                    if validador_actividades.valida_actividad_repectiva_paciente(actividad):
-                        raise Exception("⚠️Actividad repetida")
-                else:
-                    raise Exception("⚠️Paciente no está registrado en Zeus")
+                # Atributos inferidos
+                regional = Regional.objects.get(regional = actividad.regional)
+                actividad.tipo_actividad = TipoActividad.objects.get(nombre = actividad.nombre_actividad)
+                actividad.parametros_programa = ParametrosAreaPrograma.objects.get(area_programa = actividad.tipo_actividad.area, regional = regional.id)
                 
+                # Validar si la actividad está repetida
+                if validador_actividades.valida_actividad_repetida_paciente(actividad):
+                    raise Exception("Actividad ya fue admisionada")
+    
             except Exception as e:
                 error = e
                 actividad.inconsistencias = "⚠️" + str(error)
-                cantidad_inconsistencias +=1
                 print(e)
-        
-            actividad.save()
+
+            # Validar si la actividad ya se encuentra en la carga actual.
+            if not validador_actividades.valida_actividad_repetida_paciente(actividad, carga):
+                print("✅Actividad se guarda correctamente")
+                actividad.save()
 
         final = time.time()
         carga.estado = "procesada"
@@ -112,7 +113,7 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
             if len(datos_afiliado['Datos']):
 
                 # Validar si la actividad está repetida
-                if validador_actividades.valida_actividad_repectiva_paciente(actividad, carga):
+                if validador_actividades.valida_actividad_repetida_paciente(actividad, carga):
                     raise Exception("⚠️ Actividad repetida")
                 
                 if not actividad.tipo_actividad:
