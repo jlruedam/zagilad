@@ -15,7 +15,7 @@ PASSWORD = PASSWORD_API_ZEUS
 # Peticiones HTTP
 
 def obtener_token():
-    token = ''
+    token = False
     ruta_endpoint = "/api/AppApiUsers/Authenticate"
     cabeceras = {
         'cache-control': 'no-cache', 
@@ -48,6 +48,8 @@ def crear_admision(admision, token):
     print(respuesta)
     if respuesta.status_code == 200:
         respuesta = respuesta.json()
+    else:
+        respuesta = False
        
     return respuesta
 

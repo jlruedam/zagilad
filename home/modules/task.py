@@ -18,9 +18,7 @@ from home.modules import notificaciones_email
 from home.modules import parametros_generales
 from home.modules import admision
 
-
 logger = get_task_logger(__name__)
-
 
 @shared_task
 def procesar_cargue_actividades(id_carga, dict_data):
@@ -103,83 +101,87 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
         actividades_carga = Actividad.objects.filter(carga = carga, id=id_actividad).filter(admision = None)
     
     for actividad in actividades_carga:
-
-        # Consultador datos del afiliado
-        ruta = f"/api/SisDeta/GetDatosBasicosPaciente?NumeroIdentificacion={actividad.documento_paciente}&TipoIdentificacion={actividad.tipo_documento}"
-        datos_afiliado = peticiones_http.consultar_data(ruta)
-
+ 
         try:
-            # Si el afiliado existe
-            if len(datos_afiliado['Datos']):
+            # Consultador datos del afiliado
+            ruta = f"/api/SisDeta/GetDatosBasicosPaciente?NumeroIdentificacion={actividad.documento_paciente}&TipoIdentificacion={actividad.tipo_documento}"
+            datos_afiliado = peticiones_http.consultar_data(ruta)
 
-                # Validar si la actividad está repetida
-                if validador_actividades.valida_actividad_repetida_paciente(actividad, carga):
-                    raise Exception("⚠️ Actividad repetida")
-                
-                if not actividad.tipo_actividad:
-                    actividad.tipo_actividad = TipoActividad.objects.get(nombre = actividad.nombre_actividad)
-                
+            print(datos_afiliado['Datos'])
+
+            # Validar Si el afiliado existe
+            if not len(datos_afiliado['Datos']):
+                raise Exception("Paciente no está registrado en Zeus")
+
+            # Validar si la actividad ya fue admisionada
+            if validador_actividades.valida_actividad_repetida_paciente(actividad):
+                raise Exception("Esta actividad ya fue admisionada")
+            
+            if not actividad.tipo_actividad:
+                actividad.tipo_actividad = TipoActividad.objects.get(nombre = actividad.nombre_actividad)
+
+            try:
+                # AutoID y nombre del regimen del afiliado
+                auto_id = datos_afiliado['Datos'][0]['autoid']
+                regimen = datos_afiliado['Datos'][0]['NombreRegimen']
+
+                # Inicializo la admisión con los parametros generales y la información de la actividad
+                admision_actividad = admision.crear_admision(
+                    autoid = auto_id,
+                    regimen = regimen,
+                    codigo_entidad = parametros_generales.CODIGO_ENTIDAD[regimen],
+                    # num_usuario =parametros_generales.NUMERO_USUARIO,
+                    # usuario_id = parametros_generales.IDENTIFICACION_USUARIO,
+                    # usuario_nombre = parametros_generales.NOMBRE_USUARIO,
+                    tipo_diag = parametros_generales.TIPO_DIAGNOSTICO,
+                    actividad = actividad
+                )
+
                 try:
-                    # AutoID y nombre del regimen del afiliado
-                    auto_id = datos_afiliado['Datos'][0]['autoid']
-                    regimen = datos_afiliado['Datos'][0]['NombreRegimen']
-
-                    # Inicializo la admisión con los parametros generales y la información de la actividad
-                    admision_actividad = admision.crear_admision(
-                        autoid = auto_id,
-                        regimen = regimen,
-                        codigo_entidad = parametros_generales.CODIGO_ENTIDAD[regimen],
-                        # num_usuario =parametros_generales.NUMERO_USUARIO,
-                        # usuario_id = parametros_generales.IDENTIFICACION_USUARIO,
-                        # usuario_nombre = parametros_generales.NOMBRE_USUARIO,
-                        tipo_diag = parametros_generales.TIPO_DIAGNOSTICO,
-                        actividad = actividad
-                    )
-
-                    try:
-                        # Enviar Admisión a Zeus
-                        respuesta = peticiones_http.crear_admision(admision_actividad,token)
-                        print("CARGUE DE ADMISIÓN: ",respuesta['Datos'][0]['infoTrasaction'], type(respuesta['Datos'][0]['infoTrasaction']))
+                    # Enviar Admisión a Zeus
+                    respuesta = peticiones_http.crear_admision(admision_actividad,token)
+                    print(respuesta)
+                   
+                    if not respuesta:
+                        raise Exception("Error en la petición a Zeus")
                     
-                        if respuesta:
+                    print(respuesta['Datos'])
+                    print(respuesta['Errores'])
 
-                            respuesta_admision = ast.literal_eval(respuesta['Datos'][0]['infoTrasaction'])
-                            print("RESPUESTA ADMISIÓN:",respuesta_admision[0], type(respuesta_admision[0]))
+                    respuesta_admision = ast.literal_eval(respuesta['Datos'][0]['infoTrasaction'])
+                    print("RESPUESTA ADMISIÓN:",respuesta_admision[0], type(respuesta_admision[0]))
 
-                            # Encapsular respuesta
-                            datos_error = respuesta_admision[0]['DatosEnError']
-                            datos_guardados = respuesta_admision[0]['DatosGuardados']
-                            print(datos_error, datos_guardados)
+                    # Encapsular respuesta
+                    datos_error = respuesta_admision[0]['DatosEnError']
+                    datos_guardados = respuesta_admision[0]['DatosGuardados']
+                    print(datos_error, datos_guardados)
 
-                            if datos_error:
-                                raise Exception(datos_error[0])
-                                
-                            if datos_guardados:
-                                numero_estudio = datos_guardados[0]['Estudio']
-                                print("NÚMERO DE ESTUDIO:", numero_estudio)
+                    if datos_error:
+                        raise Exception(datos_error[0])
+                        
+                    if datos_guardados:
+                        numero_estudio = datos_guardados[0]['Estudio']
+                        print("NÚMERO DE ESTUDIO:", numero_estudio)
 
-                                nueva_admision = Admision()
-                                nueva_admision.documento_paciente = actividad.documento_paciente
-                                nueva_admision.numero_estudio = numero_estudio
-                                nueva_admision.json = json.dumps(admision_actividad)
-                                nueva_admision.save()
+                        nueva_admision = Admision()
+                        nueva_admision.documento_paciente = actividad.documento_paciente
+                        nueva_admision.numero_estudio = numero_estudio
+                        nueva_admision.json = json.dumps(admision_actividad)
+                        nueva_admision.save()
 
-                                actividad.admision = nueva_admision
-                                actividad.inconsistencias = None
-                    except Exception as e:
-                        print("Error al enviar admisión: ", e)
-                        actividad.inconsistencias = "⚠️Error al enviar admisión: "+ str(e)
-                
+                        actividad.admision = nueva_admision
+                        actividad.inconsistencias = None
                 except Exception as e:
-                    print("Error al crear la admisión: ", e)
-                    actividad.inconsistencias = "⚠️Error al crear la admisión: "+ str(e)
+                    print("Error al enviar admisión: ", e)
+                    actividad.inconsistencias = "⚠️Error al enviar admisión: "+ str(e)
+            
+            except Exception as e:
+                print("Error al crear la admisión: ", e)
+                actividad.inconsistencias = "⚠️Error al crear la admisión: "+ str(e)
                     
-            else:
-                raise Exception("⚠️" + "Paciente no está registrado en Zeus")
-
         except Exception as e:
             print(e)
-            actividad.inconsistencias = str(e)
+            actividad.inconsistencias ="⚠️" + str(e)
 
         actividad.save()  
 
