@@ -71,15 +71,19 @@ def crear_admision(autoid, regimen, codigo_entidad, tipo_diag, actividad):
 
     # Validar tipo de actividad
     if not actividad.tipo_actividad:
-        raise Exception("⚠️Tipo actividad no está definida para esta actividad")
+        raise Exception("Tipo actividad no está definida para esta actividad")
     
     # Validar médico
     if not actividad.medico:
-        raise Exception("⚠️No se tiene médico asignado")
+        raise Exception("No se tiene médico asignado")
+    
+    # # Validar médico
+    # if not actividad.usuario_zeus:
+    #     raise Exception("Usuario no encontrado")
     
     # Validar médico
     if not actividad.parametros_programa:
-        raise Exception("⚠️Párametros del programa no están configurados")
+        raise Exception("Párametros del programa no están configurados")
     
     contrato = {
         "Subsidiado": actividad.tipo_actividad.contrato.contrato_subsidiado.codigo,
@@ -98,14 +102,15 @@ def crear_admision(autoid, regimen, codigo_entidad, tipo_diag, actividad):
         "Nro_factura": 0,#QUEDMADO
         "Estado": "A",#QUEDMADO
         "Obs": actividad.nombre_actividad,#VARIABLE
-        "Cod_usuario": actividad.medico.documento,#PARÁMETRO
-        "Nom_usuario": actividad.medico.nombre,#PARÁMETRO
-        # "Cod_usuario": usuario_id,#PARÁMETRO
-        # "Nom_usuario": usuario_nombre,#PARÁMETRO
+        # "Cod_usuario": actividad.medico.documento,#PARÁMETRO
+        # "Nom_usuario": actividad.medico.nombre,#PARÁMETRO
+        "Cod_usuario": actividad.cedula_usuario,#PARÁMETRO
+        "Nom_usuario": actividad.nombre_usuario,#PARÁMETRO
         "Contrato": contrato[regimen],#endpoint no funciona #PARÁMETRO
         "Status_regis": 0,#QUEDMADO
         # "Estado_res": 0,
-        "Usuario_estado_res": actividad.medico.documento,#PARÁMETRO
+        # "Usuario_estado_res": actividad.medico.documento,#PARÁMETRO
+        "Usuario_estado_res": actividad.cedula_usuario,#PARÁMETRO,#PARÁMETRO
         "Codigo_servicio":str(actividad.parametros_programa.unidad_funcional.id_zeus), #VARIABLE // **Es realente unidad funcional
         "Via_ingreso": 2,#QUEMADO
         "Causa_ext": "13",#QUEMADO
@@ -117,7 +122,7 @@ def crear_admision(autoid, regimen, codigo_entidad, tipo_diag, actividad):
         "Ufuncional":actividad.parametros_programa.unidad_funcional.codigo,#VARIABLE
         "Embarazo": "",#QUEMADO
         "Id_sede": 1, #actividad.sede,#VARIABLE
-        "PuntoAtencion": 16, # actividad.punto_atencion,#VARIABLE
+        "PuntoAtencion": actividad.parametros_programa.punto_atencion.id_zeus,#VARIABLE
         "PolizaSalud": "",#QUEMADO
         "serviciosObjDTOS": [
             {
@@ -142,7 +147,7 @@ def crear_admision(autoid, regimen, codigo_entidad, tipo_diag, actividad):
                 "ccosto": actividad.parametros_programa.centro_costo.codigo,#PARÁMETRO
                 "tipo_estudio": "A",#QUEMADO
                 "ufuncional": actividad.parametros_programa.unidad_funcional.id_zeus,#VARIABLE
-                "usuario": actividad.medico.codigo,#PARÁMETRO
+                "usuario": actividad.id_usuario,#PARÁMETRO
                 "tipoItem": "Procedimiento"#PARÁMETRO
             }
         ]

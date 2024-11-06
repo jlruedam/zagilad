@@ -155,8 +155,6 @@ def cargar_actividades(request):
     respuesta = []
 
        
-   
-
     encabezados = [ 
         "tipo_identificacion",	"numero_identificacion", "primer_apellido",	
         "segundo_apellido", "primer_nombre","segundo_nombre",	
@@ -268,6 +266,7 @@ def grabar_admisiones(request):
 
 @login_required(login_url="/login/")
 def admisionar_actividades_carga(request, id_carga):
+    
     token = peticiones_http.obtener_token()
     print(token)
     if not token:

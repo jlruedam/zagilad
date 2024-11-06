@@ -301,3 +301,28 @@ def consultar_medicos(request):
 
     # https://dev.to/chryzcode/django-json-response-safe-false-4f9i
     return JsonResponse(respuesta, safe = False)
+
+def consultar_usuarios_zeus(request):
+    
+    token = peticiones_http.obtener_token()
+    print(token)
+    respuesta = peticiones_http.consultar_data("/api/Usuario/",token = token)
+    print(respuesta)
+    
+    # cantidad_bd_usuarios_zeus= UsuarioZeus.objects.count()
+
+    # if cantidad_bd_usuarios_zeus <= 0:
+
+    #     for usuario in respuesta:
+    #         print("-"*100)
+    #         print(usuario)
+    #         print("-"*100)
+    #         usuario_bd = UsuarioZeus()
+    #         usuario_bd.id_zeus= usuario['Id']
+    #         usuario_bd.nombre_usuario = usuario['NombreUsuario']
+    #         usuario_bd.cedula = usuario['Cedula']
+    #         usuario_bd.nombre = usuario['Nombre']
+    #         usuario_bd.save()
+
+    # https://dev.to/chryzcode/django-json-response-safe-false-4f9i
+    return JsonResponse(respuesta, safe = False)

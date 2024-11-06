@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from zeus_mirror.models import Contrato, UnidadFuncional, CentroCosto, PuntoAtencion
 from zeus_mirror.models import Sede, TipoServicio, Medico
+import datetime
+from datetime import timezone
 # Create your models here.
 
 class Admision(models.Model):
@@ -155,5 +157,30 @@ class Actividad(models.Model):
 
     def __str__(self):
         return f'Actividad - {self.id} - {self.fecha_servicio} - {self.nombre_actividad}' 
+
+
+class TokenApiZeus(models.Model):
+    vigencia = 1
+
+    id = models.AutoField(primary_key =True)
+    token = models.CharField(max_length=250)
+    vigente = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add = True)
+    updated_at = models.DateTimeField(auto_now = True)
+
+    def __str__(self) -> str:
+        return "Token # {} ".format(self.id)
+    
+    def validar_vencimiento(self):
+        print("Validar vencimiento: ", datetime.datetime.today(), self.updated_at)
+        dias_uso = (datetime.date.today() - self.updated_at.date()).days
+        print("DÍAS TOKEN:", dias_uso)
+        if dias_uso > self.vigencia: # Validar si No está vigente
+            self.vigente = False 
+            self.save()
+
+        
+
+
 
 

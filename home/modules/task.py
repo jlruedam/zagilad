@@ -41,7 +41,7 @@ def procesar_cargue_actividades(id_carga, dict_data):
                 actividad.diagnostico_p = valores[9]
 
                 # Consultar médico
-                actividad.medico = Medico.objects.get(documento = (valores[10]).strip())
+                actividad.medico = Medico.objects.get(documento = (valores[10]).strip()) 
 
                 # Consultador datos del afiliado
                 ruta = f"/api/SisDeta/GetDatosBasicosPaciente?NumeroIdentificacion={actividad.documento_paciente}&TipoIdentificacion={actividad.tipo_documento}"
@@ -101,13 +101,31 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
         actividades_carga = Actividad.objects.filter(carga = carga, id=id_actividad).filter(admision = None)
     
     for actividad in actividades_carga:
- 
+        print("TOKEN A USAR:", token)
         try:
             # Consultador datos del afiliado
             ruta = f"/api/SisDeta/GetDatosBasicosPaciente?NumeroIdentificacion={actividad.documento_paciente}&TipoIdentificacion={actividad.tipo_documento}"
             datos_afiliado = peticiones_http.consultar_data(ruta)
 
             print(datos_afiliado['Datos'])
+
+            # Consultador datos del usuario
+            ruta = f"/api/Usuario/GetUserByCedula?Cedula={actividad.medico.documento}"
+            datos_usuario = peticiones_http.consultar_data(ruta, token)
+
+            print("DATOS USUARIO:",datos_usuario['Id'])
+            print("DATOS USUARIO:",datos_usuario['NombreUsuario'])
+            print("DATOS USUARIO:",datos_usuario['Cedula'])
+            print("DATOS USUARIO:",datos_usuario['Nombre'])
+
+            actividad.id_usuario = datos_usuario['Id']
+            actividad.nombre_usuario = datos_usuario['NombreUsuario']
+            actividad.cedula_usuario = datos_usuario['Cedula']
+            actividad.nombre_persona_usuario = datos_usuario['Nombre']
+
+            # Validar Si el usuario existe
+            # if not len(datos_usuario['Datos']):
+            #     raise Exception("Usuario no encontrado en Zeus.")
 
             # Validar Si el afiliado existe
             if not len(datos_afiliado['Datos']):
@@ -119,8 +137,11 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
             
             if not actividad.tipo_actividad:
                 actividad.tipo_actividad = TipoActividad.objects.get(nombre = actividad.nombre_actividad)
-
+                
             try:
+                # Agregar Id de usuario al objeto actividad
+                actividad.usuario = datos_usuario['Id']
+
                 # AutoID y nombre del regimen del afiliado
                 auto_id = datos_afiliado['Datos'][0]['autoid']
                 regimen = datos_afiliado['Datos'][0]['NombreRegimen']
@@ -136,9 +157,11 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
                     tipo_diag = parametros_generales.TIPO_DIAGNOSTICO,
                     actividad = actividad
                 )
+                print(admision_actividad)
 
                 try:
                     # Enviar Admisión a Zeus
+                    
                     respuesta = peticiones_http.crear_admision(admision_actividad,token)
                     print(respuesta)
                    

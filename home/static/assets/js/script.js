@@ -98,6 +98,27 @@ const consultarMedicos = async () => {
     }); 
 }
 
+const consultarUsuariosZeus = async () => {
+    console.log("AQUÍ ENTRA");
+    let ruta = "/consultarUsuariosZeus/";
+    let data = {};
+    let encabezados = [];
+    let respuesta =  await peticion_http(data, ruta);
+    console.log(respuesta);
+            
+    for( campo of Object.keys(respuesta[0])){
+        console.log(campo);
+        encabezados.push({data:campo});
+    } 
+    
+
+    $('#tablaUsuarioZeus').DataTable({
+        data:respuesta,
+        columns: encabezados
+    }); 
+}
+
+
 const listarTiposServicios = async () => {
     let ruta = "/listarTiposServicios/";
     let data = {};
