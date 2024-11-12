@@ -186,14 +186,15 @@ def cargar_actividades(request):
             valores[9] = (str(valores[9])).strip()
             valores[10] = (str(valores[10])).strip()
             valores.append("A procesar")
-            respuesta.append(valores)
-            
+            respuesta.append(valores)           
     
     # https://dev.to/chryzcode/django-json-response-safe-false-4f9i
     return JsonResponse(respuesta, safe = False)
 
 @login_required(login_url="/login/")
 def procesarCargue(request):
+    
+    
     datos = request.POST
     dict_data = ast.literal_eval(datos["data"])
     cant_act = len(dict_data['datos'])
@@ -207,20 +208,28 @@ def procesarCargue(request):
     )
     carga_actividades.save()
 
-    # Aquí se debe crear la tarea programa.
-    task.procesar_cargue_actividades.delay(carga_actividades.id, dict_data)
-    print("Carga en proceso...")
+    FOLDER_MEDIA = 'media/'
+    with open(FOLDER_MEDIA+f"carga{carga_actividades.id}.json", "w") as j:
+        # data = json.load(j)
+        # print("DATOS",data[0]["nombre"])
+        json.dump(dict_data,j)
 
-    resultados_cargue = {
-        "num_carga":carga_actividades.id,
-        "estado":carga_actividades.estado,
-        "mensaje": "Carga en proceso"
-    }
+    # # Aquí se debe crear la tarea programa.
+    # task.procesar_cargue_actividades.delay(carga_actividades.id, dict_data)
+    # print("Carga en proceso...")
 
-    print("RESULTADOS DEL CARGUE",resultados_cargue)
+    # resultados_cargue = {
+    #     "num_carga":carga_actividades.id,
+    #     "estado":carga_actividades.estado,
+    #     "mensaje": "Carga en proceso"
+    # }
+
+    # print("RESULTADOS DEL CARGUE",resultados_cargue)
        
 
-    return JsonResponse(resultados_cargue, safe = False)
+    # return JsonResponse(resultados_cargue, safe = False)
+    return JsonResponse(datos, safe = False)
+
 
 # GRABAR ADMISIONES
 @login_required(login_url="/login/")
