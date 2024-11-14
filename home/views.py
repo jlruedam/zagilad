@@ -193,7 +193,8 @@ def cargar_actividades(request):
 
 @login_required(login_url="/login/")
 def procesarCargue(request):
-    
+    size_task = 2000
+    tareas_carga = []
     
     datos = request.POST
     dict_data = ast.literal_eval(datos["data"])
@@ -214,7 +215,19 @@ def procesarCargue(request):
         # print("DATOS",data[0]["nombre"])
         json.dump(dict_data,j)
 
+    cantidad_registros = len(dict_data["datos"])
+    num_bloques = cantidad_registros//size_task
+    print(num_bloques)
+    for i in range(num_bloques+1):
+        registros_tarea = dict_data["datos"][i*size_task:(i+1)*size_task]
+        print("bloque "+str(i),len(registros_tarea))
+        tareas_carga.append(task.procesar_cargue_actividades.delay(carga_actividades.id, registros_tarea))
+    
+    print(tareas_carga)
+
+
     # # Aquí se debe crear la tarea programa.
+
     # task.procesar_cargue_actividades.delay(carga_actividades.id, dict_data)
     # print("Carga en proceso...")
 

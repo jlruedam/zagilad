@@ -15,6 +15,8 @@ Command Reference
     [Windows OS]
     celery -A core worker -l info --pool=solo
 
+    celery -A tu_proyecto worker --concurrency=4 --loglevel=info
+
 # Run RabbitMQ (On Windows)
 
 Run:

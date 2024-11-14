@@ -20,12 +20,18 @@ from home.modules import admision
 
 logger = get_task_logger(__name__)
 
+
 @shared_task
-def procesar_cargue_actividades(id_carga, dict_data):
+def procesar_lote_actividades(id_carga, registros_tarea):
+    return True
+
+
+@shared_task
+def procesar_cargue_actividades(id_carga, registros_tarea):
     inicio = time.time()
     carga = Carga.objects.get(id= id_carga)
     try:
-        for valores in dict_data['datos']:
+        for valores in registros_tarea:
             print("*"*100)
             print(valores)
             try:
@@ -87,7 +93,7 @@ def procesar_cargue_actividades(id_carga, dict_data):
         notificaciones_email.notificar_carga_procesada(carga, [carga.usuario.email])
 
     # resultados_cargue.append(valores)
-    return "CARGUE PROCESADO"
+    return True
 
 @shared_task
 def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):

@@ -171,3 +171,14 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
 USUARIO_API_ZEUS = config('USUARIO_API_ZEUS')
 PASSWORD_API_ZEUS = config('PASSWORD_API_ZEUS')
+
+
+Q_CLUSTER = {
+    'name': 'DjangORM',
+    'workers': 4,
+    'timeout': 3600,
+    'retry': 4000,
+    'queue_limit': 50,
+    'bulk': 10,
+    'orm': 'default'
+}
