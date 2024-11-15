@@ -50,7 +50,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'authentication',
     'zeus_mirror',
-    'home',  
+    'home', 
+    'django_q' 
 ]
 
 MIDDLEWARE = [
@@ -173,12 +174,14 @@ USUARIO_API_ZEUS = config('USUARIO_API_ZEUS')
 PASSWORD_API_ZEUS = config('PASSWORD_API_ZEUS')
 
 
-# Q_CLUSTER = {
-#     'name': 'DjangORM',
-#     'workers': 4,
-#     'timeout': 3600,
-#     'retry': 4000,
-#     'queue_limit': 50,
-#     'bulk': 10,
-#     'orm': 'default'
-# }
+Q_CLUSTER = {
+    'name': 'DjangoCluster',
+    'workers': 8,  # Número de trabajadores
+    'recycle': 500,  # Reciclaje de trabajadores tras un número de tareas
+    'timeout': 72000,  # Tiempo máximo de ejecución de tareas
+    'retry': 72000,  # Retraso antes de reintentar una tarea fallida
+    'queue_limit': 50,  # Límite de tareas en la cola
+    'cpu_affinity': 1,  # Número de CPUs que usarán los trabajadores
+    'save_limit': 250,  # Limita cuántas tareas guardar
+    'orm': 'default',  # Usa el ORM de Django para la persistencia
+}

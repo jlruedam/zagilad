@@ -21,7 +21,6 @@ from home.modules import admision
 logger = get_task_logger(__name__)
 
 
-@shared_task
 def procesar_lote_actividades(id_carga, bloque):
     carga = Carga.objects.get(id= id_carga)
     for valores in bloque["lote"]:

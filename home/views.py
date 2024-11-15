@@ -21,6 +21,9 @@ from home.models import TipoActividad, Actividad, ParametrosAreaPrograma
 from home.models import Admision, AreaPrograma, Carga
 from home.modules import paginacion_actividades
 
+# DJANGO Q
+from django_q.tasks import async_task
+
 
 # Create your views here.
 
@@ -193,8 +196,6 @@ def cargar_actividades(request):
 
 @login_required(login_url="/login/")
 def procesarCargue(request):
-    size_task = 2000
-    tareas_carga = []
     
     datos = request.POST
     dict_data = ast.literal_eval(datos["data"])
@@ -217,7 +218,8 @@ def procesarCargue(request):
 
     # Aquí se debe crear la tarea programa.
 
-    task.procesar_cargue_actividades.delay(carga_actividades.id, dict_data)
+    # task.procesar_cargue_actividades.delay(carga_actividades.id, dict_data)
+    async_task('home.modules.task.procesar_cargue_actividades', carga_actividades.id, dict_data)
     print("Carga en proceso...")
 
     resultados_cargue = {
@@ -284,7 +286,8 @@ def admisionar_actividades_carga(request, id_carga):
     carga = Carga.objects.get(id = int(id_carga))
     carga.estado = "admisionando"
     carga.save()
-    task.tarea_admisionar_actividades_carga.delay(token, id_carga)
+    # task.tarea_admisionar_actividades_carga.delay(token, id_carga)
+    async_task('home.modules.task.tarea_admisionar_actividades_carga', token, id_carga)
     
     return redirect(f'/informeCargas/')
 
