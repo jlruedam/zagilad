@@ -22,60 +22,80 @@ logger = get_task_logger(__name__)
 
 
 @shared_task
-def procesar_lote_actividades(id_carga, registros_tarea):
-    return True
+def procesar_lote_actividades(id_carga, bloque):
+    carga = Carga.objects.get(id= id_carga)
+    for valores in bloque["lote"]:
+        print("*"*100)
+        print(valores)
+        try:
+            actividad = Actividad()
+            actividad.carga = carga
+            actividad.tipo_fuente = "EXCEL"
+            actividad.tipo_documento = valores[0]
+            actividad.documento_paciente = valores[1]
+            actividad.nombre_paciente = f'{valores[4]} {valores[5]} {valores[2]} {valores[3]}' 
+            actividad.regional = valores[6]
+            actividad.fecha_servicio = str(valores[7])
+            actividad.nombre_actividad = (valores[8]).strip()
+            actividad.diagnostico_p = valores[9]
 
+            # Consultar médico
+            actividad.medico = Medico.objects.get(documento = (valores[10]).strip()) 
+
+            # Consultador datos del afiliado
+            ruta = f"/api/SisDeta/GetDatosBasicosPaciente?NumeroIdentificacion={actividad.documento_paciente}&TipoIdentificacion={actividad.tipo_documento}"
+            datos_afiliado = peticiones_http.consultar_data(ruta)
+
+            # Validar afiliado en Zeus
+            if not len(datos_afiliado['Datos']):
+                raise Exception("Paciente no está registrado en Zeus")
+
+            # Atributos inferidos
+            regional = Regional.objects.get(regional = actividad.regional)
+            actividad.tipo_actividad = TipoActividad.objects.get(nombre = actividad.nombre_actividad)
+            actividad.parametros_programa = ParametrosAreaPrograma.objects.get(area_programa = actividad.tipo_actividad.area, regional = regional.id)
+            
+            # Validar si la actividad está repetida
+            if validador_actividades.valida_actividad_repetida_paciente(actividad):
+                raise Exception("Actividad ya fue admisionada")
+
+        except Exception as e:
+            error = e
+            actividad.inconsistencias = "⚠️" + str(error)
+            print(e)
+
+        # Validar si la actividad ya se encuentra en la carga actual.
+        if not validador_actividades.valida_actividad_repetida_paciente(actividad, carga):
+            print("✅Actividad se guarda correctamente")
+            actividad.save()
+
+    carga.actualizar_info_actividades()
+    carga.save()
+    
+    return True
+    
 
 @shared_task
-def procesar_cargue_actividades(id_carga, registros_tarea):
+def procesar_cargue_actividades(id_carga, dict_data):
     inicio = time.time()
+    size_task = 2000
     carga = Carga.objects.get(id= id_carga)
+
+    cantidad_registros = len(dict_data["datos"])
+    num_bloques = cantidad_registros//size_task
+    print(num_bloques)
+
     try:
-        for valores in registros_tarea:
-            print("*"*100)
-            print(valores)
-            try:
-                actividad = Actividad()
-                actividad.carga = carga
-                actividad.tipo_fuente = "EXCEL"
-                actividad.tipo_documento = valores[0]
-                actividad.documento_paciente = valores[1]
-                actividad.nombre_paciente = f'{valores[4]} {valores[5]} {valores[2]} {valores[3]}' 
-                actividad.regional = valores[6]
-                actividad.fecha_servicio = str(valores[7])
-                actividad.nombre_actividad = (valores[8]).strip()
-                actividad.diagnostico_p = valores[9]
 
-                # Consultar médico
-                actividad.medico = Medico.objects.get(documento = (valores[10]).strip()) 
-
-                # Consultador datos del afiliado
-                ruta = f"/api/SisDeta/GetDatosBasicosPaciente?NumeroIdentificacion={actividad.documento_paciente}&TipoIdentificacion={actividad.tipo_documento}"
-                datos_afiliado = peticiones_http.consultar_data(ruta)
-
-                # Validar afiliado en Zeus
-                if not len(datos_afiliado['Datos']):
-                    raise Exception("Paciente no está registrado en Zeus")
-
-                # Atributos inferidos
-                regional = Regional.objects.get(regional = actividad.regional)
-                actividad.tipo_actividad = TipoActividad.objects.get(nombre = actividad.nombre_actividad)
-                actividad.parametros_programa = ParametrosAreaPrograma.objects.get(area_programa = actividad.tipo_actividad.area, regional = regional.id)
-                
-                # Validar si la actividad está repetida
-                if validador_actividades.valida_actividad_repetida_paciente(actividad):
-                    raise Exception("Actividad ya fue admisionada")
-    
-            except Exception as e:
-                error = e
-                actividad.inconsistencias = "⚠️" + str(error)
-                print(e)
-
-            # Validar si la actividad ya se encuentra en la carga actual.
-            if not validador_actividades.valida_actividad_repetida_paciente(actividad, carga):
-                print("✅Actividad se guarda correctamente")
-                actividad.save()
-
+        for i in range(num_bloques+1):
+            print("Lote-",i)
+            lote_actividades = dict_data["datos"][i*size_task:(i+1)*size_task]
+            print("bloque "+str(i),len(lote_actividades))
+            bloque = {
+                "lote":lote_actividades
+            }
+            procesar_lote_actividades(carga.id, bloque)
+            print("PROCESA EL LOTE")
         final = time.time()
         carga.estado = "procesada"
         carga.tiempo_procesamiento = (final - inicio)/60
@@ -84,7 +104,7 @@ def procesar_cargue_actividades(id_carga, registros_tarea):
         
         
     except Exception as e:
-        print("Error al procesar la carga")
+        print("Error al procesar la carga", e)
         carga.estado = "cancelada"
         carga.save()
         return "Error al procesar la carga"   
@@ -92,7 +112,6 @@ def procesar_cargue_actividades(id_carga, registros_tarea):
     if len(carga.usuario.email):
         notificaciones_email.notificar_carga_procesada(carga, [carga.usuario.email])
 
-    # resultados_cargue.append(valores)
     return True
 
 @shared_task

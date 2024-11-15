@@ -209,40 +209,28 @@ def procesarCargue(request):
     )
     carga_actividades.save()
 
-    FOLDER_MEDIA = 'media/'
-    with open(FOLDER_MEDIA+f"carga{carga_actividades.id}.json", "w") as j:
-        # data = json.load(j)
-        # print("DATOS",data[0]["nombre"])
-        json.dump(dict_data,j)
+    # FOLDER_MEDIA = 'media/'
+    # with open(FOLDER_MEDIA+f"carga{carga_actividades.id}.json", "w") as j:
+    #     # data = json.load(j)
+    #     # print("DATOS",data[0]["nombre"])
+    #     json.dump(dict_data,j)
 
-    cantidad_registros = len(dict_data["datos"])
-    num_bloques = cantidad_registros//size_task
-    print(num_bloques)
-    for i in range(num_bloques+1):
-        registros_tarea = dict_data["datos"][i*size_task:(i+1)*size_task]
-        print("bloque "+str(i),len(registros_tarea))
-        tareas_carga.append(task.procesar_cargue_actividades.delay(carga_actividades.id, registros_tarea))
-    
-    print(tareas_carga)
+    # Aquí se debe crear la tarea programa.
 
+    task.procesar_cargue_actividades.delay(carga_actividades.id, dict_data)
+    print("Carga en proceso...")
 
-    # # Aquí se debe crear la tarea programa.
+    resultados_cargue = {
+        "num_carga":carga_actividades.id,
+        "estado":carga_actividades.estado,
+        "mensaje": "Carga en proceso"
+    }
 
-    # task.procesar_cargue_actividades.delay(carga_actividades.id, dict_data)
-    # print("Carga en proceso...")
-
-    # resultados_cargue = {
-    #     "num_carga":carga_actividades.id,
-    #     "estado":carga_actividades.estado,
-    #     "mensaje": "Carga en proceso"
-    # }
-
-    # print("RESULTADOS DEL CARGUE",resultados_cargue)
+    print("RESULTADOS DEL CARGUE",resultados_cargue)
        
 
-    # return JsonResponse(resultados_cargue, safe = False)
-    return JsonResponse(datos, safe = False)
-
+    return JsonResponse(resultados_cargue, safe = False)
+    
 
 # GRABAR ADMISIONES
 @login_required(login_url="/login/")
