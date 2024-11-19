@@ -196,12 +196,15 @@ def cargar_actividades(request):
 
 @login_required(login_url="/login/")
 def procesarCargue(request):
-    
+    FOLDER_MEDIA = 'media/'
+    size_task = 2000
     datos = request.POST
     dict_data = ast.literal_eval(datos["data"])
     cant_act = len(dict_data['datos'])
     usuario_actual = User.objects.get(username=request.user.username)
+    num_bloques = cant_act//2000
     
+    print(dict_data)
     # Crear carga:
     carga_actividades = Carga(
         usuario = usuario_actual,
@@ -209,18 +212,26 @@ def procesarCargue(request):
         # data = json.dumps(dict_data), #Quitar esto y enviar a archivo json en el servidor
     )
     carga_actividades.save()
+    
 
-    # FOLDER_MEDIA = 'media/'
-    # with open(FOLDER_MEDIA+f"carga{carga_actividades.id}.json", "w") as j:
-    #     # data = json.load(j)
-    #     # print("DATOS",data[0]["nombre"])
-    #     json.dump(dict_data,j)
+    for i in range(num_bloques+1):
+        ruta = FOLDER_MEDIA+f"carga{carga_actividades.id}_bloque{i}.json"
+        print("Lote-",i)
+
+        lote_actividades = dict_data["datos"][i*size_task:(i+1)*size_task]
+        with open(ruta, "w") as j:
+            json.dump(lote_actividades,j)
+        print("bloque "+str(i),len(lote_actividades))
+        
+        async_task('home.modules.task.procesar_cargue_actividades', carga_actividades.id, ruta)
+
+    
 
     # Aquí se debe crear la tarea programa.
 
     # task.procesar_cargue_actividades.delay(carga_actividades.id, dict_data)
-    async_task('home.modules.task.procesar_cargue_actividades', carga_actividades.id, dict_data)
-    print("Carga en proceso...")
+    # async_task('home.modules.task.procesar_cargue_actividades', carga_actividades.id, FOLDER_MEDIA+f"carga{carga_actividades.id}.json")
+    # print("Carga en proceso...")
 
     resultados_cargue = {
         "num_carga":carga_actividades.id,

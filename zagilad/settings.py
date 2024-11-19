@@ -176,10 +176,10 @@ PASSWORD_API_ZEUS = config('PASSWORD_API_ZEUS')
 
 Q_CLUSTER = {
     'name': 'DjangoCluster',
-    'workers': 8,  # Número de trabajadores
+    'workers': 16,  # Número de trabajadores
     'recycle': 500,  # Reciclaje de trabajadores tras un número de tareas
-    'timeout': 72000,  # Tiempo máximo de ejecución de tareas
-    'retry': 72000,  # Retraso antes de reintentar una tarea fallida
+    'timeout': 3600,  # Tiempo máximo de ejecución de tareas
+    'retry':3600,  # Retraso antes de reintentar una tarea fallida
     'queue_limit': 50,  # Límite de tareas en la cola
     'cpu_affinity': 1,  # Número de CPUs que usarán los trabajadores
     'save_limit': 250,  # Limita cuántas tareas guardar
