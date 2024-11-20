@@ -215,7 +215,7 @@ def procesarCargue(request):
     
 
     for i in range(num_bloques+1):
-        ruta = FOLDER_MEDIA+f"carga{carga_actividades.id}_bloque{i}.json"
+        ruta = f"./{FOLDER_MEDIA}/carga{carga_actividades.id}_bloque{i}.json"
         print("Lote-",i)
 
         lote_actividades = dict_data["datos"][i*size_task:(i+1)*size_task]
