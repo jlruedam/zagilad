@@ -38,13 +38,13 @@ def procesar_actividad(carga, valores):
         # Consultar médico
         actividad.medico = Medico.objects.get(documento = (valores[10]).strip()) 
 
-        # Consultador datos del afiliado
-        ruta = f"/api/SisDeta/GetDatosBasicosPaciente?NumeroIdentificacion={actividad.documento_paciente}&TipoIdentificacion={actividad.tipo_documento}"
-        datos_afiliado = peticiones_http.consultar_data(ruta)
+        # # Consultador datos del afiliado
+        # ruta = f"/api/SisDeta/GetDatosBasicosPaciente?NumeroIdentificacion={actividad.documento_paciente}&TipoIdentificacion={actividad.tipo_documento}"
+        # datos_afiliado = peticiones_http.consultar_data(ruta)
 
-        # Validar afiliado en Zeus
-        if not len(datos_afiliado['Datos']):
-            raise Exception("Paciente no está registrado en Zeus")
+        # # Validar afiliado en Zeus
+        # if not len(datos_afiliado['Datos']):
+        #     raise Exception("Paciente no está registrado en Zeus")
 
         # Atributos inferidos
         regional = Regional.objects.get(regional = actividad.regional)
