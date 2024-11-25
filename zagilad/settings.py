@@ -179,7 +179,7 @@ Q_CLUSTER = {
     'workers': 16,  # Número de trabajadores
     'recycle': 500,  # Reciclaje de trabajadores tras un número de tareas
     'timeout': 3600,  # Tiempo máximo de ejecución de tareas
-    'retry':3600,  # Retraso antes de reintentar una tarea fallida
+    'retry':3620,  # Retraso antes de reintentar una tarea fallida
     'queue_limit': 50,  # Límite de tareas en la cola
     'cpu_affinity': 1,  # Número de CPUs que usarán los trabajadores
     'save_limit': 250,  # Limita cuántas tareas guardar
