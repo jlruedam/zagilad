@@ -124,15 +124,15 @@ def procesar_lote_actividades(id_carga, bloque):
     return True
     
 @shared_task
-def procesar_cargue_actividades(id_carga, ruta):
+def procesar_cargue_actividades(id_carga, datos):
     inicio = time.time()
-    size_task = 5000
+    
     carga = Carga.objects.get(id= id_carga)
     # actividaes_procesadas = []
-    print("LA RUTA ES:", ruta)
-    with open(ruta, "r") as j:
-        data = json.load(j)
-    datos = data
+    # print("LA RUTA ES:", ruta)
+    # with open(ruta, "r") as j:
+    #     data = json.load(j)
+    # datos = data
 
     try:
 
@@ -143,11 +143,10 @@ def procesar_cargue_actividades(id_carga, ruta):
                 if proceso_exitoso:
                     valores[-1] = "procesada"
                     
-            
             print(valores)
-            dict_data = datos
-            with open(ruta, "w") as j:
-                json.dump(dict_data,j)
+            # dict_data = datos
+            # with open(ruta, "w") as j:
+            #     json.dump(dict_data,j)
 
         final = time.time()
         carga.estado = "procesada"
