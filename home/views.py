@@ -197,6 +197,7 @@ def cargar_actividades(request):
 @login_required(login_url="/login/")
 def procesarCargue(request):
     FOLDER_MEDIA = 'media/'
+    tiempo_inicial = time.time()
     size_task = 2000
     datos = request.POST
     dict_data = ast.literal_eval(datos["data"])
@@ -223,7 +224,7 @@ def procesarCargue(request):
         #     json.dump(lote_actividades,j)
         # print("bloque "+str(i),len(lote_actividades))
         
-        async_task('home.modules.task.procesar_cargue_actividades', carga_actividades.id, lote_actividades)
+        async_task('home.modules.task.procesar_cargue_actividades', carga_actividades.id, lote_actividades, i, num_bloques, tiempo_inicial)
 
     
 

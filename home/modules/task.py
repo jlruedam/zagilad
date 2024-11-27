@@ -22,7 +22,8 @@ from home.modules import admision
 logger = get_task_logger(__name__)
 
 def procesar_actividad(carga, valores):
-    
+    # regional = valores[6]
+    # medico = Medico.objects.get(documento = (valores[10]).strip()) 
     try:
         actividad = Actividad()
         actividad.carga = carga
@@ -34,23 +35,13 @@ def procesar_actividad(carga, valores):
         actividad.fecha_servicio = str(valores[7])
         actividad.nombre_actividad = (valores[8]).strip()
         actividad.diagnostico_p = valores[9]
-
         # Consultar médico
         actividad.medico = Medico.objects.get(documento = (valores[10]).strip()) 
-
-        # # Consultador datos del afiliado
-        # ruta = f"/api/SisDeta/GetDatosBasicosPaciente?NumeroIdentificacion={actividad.documento_paciente}&TipoIdentificacion={actividad.tipo_documento}"
-        # datos_afiliado = peticiones_http.consultar_data(ruta)
-
-        # # Validar afiliado en Zeus
-        # if not len(datos_afiliado['Datos']):
-        #     raise Exception("Paciente no está registrado en Zeus")
-
         # Atributos inferidos
         regional = Regional.objects.get(regional = actividad.regional)
         actividad.tipo_actividad = TipoActividad.objects.get(nombre = actividad.nombre_actividad)
         actividad.parametros_programa = ParametrosAreaPrograma.objects.get(area_programa = actividad.tipo_actividad.area, regional = regional.id)
-        
+        actividad.datos_json = valores
         # Validar si la actividad está repetida
         if validador_actividades.valida_actividad_repetida_paciente(actividad):
             raise Exception("Actividad ya fue admisionada")
@@ -64,9 +55,6 @@ def procesar_actividad(carga, valores):
     if not validador_actividades.valida_actividad_repetida_paciente(actividad, carga):
         print("✅Actividad se guarda correctamente")
         actividad.save()
-
-    # carga.actualizar_info_actividades()
-    # carga.save()
     
     return True
     
@@ -123,51 +111,38 @@ def procesar_lote_actividades(id_carga, bloque):
     
     return True
     
-@shared_task
-def procesar_cargue_actividades(id_carga, datos):
-    inicio = time.time()
+
+def procesar_cargue_actividades(id_carga, datos, num_lote, total_lotes, tiempo_inicial):
     
     carga = Carga.objects.get(id= id_carga)
-    # actividaes_procesadas = []
-    # print("LA RUTA ES:", ruta)
-    # with open(ruta, "r") as j:
-    #     data = json.load(j)
-    # datos = data
-
     try:
 
         for valores in datos:
-            if valores[-1] == 'A procesar':
-                proceso_exitoso = procesar_actividad(carga, valores)
-
-                if proceso_exitoso:
-                    valores[-1] = "procesada"
-                    
             print(valores)
-            # dict_data = datos
-            # with open(ruta, "w") as j:
-            #     json.dump(dict_data,j)
-
-        final = time.time()
-        carga.estado = "procesada"
-        carga.tiempo_procesamiento = (final - inicio)/60
-        carga.actualizar_info_actividades()
-        carga.save()
-        
-        
+            if not Actividad.objects.filter(carga = carga).filter(datos_json = valores).count():
+                print("👍Se procesa actividad")
+                procesar_actividad(carga, valores)
+                
+            
+        if num_lote == (total_lotes-1):
+            print("Ultimo lote")
+            final = time.time()
+            carga.estado = "procesada"
+            carga.tiempo_procesamiento = (final - tiempo_inicial)/60
+            carga.actualizar_info_actividades()
             
     except Exception as e:
         print("Error al procesar la carga", e)
         carga.estado = "cancelada"
+        
+    finally:
         carga.save()
-        return "Error al procesar la carga"   
-    
-    if len(carga.usuario.email):
-        notificaciones_email.notificar_carga_procesada(carga, [carga.usuario.email])
+        if len(carga.usuario.email):
+            notificaciones_email.notificar_carga_procesada(carga, [carga.usuario.email])
 
     return True
 
-@shared_task
+
 def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
     respuesta = []
     carga = Carga.objects.get(id = int(id_carga))
