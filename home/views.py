@@ -224,7 +224,9 @@ def procesarCargue(request):
         #     json.dump(lote_actividades,j)
         # print("bloque "+str(i),len(lote_actividades))
         
-        async_task('home.modules.task.procesar_cargue_actividades', carga_actividades.id, lote_actividades, i, num_bloques, tiempo_inicial)
+        async_task('home.modules.task.procesar_cargue_actividades', 
+                   carga_actividades.id, lote_actividades, i, 
+                   cant_act, tiempo_inicial)
 
     
 

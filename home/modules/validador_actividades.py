@@ -16,7 +16,7 @@ def valida_actividad_repetida_paciente(actividad, carga_actual = []):
     )
     if carga_actual:
        repetida = actividades_repetidas.filter(carga = carga_actual).exists()
-       print(actividades_repetidas.filter(carga = carga_actual))
+    #    print(actividades_repetidas.filter(carga = carga_actual))
     else:
         repetida = actividades_repetidas.exclude(admision = None).exists()
     return repetida

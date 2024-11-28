@@ -49,11 +49,11 @@ def procesar_actividad(carga, valores):
     except Exception as e:
         error = e
         actividad.inconsistencias = "⚠️" + str(error)
-        print(e)
+        # print(e)
 
     # Validar si la actividad ya se encuentra en la carga actual.
     if not validador_actividades.valida_actividad_repetida_paciente(actividad, carga):
-        print("✅Actividad se guarda correctamente")
+        # print("✅Actividad se guarda correctamente")
         actividad.save()
     
     return True
@@ -112,30 +112,36 @@ def procesar_lote_actividades(id_carga, bloque):
     return True
     
 
-def procesar_cargue_actividades(id_carga, datos, num_lote, total_lotes, tiempo_inicial):
-    
+def procesar_cargue_actividades(id_carga, datos, num_lote, cantidad_actividades, tiempo_inicial):
+    estado = "A procesar"
     carga = Carga.objects.get(id= id_carga)
+    
     try:
 
         for valores in datos:
-            print(valores)
+            # print(valores)
             if not Actividad.objects.filter(carga = carga).filter(datos_json = valores).count():
-                print("👍Se procesa actividad")
+                # print("👍Se procesa actividad")
                 procesar_actividad(carga, valores)
+                # print(valores)
+
                 
+        numero_actividades_carga = Actividad.objects.filter(carga = id_carga).count()    
+        if numero_actividades_carga == cantidad_actividades:
+            estado = "procesada"
+
+        print("lote: ", num_lote, numero_actividades_carga, cantidad_actividades, estado)
             
-        if num_lote == (total_lotes-1):
-            print("Ultimo lote")
-            final = time.time()
-            carga.estado = "procesada"
-            carga.tiempo_procesamiento = (final - tiempo_inicial)/60
-            carga.actualizar_info_actividades()
             
     except Exception as e:
         print("Error al procesar la carga", e)
-        carga.estado = "cancelada"
+        estado = "cancelada"
         
     finally:
+        final = time.time()
+        carga.estado = estado
+        carga.tiempo_procesamiento = (final - tiempo_inicial)/60
+        carga.actualizar_info_actividades()
         carga.save()
         if len(carga.usuario.email):
             notificaciones_email.notificar_carga_procesada(carga, [carga.usuario.email])
