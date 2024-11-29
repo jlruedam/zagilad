@@ -132,6 +132,7 @@ class Actividad(models.Model):
     carga =  models.ForeignKey(Carga, models.SET_NULL, blank=True,null=True) 
     inconsistencias = models.CharField(max_length= 500, null=True, blank=True)
     medico = models.ForeignKey(Medico, models.SET_NULL, blank=True,null=True)
+    admisionada_otra_carga = models.BooleanField(default=False)
     datos_json = models.JSONField(blank=True,null=True) 
     created_at = models.DateTimeField(auto_now_add = True)
     updated_at = models.DateTimeField(auto_now = True)

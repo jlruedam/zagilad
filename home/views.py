@@ -292,11 +292,12 @@ def grabar_admisiones(request):
 
 @login_required(login_url="/login/")
 def admisionar_actividades_carga(request, id_carga):
-    
-    token = peticiones_http.obtener_token()
-    print(token)
-    if not token:
-        return HttpResponseBadRequest("No se pudo obtener el token de acceso")
+    try:
+        token = peticiones_http.obtener_token()
+        print(token)
+    except Exception as e:
+        print(e)
+        return HttpResponseBadRequest("No se pudo obtener el token de acceso", e)
     carga = Carga.objects.get(id = int(id_carga))
     carga.estado = "admisionando"
     carga.save()

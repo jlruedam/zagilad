@@ -44,6 +44,7 @@ def procesar_actividad(carga, valores):
         actividad.datos_json = valores
         # Validar si la actividad está repetida
         if validador_actividades.valida_actividad_repetida_paciente(actividad):
+            actividad.admisionada_otra_carga = True
             raise Exception("Actividad ya fue admisionada")
 
     except Exception as e:
@@ -113,7 +114,7 @@ def procesar_lote_actividades(id_carga, bloque):
     
 
 def procesar_cargue_actividades(id_carga, datos, num_lote, cantidad_actividades, tiempo_inicial):
-    estado = "A procesar"
+    estado = "procesando"
     carga = Carga.objects.get(id= id_carga)
     
     try:
@@ -157,7 +158,7 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
     actividades_carga = Actividad.objects.filter(carga = carga).filter(admision = None)
     
     if id_actividad:
-        actividades_carga = Actividad.objects.filter(carga = carga, id=id_actividad).filter(admision = None)
+        actividades_carga = Actividad.objects.filter(carga = carga, id=id_actividad , admisionada_otra_carga = False).filter(admision = None)
     
     for actividad in actividades_carga:
         print("TOKEN A USAR:", token)
