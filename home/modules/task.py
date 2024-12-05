@@ -39,6 +39,7 @@ def procesar_actividad(carga, valores):
         actividad.nombre_actividad = (valores[8]).strip()
         actividad.diagnostico_p = valores[9]
         # Consultar médico
+        actividad.documento_medico = (valores[10]).strip()
         actividad.medico = Medico.objects.get(documento = (valores[10]).strip()) 
         # Atributos inferidos
         regional = Regional.objects.get(regional = actividad.regional)
@@ -199,8 +200,10 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
                 actividad.tipo_actividad = TipoActividad.objects.get(nombre = actividad.nombre_actividad)
                 
             try:
-                # Agregar Id de usuario al objeto actividad
-                # actividad.usuario = datos_usuario['Id']
+                # Validación documento médico:
+                if not actividad.medico:
+                    medico = Medico.objects.get(documento = actividad.documento_medico)
+                    actividad.medico = medico
 
                 # AutoID y nombre del regimen del afiliado
                 auto_id = datos_afiliado['Datos'][0]['autoid']
