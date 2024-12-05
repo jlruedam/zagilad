@@ -215,7 +215,6 @@ def procesarCargue(request):
     carga_actividades = Carga(
         usuario = usuario_actual,
         estado = "procesando",
-        num_tareas_en_proceso=num_bloques
     )
     carga_actividades.save()
     
