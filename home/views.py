@@ -217,18 +217,16 @@ def procesarCargue(request):
 
     for i in range(num_bloques+1):
         # ruta = f"./{FOLDER_MEDIA}/carga{carga_actividades.id}_bloque{i}.json"
-        print("Lote-",i)
+        
 
         lote_actividades = dict_data["datos"][i*size_task:(i+1)*size_task]
         # with open(ruta, "w") as j:
         #     json.dump(lote_actividades,j)
         # print("bloque "+str(i),len(lote_actividades))
-        
+        print("Lote-",i, len(lote_actividades))
         async_task('home.modules.task.procesar_cargue_actividades', 
                    carga_actividades.id, lote_actividades, i, 
                    cant_act, tiempo_inicial)
-
-    
 
     # Aquí se debe crear la tarea programa.
 

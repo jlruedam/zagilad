@@ -12,7 +12,8 @@ def valida_actividad_repetida_paciente(actividad, carga_actual = []):
         diagnostico_3 = actividad.diagnostico_3,
         tipo_documento = actividad.tipo_documento,
         documento_paciente = actividad.documento_paciente,
-        nombre_paciente = actividad.nombre_paciente
+        nombre_paciente = actividad.nombre_paciente,
+        medico = actividad.medico,
     )
     if carga_actual:
        repetida = actividades_repetidas.filter(carga = carga_actual).exists()

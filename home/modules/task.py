@@ -46,16 +46,18 @@ def procesar_actividad(carga, valores):
         if validador_actividades.valida_actividad_repetida_paciente(actividad):
             actividad.admisionada_otra_carga = True
             raise Exception("Actividad ya fue admisionada")
-
+        
+        # Validar si la actividad ya se encuentra en la carga actual.
+        if not validador_actividades.valida_actividad_repetida_paciente(actividad, carga):
+            raise Exception("Actividad repetida en la misma carga")
+            # print("✅Actividad se guarda correctamente")
+            
     except Exception as e:
         error = e
         actividad.inconsistencias = "⚠️" + str(error)
         # print(e)
 
-    # Validar si la actividad ya se encuentra en la carga actual.
-    if not validador_actividades.valida_actividad_repetida_paciente(actividad, carga):
-        # print("✅Actividad se guarda correctamente")
-        actividad.save()
+    actividad.save()
     
     return True
     
@@ -63,8 +65,8 @@ def procesar_lote_actividades(id_carga, bloque):
 
     carga = Carga.objects.get(id= id_carga)
     for valores in bloque["lote"]:
-        print("*"*100)
-        print(valores)
+        # print("*"*100)
+        # print(valores)
         try:
             actividad = Actividad()
             actividad.carga = carga
@@ -100,12 +102,14 @@ def procesar_lote_actividades(id_carga, bloque):
         except Exception as e:
             error = e
             actividad.inconsistencias = "⚠️" + str(error)
-            print(e)
+            # print(e)
 
         # Validar si la actividad ya se encuentra en la carga actual.
         if not validador_actividades.valida_actividad_repetida_paciente(actividad, carga):
-            print("✅Actividad se guarda correctamente")
+            # print("✅Actividad se guarda correctamente")
             actividad.save()
+
+        # actividad.save()
 
     carga.actualizar_info_actividades()
     carga.save()
@@ -124,29 +128,25 @@ def procesar_cargue_actividades(id_carga, datos, num_lote, cantidad_actividades,
             if not Actividad.objects.filter(carga = carga).filter(datos_json = valores).count():
                 # print("👍Se procesa actividad")
                 procesar_actividad(carga, valores)
-                # print(valores)
-
                 
+
         numero_actividades_carga = Actividad.objects.filter(carga = id_carga).count()    
         if numero_actividades_carga == cantidad_actividades:
             estado = "procesada"
-
-        print("lote: ", num_lote, numero_actividades_carga, cantidad_actividades, estado)
-            
-            
+            final = time.time()
+            carga.estado = estado
+            carga.tiempo_procesamiento = (final - tiempo_inicial)/60
+            carga.actualizar_info_actividades()
+            carga.save()
+            if len(carga.usuario.email):
+                notificaciones_email.notificar_carga_procesada(carga, [carga.usuario.email])
+              
     except Exception as e:
         print("Error al procesar la carga", e)
         estado = "cancelada"
-        
     finally:
-        final = time.time()
-        carga.estado = estado
-        carga.tiempo_procesamiento = (final - tiempo_inicial)/60
-        carga.actualizar_info_actividades()
-        carga.save()
-        if len(carga.usuario.email):
-            notificaciones_email.notificar_carga_procesada(carga, [carga.usuario.email])
-
+        print(f"Lote: {num_lote}- num_actividades_tarea: {len(datos)} - Total Actividades Carga: {cantidad_actividades} - Estado: {estado}")
+            
     return True
 
 
