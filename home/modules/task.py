@@ -200,7 +200,7 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
                 
             try:
                 # Agregar Id de usuario al objeto actividad
-                actividad.usuario = datos_usuario['Id']
+                # actividad.usuario = datos_usuario['Id']
 
                 # AutoID y nombre del regimen del afiliado
                 auto_id = datos_afiliado['Datos'][0]['autoid']
