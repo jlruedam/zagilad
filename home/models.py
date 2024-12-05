@@ -131,6 +131,7 @@ class Actividad(models.Model):
     parametros_programa =  models.ForeignKey(ParametrosAreaPrograma, models.SET_NULL, blank=True,null=True) 
     carga =  models.ForeignKey(Carga, models.SET_NULL, blank=True,null=True) 
     inconsistencias = models.CharField(max_length= 500, null=True, blank=True)
+    documento_medico = models.CharField(max_length= 50, blank=True,null=True)
     medico = models.ForeignKey(Medico, models.SET_NULL, blank=True,null=True)
     admisionada_otra_carga = models.BooleanField(default=False)
     datos_json = models.JSONField(blank=True,null=True) 
