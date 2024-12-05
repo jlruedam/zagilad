@@ -132,11 +132,12 @@ def procesar_cargue_actividades(id_carga, datos, num_lote, cantidad_actividades,
 
         numero_actividades_carga = Actividad.objects.filter(carga = id_carga).count()    
         if numero_actividades_carga == cantidad_actividades:
+            print("CARGA : pasa a procesada")
             estado = "procesada"
             final = time.time()
             carga.estado = estado
             carga.tiempo_procesamiento = (final - tiempo_inicial)/60
-            carga.actualizar_info_actividades()
+            # carga.actualizar_info_actividades()
             carga.save()
             if len(carga.usuario.email):
                 notificaciones_email.notificar_carga_procesada(carga, [carga.usuario.email])
