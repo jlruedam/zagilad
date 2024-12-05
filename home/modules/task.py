@@ -49,8 +49,7 @@ def procesar_actividad(carga, valores):
         
         # Validar si la actividad ya se encuentra en la carga actual.
         if validador_actividades.valida_actividad_repetida_paciente(actividad, carga):
-            raise Exception("Actividad repetida en la misma carga")
-            # print("✅Actividad se guarda correctamente")
+            raise Exception("Actividad repetida en la misma carga, validar.")
             
     except Exception as e:
         error = e
