@@ -287,12 +287,11 @@ def consultar_medicos(request):
     respuesta = peticiones_http.consultar_data("/api/SisMedi")
     cantidad_bd_medicos = Medico.objects.count()
 
-    if cantidad_bd_medicos <= 0:
-
-        for medico in respuesta:
-            # print("-"*100)
-            # print(medico)
-            # print("-"*100)
+    for medico in respuesta:
+        # print("-"*100)
+        # print(medico)
+        # print("-"*100)
+        if not list(Medico.objects.filter(documento=medico['Cedula'])):
             medico_bd = Medico()
             medico_bd.codigo = medico['Codigo']
             medico_bd.documento = medico['Cedula']

@@ -167,7 +167,7 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
             ruta = f"/api/SisDeta/GetDatosBasicosPaciente?NumeroIdentificacion={actividad.documento_paciente}&TipoIdentificacion={actividad.tipo_documento}"
             datos_afiliado = peticiones_http.consultar_data(ruta)
 
-            print(datos_afiliado['Datos'])
+            # print(datos_afiliado['Datos'])
 
             # Consultador datos del usuario
             # ruta = f"/api/Usuario/GetUserByCedula?Cedula={actividad.medico.documento}"
