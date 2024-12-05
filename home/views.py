@@ -189,60 +189,53 @@ def cargar_actividades(request):
             valores[9] = (str(valores[9])).strip()
             valores[10] = (str(valores[10])).strip()
             valores.append("A procesar")
-            respuesta.append(valores)           
+            if not valores in respuesta:
+                respuesta.append(valores)           
     
     # https://dev.to/chryzcode/django-json-response-safe-false-4f9i
     return JsonResponse(respuesta, safe = False)
 
 @login_required(login_url="/login/")
 def procesarCargue(request):
-    FOLDER_MEDIA = 'media/'
+
+    # Parámetros
     tiempo_inicial = time.time()
     size_task = 2000
+
+    # Obtener data
     datos = request.POST
     dict_data = ast.literal_eval(datos["data"])
-    cant_act = len(dict_data['datos'])
+
+    # Parámetros
     usuario_actual = User.objects.get(username=request.user.username)
-    num_bloques = cant_act//2000
-    
-    print(dict_data)
+    cant_act = len(dict_data['datos'])
+    num_bloques = cant_act//size_task
+
     # Crear carga:
     carga_actividades = Carga(
         usuario = usuario_actual,
-        estado = "procesando"
-        # data = json.dumps(dict_data), #Quitar esto y enviar a archivo json en el servidor
+        estado = "procesando",
+        num_tareas_en_proceso=num_bloques
     )
     carga_actividades.save()
     
 
     for i in range(num_bloques+1):
-        # ruta = f"./{FOLDER_MEDIA}/carga{carga_actividades.id}_bloque{i}.json"
-        
 
         lote_actividades = dict_data["datos"][i*size_task:(i+1)*size_task]
-        # with open(ruta, "w") as j:
-        #     json.dump(lote_actividades,j)
-        # print("bloque "+str(i),len(lote_actividades))
         print("Lote-",i, len(lote_actividades))
+
         async_task('home.modules.task.procesar_cargue_actividades', 
                    carga_actividades.id, lote_actividades, i, 
-                   cant_act, tiempo_inicial)
-
-    # Aquí se debe crear la tarea programa.
-
-    # task.procesar_cargue_actividades.delay(carga_actividades.id, dict_data)
-    # async_task('home.modules.task.procesar_cargue_actividades', carga_actividades.id, FOLDER_MEDIA+f"carga{carga_actividades.id}.json")
-    # print("Carga en proceso...")
+                   cant_act, tiempo_inicial, task_name=f'carga_{carga_actividades.id}_lote_{i}')
 
     resultados_cargue = {
         "num_carga":carga_actividades.id,
         "estado":carga_actividades.estado,
         "mensaje": "Carga en proceso"
     }
-
     print("RESULTADOS DEL CARGUE",resultados_cargue)
        
-
     return JsonResponse(resultados_cargue, safe = False)
     
 
@@ -308,7 +301,8 @@ def admisionar_actividades_carga(request, id_carga):
 def admisionar_actividad_individual(request, id_actividad, pagina):
     token = peticiones_http.obtener_token()
     actividad = Actividad.objects.get(id = id_actividad)
-    task.tarea_admisionar_actividades_carga.delay(token, actividad.carga.id, id_actividad)
+    # task.tarea_admisionar_actividades_carga.delay(token, actividad.carga.id, id_actividad)
+    async_task('home.modules.task.tarea_admisionar_actividades_carga', token, actividad.carga.id, id_actividad)
     return redirect(f'/verCarga/{actividad.carga.id}/{pagina}')
 
 @login_required(login_url="/login/")

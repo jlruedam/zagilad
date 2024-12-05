@@ -8,6 +8,8 @@ import os
 from celery import shared_task
 # from celery.decorators import task
 from celery.utils.log import get_task_logger
+from django_q.models import Task
+from django_q.models import OrmQ
 
 # ZAGILAD
 from home.models import TipoActividad, Actividad, ParametrosAreaPrograma 
@@ -26,6 +28,7 @@ def procesar_actividad(carga, valores):
     # medico = Medico.objects.get(documento = (valores[10]).strip()) 
     try:
         actividad = Actividad()
+        actividad.datos_json = valores
         actividad.carga = carga
         actividad.tipo_fuente = "EXCEL"
         actividad.tipo_documento = valores[0]
@@ -41,7 +44,7 @@ def procesar_actividad(carga, valores):
         regional = Regional.objects.get(regional = actividad.regional)
         actividad.tipo_actividad = TipoActividad.objects.get(nombre = actividad.nombre_actividad)
         actividad.parametros_programa = ParametrosAreaPrograma.objects.get(area_programa = actividad.tipo_actividad.area, regional = regional.id)
-        actividad.datos_json = valores
+        
         # Validar si la actividad está repetida
         if validador_actividades.valida_actividad_repetida_paciente(actividad):
             actividad.admisionada_otra_carga = True
@@ -119,27 +122,26 @@ def procesar_lote_actividades(id_carga, bloque):
 def procesar_cargue_actividades(id_carga, datos, num_lote, cantidad_actividades, tiempo_inicial):
     estado = "procesando"
     carga = Carga.objects.get(id= id_carga)
-    
     try:
-
+        # Procesar actividades individualmente
         for valores in datos:
-            # print(valores)
             if not Actividad.objects.filter(carga = carga).filter(datos_json = valores).count():
-                # print("👍Se procesa actividad")
                 procesar_actividad(carga, valores)
                 
-
-        numero_actividades_carga = Actividad.objects.filter(carga = id_carga).count()    
+        # Validar si se completa la carga
+        numero_actividades_carga = Actividad.objects.filter(carga = id_carga).count() 
         if numero_actividades_carga == cantidad_actividades:
             print("CARGA : pasa a procesada")
             estado = "procesada"
             final = time.time()
-            carga.estado = estado
             carga.tiempo_procesamiento = (final - tiempo_inicial)/60
-            # carga.actualizar_info_actividades()
-            carga.save()
+            
             if len(carga.usuario.email):
                 notificaciones_email.notificar_carga_procesada(carga, [carga.usuario.email])
+
+        carga.estado = estado
+        carga.actualizar_info_actividades()
+        carga.save()
               
     except Exception as e:
         print("Error al procesar la carga", e)
