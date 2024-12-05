@@ -202,6 +202,7 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
             try:
                 # Validación documento médico:
                 if not actividad.medico:
+                    print(actividad.medico)
                     medico = Medico.objects.get(documento = actividad.documento_medico)
                     actividad.medico = medico
 
