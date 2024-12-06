@@ -190,7 +190,7 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
 
             # Validar Si el afiliado existe
             if not len(datos_afiliado['Datos']):
-                raise Exception("Paciente no está registrado en Zeus")
+                raise Exception("No se obtuvieron datos del paciente")
 
             # Validar si la actividad ya fue admisionada
             if validador_actividades.valida_actividad_repetida_paciente(actividad):
@@ -216,12 +216,10 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
                 # AutoID y nombre del regimen del afiliado
                 auto_id = datos_afiliado['Datos'][0]['autoid']
                 regimen = datos_afiliado['Datos'][0]['NombreRegimen']
-                
+
                 if not datos_afiliado['Datos'][0]['NombreRegimen']:
                     raise Exception("No tiene regimen relacionado")
                 
-                
-
                 # Inicializo la admisión con los parametros generales y la información de la actividad
                 admision_actividad = admision.crear_admision(
                     autoid = auto_id,
