@@ -244,6 +244,9 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
                     
                     print(respuesta['Datos'])
                     print(respuesta['Errores'])
+                    
+                    if(respuesta['Errores']):
+                        raise Exception(respuesta['Errores'])
 
                     respuesta_admision = ast.literal_eval(respuesta['Datos'][0]['infoTrasaction'])
                     print("RESPUESTA ADMISIÓN:",respuesta_admision[0], type(respuesta_admision[0]))
