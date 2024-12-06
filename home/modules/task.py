@@ -200,8 +200,15 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
                 actividad.tipo_actividad = TipoActividad.objects.get(nombre = actividad.nombre_actividad)
                 
             try:
+                if actividad.parametros_programa == None:
+                    # Atributos inferidos
+                    regional = Regional.objects.get(regional = actividad.regional)
+                    actividad.tipo_actividad = TipoActividad.objects.get(nombre = actividad.nombre_actividad)
+                    actividad.parametros_programa = ParametrosAreaPrograma.objects.get(area_programa = actividad.tipo_actividad.area, regional = regional.id)
+        
+
                 # Validación documento médico:
-                if not actividad.medico:
+                if actividad.medico == None:
                     print(actividad.medico)
                     medico = Medico.objects.get(documento = actividad.documento_medico)
                     actividad.medico = medico

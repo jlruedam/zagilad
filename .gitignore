@@ -33,5 +33,5 @@ apps/static/assets/.temp
 *.pdf
 .env
 .env.produccion
-
+.env.local
 media
