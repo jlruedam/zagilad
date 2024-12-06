@@ -2,10 +2,19 @@ import requests
 import json
 from zagilad.settings import USUARIO_API_ZEUS, PASSWORD_API_ZEUS
 from home.models import TokenApiZeus
+from zagilad.settings import DEBUG
 ZEUS_API = {
     "prueba":"http://10.244.21.17:8022",
     "produccion":"http://131.0.170.93:8030"
 }
+
+
+if DEBUG:
+    URL_API_ZEUS = ZEUS_API['prueba']
+    print("CONECTADO ZEUS PRUEBA")
+else:
+    URL_API_ZEUS = ZEUS_API['produccion']
+    print("CONECTADO ZEUS PRODCCIÓN")
 
 # URL_API_ZEUS = ZEUS_API['produccion']
 URL_API_ZEUS = ZEUS_API['prueba']
