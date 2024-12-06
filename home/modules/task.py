@@ -216,6 +216,11 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
                 # AutoID y nombre del regimen del afiliado
                 auto_id = datos_afiliado['Datos'][0]['autoid']
                 regimen = datos_afiliado['Datos'][0]['NombreRegimen']
+                
+                if not datos_afiliado['Datos'][0]['NombreRegimen']:
+                    raise Exception("No tiene regimen relacionado")
+                
+                
 
                 # Inicializo la admisión con los parametros generales y la información de la actividad
                 admision_actividad = admision.crear_admision(
