@@ -3,21 +3,23 @@ import json
 from zagilad.settings import USUARIO_API_ZEUS, PASSWORD_API_ZEUS
 from home.models import TokenApiZeus
 from zagilad.settings import DEBUG
+
 ZEUS_API = {
     "prueba":"http://10.244.21.17:8022",
     "produccion":"http://131.0.170.93:8030"
 }
 
 
+
 if DEBUG:
     URL_API_ZEUS = ZEUS_API['prueba']
-    print("CONECTADO ZEUS PRUEBA")
+    print("CONECTADO ZEUS PRUEBA: ", URL_API_ZEUS)
 else:
     URL_API_ZEUS = ZEUS_API['produccion']
-    print("CONECTADO ZEUS PRODCCIÓN")
+    print("CONECTADO ZEUS PRODUCCIÓN: ",URL_API_ZEUS)
 
 # URL_API_ZEUS = ZEUS_API['produccion']
-URL_API_ZEUS = ZEUS_API['prueba']
+# URL_API_ZEUS = ZEUS_API['prueba']
 
 USERNAME = USUARIO_API_ZEUS
 PASSWORD = PASSWORD_API_ZEUS
@@ -86,7 +88,7 @@ def crear_admision(admision, token):
     return respuesta
 
 def consultar_data(ruta, data = [], token = ""):
-    print(URL_API_ZEUS)
+    print("CONECTADO A:", URL_API_ZEUS)
     respuesta = []
     ruta_endpoint = ruta
     cabeceras = {
