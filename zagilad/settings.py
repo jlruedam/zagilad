@@ -38,6 +38,9 @@ DEBUG =  config('DEBUG', cast = bool)
 ALLOWED_HOSTS=(config('ALLOWED_HOSTS')).split(",")
 CSRF_TRUSTED_ORIGINS = (config('CSRF_TRUSTED_ORIGINS')).split(",")
 
+# URL del API de ZEUS
+URL_API_ZEUS = config('URL_API_ZEUS')
+
 print(ALLOWED_HOSTS)
 
 # Application definition
