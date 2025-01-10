@@ -162,8 +162,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #############################################################
 #############################################################
 
-FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024 # 10 Mb limit
-DATA_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024 # 20 Mb limit
+FILE_UPLOAD_MAX_MEMORY_SIZE = 100 * 1024 * 1024 # 10 Mb limit
+DATA_UPLOAD_MAX_MEMORY_SIZE = 100 * 1024 * 1024 # 20 Mb limit
 
 EMAIL_BACKEND =  config('EMAIL_BACKEND')
 EMAIL_HOST = config('EMAIL_HOST')

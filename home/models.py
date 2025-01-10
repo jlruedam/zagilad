@@ -127,7 +127,7 @@ class Actividad(models.Model):
     diagnostico_3 = models.CharField(max_length= 10, default= "")
     tipo_documento = models.CharField(max_length= 10, default="CC")
     documento_paciente = models.CharField(max_length= 50)
-    nombre_paciente = models.CharField(max_length= 50)
+    nombre_paciente = models.CharField(max_length= 200)
     parametros_programa =  models.ForeignKey(ParametrosAreaPrograma, models.SET_NULL, blank=True,null=True) 
     carga =  models.ForeignKey(Carga, models.SET_NULL, blank=True,null=True) 
     inconsistencias = models.CharField(max_length= 500, null=True, blank=True)
