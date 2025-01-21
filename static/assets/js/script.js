@@ -60,10 +60,11 @@ const codigos_empresa = async () => {
 const consultarPaciente = async () => {
     let ruta = "/consultarDatosPaciente/";
     let docPaciente = $('#documentoPaciente').val();
+    let tipoDocumento = $('#tipoDocumento').val();
 
     data = {
         "id": docPaciente,
-        "tipo": "cc"
+        "tipo": tipoDocumento
     }
 
     // ruta = `${ruta}?id=${docPaciente}&tipo=cc`; 
@@ -72,9 +73,15 @@ const consultarPaciente = async () => {
 
     let datosColaborador = respuesta["Datos"];
 
-    $("#datosPaciente").empty();
-    for(campo of Object.keys(datosColaborador[0])){
-        $("#datosPaciente").append(`<li>${campo}: ${datosColaborador[0][campo] }</li>`);
+    if(datosColaborador.length == 0){
+        $("#datosPaciente").empty();
+        alert("Datos vacíos");
+    
+    }else{
+        $("#datosPaciente").empty();
+        for(campo of Object.keys(datosColaborador[0])){
+            $("#datosPaciente").append(`<li>${campo}: ${datosColaborador[0][campo] }</li>`);
+        }
     }
 
 }
@@ -97,6 +104,27 @@ const consultarMedicos = async () => {
         columns: encabezados
     }); 
 }
+
+const consultarUsuariosZeus = async () => {
+    console.log("AQUÍ ENTRA");
+    let ruta = "/consultarUsuariosZeus/";
+    let data = {};
+    let encabezados = [];
+    let respuesta =  await peticion_http(data, ruta);
+    console.log(respuesta);
+            
+    for( campo of Object.keys(respuesta[0])){
+        console.log(campo);
+        encabezados.push({data:campo});
+    } 
+    
+
+    $('#tablaUsuarioZeus').DataTable({
+        data:respuesta,
+        columns: encabezados
+    }); 
+}
+
 
 const listarTiposServicios = async () => {
     let ruta = "/listarTiposServicios/";

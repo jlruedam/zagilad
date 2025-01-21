@@ -23,6 +23,7 @@
                         <th>Actividades para admisionar</th>
                         <th>Actividades admisionadas</th>
                         <th>Tiempo carga inicial</th>
+                        <th>Observación</th>
                         <th>Created</th>
                         <th>Updated</th>
                         <th>Exportar</th>
@@ -41,6 +42,7 @@
                         <td>{{carga.cantidad_actividades_ok}}</td>
                         <td>{{carga.cantidad_actividades_admisionadas}}</td>
                         <td>{{carga.tiempo_procesamiento|stringformat:"1.2f"}} min</td>
+                        <td>{{carga.observacion}}</td>
                         <td>{{carga.created_at}}</td>
                         <td>{{carga.updated_at}}</td>
                         <td><a href="/exportarCargaExcel/{{carga.id}}/all"><img width="30" height="30" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/></a></td>

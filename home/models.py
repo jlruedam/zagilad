@@ -78,6 +78,7 @@ class Carga(models.Model):
     cantidad_actividades_ok = models.IntegerField(default = 0)
     cantidad_actividades_admisionadas = models.IntegerField(default = 0)
     tiempo_procesamiento = models.FloatField(default = 0)
+    observacion = models.CharField(max_length= 500, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add = True)
     updated_at = models.DateTimeField(auto_now = True)
 

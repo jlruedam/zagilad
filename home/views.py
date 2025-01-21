@@ -215,6 +215,7 @@ def procesarCargue(request):
     carga_actividades = Carga(
         usuario = usuario_actual,
         estado = "procesando",
+        observacion = dict_data["observacion"]
     )
     carga_actividades.save()
     

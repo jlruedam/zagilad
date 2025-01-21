@@ -32,6 +32,7 @@ $('#btnEnviarCargaActividades').on('click', () => {
     let ruta = "/procesarCargueActividades/";
     
     data = {
+        "observacion":$('#observacion_carga').val(),
         "datos":respuesta
     }
    
