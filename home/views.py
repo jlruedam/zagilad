@@ -357,7 +357,7 @@ def descargar_archivo(request, nombre_archivo):
 
 @login_required(login_url="/login/")    
 def exportar_carga_excel(request, id_carga,tipo):
-    FOLDER_MEDIA = 'media/'
+    FOLDER_MEDIA = 'home\exports/'
     nombre_archivo = 'listado_actividades_carga.xlsx'
     print(id_carga)
     if tipo == "all":

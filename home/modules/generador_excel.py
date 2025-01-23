@@ -48,6 +48,6 @@ def genera_excel_carga(actividades_carga):
     df = pd.DataFrame(dict_carga)
     df = df[dict_carga.keys()]
 
-    writer = ExcelWriter('media//listado_actividades_carga.xlsx')
+    writer = ExcelWriter('home\exports//listado_actividades_carga.xlsx')
     df.to_excel(writer, 'Hoja de datos', index = False)
     writer.close()
