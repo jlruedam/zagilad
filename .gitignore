@@ -35,3 +35,6 @@ apps/static/assets/.temp
 .env.produccion
 .env.local
 media
+
+# Exel files
+*.xlsx

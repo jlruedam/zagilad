@@ -8,7 +8,7 @@
     <div class = "bloqueBtn">
         <div class="mybtn"><a href="/informeCargas/"><img width="96" height="96" src="https://img.icons8.com/deco/96/return.png" alt="return"/></a></div>
         <div class="mybtn"><a href="/admisionarActividadesCarga/{{carga.id}}" onclick="alert('🔃Admisiones en proceso!')">Admisionar actividades</a></div>
-        <div class="mybtn"><a href="/eliminarActividadesInconsistenciaCarga/{{carga.id}}">Eliminar actividades con inconsistencias</a></div>
+        <div class="mybtn"><a href="/eliminarActividadesInconsistenciaCarga/{{carga.id}}/all">Eliminar actividades con inconsistencias</a></div>
         <!-- <div class="mybtn"><a href="/exportarCargaExcel/{{carga.id}}"><img width="80" height="80" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/></a></div> -->
         <div class="mybtn"><a href="/exportarCargaExcel/{{carga.id}}/all"><img width="20" height="20" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>Actividades en total: <br> {{carga.cantidad_actividades}}</a></div>
         <div class="mybtn"><a href="/exportarCargaExcel/{{carga.id}}/inconsistencias"><img width="20" height="20" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>Actividades inconsistencias: <br> {{carga.cantidad_actividades_inconsistencias}}</a></div>
@@ -16,13 +16,31 @@
         <div class="mybtn"><a href="/exportarCargaExcel/{{carga.id}}/admisionadas"><img width="20" height="20" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>Actividades admisionadas: <br> {{carga.cantidad_actividades_admisionadas}}</a></div>
         <div class="mybtn">Tiempo de carga inicial:<br>{{carga.tiempo_procesamiento|stringformat:"1.2f"}} min</div>
     </div>
-    <!-- <div class="bloqueInfo">
-        <div class="mybtn">Actividades en total: {{carga.cantidad_actividades}}</div>
-        <div class="mybtn">Actividades inconsistencias: {{carga.cantidad_actividades_inconsistencias}}</div>
-        <div class="mybtn">Actividades para admisionar: {{carga.cantidad_actividades_ok}} </div>
-        <div class="mybtn">Actividades admisionadas:{{carga.cantidad_actividades_admisionadas}}</div>
-        <div class="mybtn">Tiemdivo procesamiento:{{carga.tiempo_procesamiento}} min</div>
-    </div> -->
+    {% if resumen_inconsistencias %}
+    <div class="bloqueTablaResumenInconsistencias">
+        <table>
+            <thead>
+                <th>Inconsistencias</th>  
+                <th>Cantidad Actividades</th>  
+                <th>Eliminar Actividades</th>  
+            </thead>
+            <tbody>
+                {% for inconsistencia in resumen_inconsistencias %}
+                    <tr>
+                        <td>{{inconsistencia.inconsistencias}}</td>
+                        <td>{{inconsistencia.cantidad}}</td>
+                        <td class="mybtn-emoji" >
+                            <a id="botonEliminarActividadesInconsistencia" href="/eliminarActividadesInconsistenciaCarga/{{carga.id}}/{{inconsistencia.inconsistencias}}" >
+                                🗑️
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+    </div>
+    {% endif %}
     <div class = "bloqueTabla">
         <table id="tablaActividadesCargadas" carga="{{carga.id}}">
             <caption>
@@ -51,6 +69,7 @@
         </table>
         
     </div>
+    
     
    
   

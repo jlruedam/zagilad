@@ -6,7 +6,7 @@ from django.core import serializers
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.db.models import Q
+from django.db.models import Q, Count
 # PYTHON
 from datetime import datetime, date
 import ast, time
@@ -133,6 +133,16 @@ def informe_cargas(request):
 def ver_carga(request, id_carga, pagina):
 
     carga = Carga.objects.get(id= id_carga)
+
+    resumen_inconsistencias = (
+    Actividad.objects.values("inconsistencias")
+    .filter(carga=carga, inconsistencias__isnull=False)
+    .annotate(cantidad=Count("id"))
+    .order_by("-cantidad")
+    )
+   
+    print(resumen_inconsistencias)
+    
     # actividades_carga = Actividad.objects.filter(carga = carga)
 
     # paginador = Paginator(actividades_carga, 10)
@@ -141,6 +151,7 @@ def ver_carga(request, id_carga, pagina):
     
     ctx = {
         "carga":carga,
+        "resumen_inconsistencias":resumen_inconsistencias,
         # "pagina":paginador.page(pagina),
         # "pagina_previa":pagina_previa,
         # "pagina_siguiente":pagina_siguiente,
@@ -306,14 +317,23 @@ def admisionar_actividad_individual(request, id_actividad, pagina):
     return redirect(f'/verCarga/{actividad.carga.id}/{pagina}')
 
 @login_required(login_url="/login/")
-def eliminar_actividades_inconsistencia_carga(request, id_carga):
+def eliminar_actividades_inconsistencia_carga(request, id_carga, tipo_inconsistencia = None):
     carga = Carga.objects.get(id = int(id_carga))
+    actividades_carga_inconsistencia = Actividad.objects.filter(carga=carga).exclude(inconsistencias=None)
+    if tipo_inconsistencia != 'all':
+        actividades_carga_inconsistencia = actividades_carga_inconsistencia.filter(inconsistencias=tipo_inconsistencia)
     
-    # Buscar las actividades sin admisión relacionadas a la carga
-    actividades_carga_inconsistencia = Actividad.objects.filter(carga=carga).exclude(inconsistencias = None).delete()
+    actividades_carga_inconsistencia.delete()
     carga.actualizar_info_actividades()
     carga.save()
-    return redirect(f'/verCarga/{id_carga}')
+
+    cantidad_actividaes_carga = Actividad.objects.filter(carga = carga).count()
+    if cantidad_actividaes_carga == 0:
+        carga.delete()
+        return redirect(f'/informeCargas/')    
+    return redirect(f'/verCarga/{id_carga}/1')
+
+
 
 @login_required(login_url="/login/")
 def eliminar_actividad_individual(request, id_actividad, pagina):
