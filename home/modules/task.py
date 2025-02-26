@@ -10,6 +10,8 @@ from celery import shared_task
 from celery.utils.log import get_task_logger
 from django_q.models import Task
 from django_q.models import OrmQ
+from django.db.models.functions import Replace
+from django.db.models import Value
 
 # ZAGILAD
 from home.models import TipoActividad, Actividad, ParametrosAreaPrograma 
@@ -43,7 +45,12 @@ def procesar_actividad(carga, valores):
         actividad.medico = Medico.objects.get(documento = (valores[10]).strip()) 
         # Atributos inferidos
         regional = Regional.objects.get(regional = actividad.regional)
-        actividad.tipo_actividad = TipoActividad.objects.get(nombre = actividad.nombre_actividad)
+       
+        tipo = validador_actividades.validar_tipo_actividad(actividad)
+        if not tipo:
+            raise Exception("Tipo de actividad no encontrado")
+        
+        actividad.tipo_actividad = tipo
         actividad.parametros_programa = ParametrosAreaPrograma.objects.get(area_programa = actividad.tipo_actividad.area, regional = regional.id)
         
         # Validar si la actividad está repetida

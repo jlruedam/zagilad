@@ -1,4 +1,4 @@
-from home.models import Actividad
+from home.models import Actividad, TipoActividad
 
 def valida_actividad_repetida_paciente(actividad, carga_actual = []):
     actividades_repetidas = Actividad.objects.filter(
@@ -24,4 +24,14 @@ def valida_actividad_repetida_paciente(actividad, carga_actual = []):
     
 
         
+
+def validar_tipo_actividad(actividad):
+   
+    for tipo in TipoActividad.objects.all():
+        nombre_tipo = tipo.nombre.replace(" ", "")
+        nombre_actividad = actividad.nombre_actividad.replace(" ", "")
+        if nombre_tipo in nombre_actividad:
+            return tipo
         
+
+    return False
