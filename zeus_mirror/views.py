@@ -265,12 +265,8 @@ def listar_tipos_servicios(request):
     cantidad_bd_servicios = TipoServicio.objects.count()
     cantidad_respuesta = len(respuesta)
 
-    if cantidad_bd_servicios <= 0:
-
-        for servicio in respuesta:
-            print("-"*100)
-            print(servicio)
-            print("-"*100)
+    for servicio in respuesta:
+        if not list(TipoServicio.objects.filter(id_zeus=servicio['Id'])): 
             tipo_servicio = TipoServicio()
             tipo_servicio.id_zeus = servicio['Id']
             tipo_servicio.fuente = servicio['Fuente']
@@ -278,6 +274,7 @@ def listar_tipos_servicios(request):
             tipo_servicio.tipo = servicio['Tipo']
             tipo_servicio.tipo_servicio = servicio['Tiposervicio']
             tipo_servicio.save()
+            print("GUARDADO:",servicio)
 
     # https://dev.to/chryzcode/django-json-response-safe-false-4f9i
     return JsonResponse(respuesta, safe = False)
