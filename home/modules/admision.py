@@ -85,9 +85,13 @@ def crear_admision(autoid, regimen, codigo_entidad, tipo_diag, actividad):
     if not actividad.parametros_programa:
         raise Exception("Párametros del programa no están configurados")
     
+
+    contrato_subsidiado = actividad.tipo_actividad.contrato.contrato_subsidiado 
+    contrato_contributivo = actividad.tipo_actividad.contrato.contrato_contributivo
+    
     contrato = {
-        "Subsidiado": actividad.tipo_actividad.contrato.contrato_subsidiado.codigo,
-        "Contributivo": actividad.tipo_actividad.contrato.contrato_contributivo.codigo
+        "Subsidiado": contrato_subsidiado.codigo if contrato_subsidiado else "",
+        "Contributivo": contrato_contributivo.codigo if contrato_contributivo else ""
     }
 
     admision_formato =  [{
