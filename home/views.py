@@ -333,8 +333,6 @@ def eliminar_actividades_inconsistencia_carga(request, id_carga, tipo_inconsiste
         return redirect(f'/informeCargas/')    
     return redirect(f'/verCarga/{id_carga}/1')
 
-
-
 @login_required(login_url="/login/")
 def eliminar_actividad_individual(request, id_actividad, pagina):
     actividad = Actividad.objects.get(id = int(id_actividad))
@@ -344,6 +342,7 @@ def eliminar_actividad_individual(request, id_actividad, pagina):
     carga.actualizar_info_actividades()
     carga.save()
     return redirect(f'/verCarga/{carga.id}/{pagina}')
+
 # ADMISTRACIÓN 
 @login_required(login_url="/login/")
 def vista_administrador(request):

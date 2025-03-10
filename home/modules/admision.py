@@ -125,7 +125,7 @@ def crear_admision(autoid, regimen, codigo_entidad, tipo_diag, actividad):
         "No_poliza": 0,#QUEMADO
         "Ufuncional":actividad.parametros_programa.unidad_funcional.codigo,#VARIABLE
         "Embarazo": "",#QUEMADO
-        "Id_sede": 1, #actividad.sede,#VARIABLE
+        "Id_sede": actividad.parametros_porgrama.sede.id_zeus,#VARIABLE
         "PuntoAtencion": actividad.parametros_programa.punto_atencion.id_zeus,#VARIABLE
         "PolizaSalud": "",#QUEMADO
         "serviciosObjDTOS": [
