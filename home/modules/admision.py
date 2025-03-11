@@ -94,6 +94,8 @@ def crear_admision(autoid, regimen, codigo_entidad, tipo_diag, actividad):
         "Contributivo": contrato_contributivo.codigo if contrato_contributivo else ""
     }
 
+
+    # Armar formato de admisión   
     admision_formato =  [{
         "autoid": autoid, #VARIABLE
         "Cod_entidad": codigo_entidad,#PARÁMETRO - CONTRATO
