@@ -150,7 +150,7 @@ class TipoActividad(models.Model):
 class Actividad(models.Model):
 
     id = models.AutoField(primary_key=True)
-    tipo_fuente = models.CharField(max_length=10,blank=True, null=True)
+    tipo_fuente = models.CharField(max_length=10,blank=True, default="")
     admision = models.ForeignKey(Admision, models.SET_NULL, blank=True, null=True)
     identificador = models.CharField(max_length=150, blank=True, null=True)
     regional = models.CharField(max_length=150)
