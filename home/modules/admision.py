@@ -144,10 +144,10 @@ def crear_admision(autoid, regimen, codigo_entidad, tipo_diag, actividad):
                 "personal_ate": actividad.medico.codigo,#QUEMADO
                 "cod_medico":actividad.medico.codigo,#QUEMADO
                 "tipo_diag": tipo_diag,#VARIABLE
-                "cod_diap": "" if actividad.diagnostico_p == 'nan' or actividad.diagnostico_p == '0' else actividad.diagnostico_p.strip(),#VARIABLE
-                "cod_diagn1":"" if actividad.diagnostico_1 == 'nan' or actividad.diagnostico_1 == '0' else actividad.diagnostico_1.strip(),#VARIABLE
-                "cod_diagn2": "" if actividad.diagnostico_2 == 'nan' or actividad.diagnostico_2 == '0' else actividad.diagnostico_2.strip(),#VARIABLE
-                "cod_diagn3": "" if actividad.diagnostico_3 == 'nan' or actividad.diagnostico_3 == '0' else actividad.diagnostico_3.strip(),#VARIABLE
+                "cod_diap": "" if actividad.diagnostico_p == None or actividad.diagnostico_p == 'nan' or actividad.diagnostico_p == '0' else actividad.diagnostico_p.strip(),#VARIABLE
+                "cod_diagn1":"" if actividad.diagnostico_1 == None or actividad.diagnostico_1 == 'nan' or actividad.diagnostico_1 == '0' else actividad.diagnostico_1.strip(),#VARIABLE
+                "cod_diagn2": "" if actividad.diagnostico_2 == None or actividad.diagnostico_2 == 'nan' or actividad.diagnostico_2 == '0' else actividad.diagnostico_2.strip(),#VARIABLE
+                "cod_diagn3": "" if actividad.diagnostico_3 == None or actividad.diagnostico_3 == 'nan' or actividad.diagnostico_3 == '0' else actividad.diagnostico_3.strip(),#VARIAB
                 "finalidad": 10,#QUEMADO
                 "ambito_proc": 1,#QUEMADO
                 "ccosto": actividad.parametros_programa.centro_costo.codigo,#PARÁMETRO
