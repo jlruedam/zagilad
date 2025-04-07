@@ -150,19 +150,19 @@ class TipoActividad(models.Model):
 class Actividad(models.Model):
 
     id = models.AutoField(primary_key=True)
-    tipo_fuente = models.CharField(max_length=10)
+    tipo_fuente = models.CharField(max_length=10,blank=True, null=True)
     admision = models.ForeignKey(Admision, models.SET_NULL, blank=True, null=True)
-    identificador = models.CharField(max_length=150)
+    identificador = models.CharField(max_length=150, blank=True, null=True)
     regional = models.CharField(max_length=150)
     fecha_servicio = models.DateField()
     nombre_actividad = models.CharField(max_length=250)
     tipo_actividad = models.ForeignKey(
         TipoActividad, models.SET_NULL, blank=True, null=True
     )
-    diagnostico_p = models.CharField(max_length=10, default="")
-    diagnostico_1 = models.CharField(max_length=10, default="")
-    diagnostico_2 = models.CharField(max_length=10, default="")
-    diagnostico_3 = models.CharField(max_length=10, default="")
+    diagnostico_p = models.CharField(max_length=10, default="", blank=True, null=True)
+    diagnostico_1 = models.CharField(max_length=10, default="", blank=True, null=True)
+    diagnostico_2 = models.CharField(max_length=10, default="", blank=True, null=True)
+    diagnostico_3 = models.CharField(max_length=10, default="", blank=True, null=True)
     tipo_documento = models.CharField(max_length=10, default="CC")
     documento_paciente = models.CharField(max_length=50)
     nombre_paciente = models.CharField(max_length=200)
