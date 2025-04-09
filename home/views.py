@@ -162,49 +162,70 @@ def ver_carga(request, id_carga, pagina):
 # PROCESAMIENTO DE ACTIVIDADES
 @login_required(login_url="/login/")
 def cargar_actividades(request):
-    
-    archivo_masivo = pd.read_excel(request.FILES["adjunto"])
-    archivo_masivo = archivo_masivo.fillna("")
-    archivo_dict = archivo_masivo.to_dict()
-    respuesta = []
-
-       
-    encabezados = [ 
-        "tipo_identificacion",	"numero_identificacion", "primer_apellido",	
-        "segundo_apellido", "primer_nombre","segundo_nombre",	
-        "regional",	"fecha_gestion","nombre","ciex","medico_id"
-    ]
-
-    print(set(list(archivo_dict.keys())), set(encabezados) , set(list(archivo_dict.keys())) == set(encabezados) )
-
-    if set(list(archivo_dict.keys())) != set(encabezados):
-        raise Exception("Error en el formato")
-
-    num_registros = []
-    for columna in archivo_dict.values():
-        num_registros.append(len(columna))
-
-    if len(np.unique(num_registros)) == 1:
-        print("Cantidad de registros OK")
-        registros = {}
-        for i in range((np.unique(num_registros))[0]):
-            registros[i] = []
-            for campo in archivo_dict.values():
-                registros[i].append(campo[i])
-
-        for registro, valores in registros.items():
-
-            print(registro, valores)
-            valores[1] = (str(valores[1])).strip()
-            valores[7] = (str(valores[7]).split(" "))[0]
-            valores[9] = (str(valores[9])).strip()
-            valores[10] = (str(valores[10])).strip()
+    """
+    Carga actividades desde un archivo Excel y las procesa.
+    Valida el formato del archivo y retorna los datos como JSON.
+    """
+    try:
+        # Validar que se haya subido un archivo
+        if 'adjunto' not in request.FILES:
+            return JsonResponse({'error': 'No se ha proporcionado ningún archivo'}, status=400)
+            
+        archivo_masivo = pd.read_excel(request.FILES["adjunto"])
+        archivo_masivo = archivo_masivo.fillna("")
+        
+        # Definir encabezados esperados
+        encabezados_esperados = [
+            "tipo_identificacion", "numero_identificacion", "primer_apellido",
+            "segundo_apellido", "primer_nombre", "segundo_nombre",
+            "regional", "fecha_gestion", "nombre", "ciex", "medico_id"
+        ]
+        
+        # Verificar columnas
+        columnas_archivo = list(archivo_masivo.columns)
+        if set(columnas_archivo) != set(encabezados_esperados):
+            columnas_faltantes = set(encabezados_esperados) - set(columnas_archivo)
+            columnas_adicionales = set(columnas_archivo) - set(encabezados_esperados)
+            mensaje_error = "Error en el formato del archivo. "
+            if columnas_faltantes:
+                mensaje_error += f"Columnas faltantes: {', '.join(columnas_faltantes)}. "
+            if columnas_adicionales:
+                mensaje_error += f"Columnas adicionales: {', '.join(columnas_adicionales)}."
+            return JsonResponse({'error': mensaje_error}, status=400)
+        
+        # Procesar registros
+        respuesta = []
+        registros_vistos = set()  # Para controlar registros duplicados
+        
+        for _, fila in archivo_masivo.iterrows():
+            # Crear una lista con los valores de la fila
+            valores = fila.tolist()
+            
+            # Limpiar y formatear datos
+            valores[1] = str(valores[1]).strip()  # numero_identificacion
+            valores[7] = str(valores[7]).split(" ")[0]  # fecha_gestion, solo la fecha sin hora
+            valores[9] = str(valores[9]).strip()  # ciex
+            valores[10] = str(valores[10]).strip()  # medico_id
+            
+            # Agregar estado
             valores.append("A procesar")
-            if not valores in respuesta:
-                respuesta.append(valores)           
+            
+            # Convertir a tupla para poder usar como clave en el conjunto
+            registro_tupla = tuple(valores)
+            
+            # Evitar duplicados
+            if registro_tupla not in registros_vistos:
+                registros_vistos.add(registro_tupla)
+                respuesta.append(valores)
+        
+        return JsonResponse(respuesta, safe=False)
     
-    # https://dev.to/chryzcode/django-json-response-safe-false-4f9i
-    return JsonResponse(respuesta, safe = False)
+    except pd.errors.EmptyDataError:
+        return JsonResponse({'error': 'El archivo está vacío'}, status=400)
+    except pd.errors.ParserError:
+        return JsonResponse({'error': 'No se pudo analizar el archivo. Verifique que sea un archivo Excel válido'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': f'Error al procesar el archivo: {str(e)}'}, status=500)
 
 @login_required(login_url="/login/")
 def procesarCargue(request):
