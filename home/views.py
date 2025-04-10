@@ -7,12 +7,16 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db.models import Q, Count
+from django.db import transaction
+
+
 # PYTHON
 from datetime import datetime, date
 import ast, time
 import pandas as pd
 import numpy as np
 import json
+import logging
 
 # ZAGILAD
 from home.modules import peticiones_http, admision, parametros_generales
@@ -25,7 +29,8 @@ from home.modules import paginacion_actividades
 from django_q.tasks import async_task
 
 
-# Create your views here.
+# Configurar el logger
+logger = logging.getLogger(__name__)
 
 # VISTAS PRINCIPALES
 @login_required(login_url="/login/")
@@ -229,47 +234,76 @@ def cargar_actividades(request):
 
 @login_required(login_url="/login/")
 def procesarCargue(request):
-
-    # Parámetros
+    # Medir tiempo inicial
     tiempo_inicial = time.time()
     size_task = 2000
-
-    # Obtener data
-    datos = request.POST
-    dict_data = ast.literal_eval(datos["data"])
-
-    # Parámetros
-    usuario_actual = User.objects.get(username=request.user.username)
-    cant_act = len(dict_data['datos'])
-    num_bloques = cant_act//size_task
-
-    # Crear carga:
-    carga_actividades = Carga(
-        usuario = usuario_actual,
-        estado = "procesando",
-        observacion = dict_data["observacion"]
-    )
-    carga_actividades.save()
     
-
-    for i in range(num_bloques+1):
-
-        lote_actividades = dict_data["datos"][i*size_task:(i+1)*size_task]
-        print("Lote-",i, len(lote_actividades))
-
-        async_task('home.modules.task.procesar_cargue_actividades', 
-                   carga_actividades.id, lote_actividades, i, 
-                   cant_act, tiempo_inicial, task_name=f'carga_{carga_actividades.id}_lote_{i}')
-
-    resultados_cargue = {
-        "num_carga":carga_actividades.id,
-        "estado":carga_actividades.estado,
-        "mensaje": "Carga en proceso"
-    }
-    print("RESULTADOS DEL CARGUE",resultados_cargue)
-       
-    return JsonResponse(resultados_cargue, safe = False)
+    try:
+        # Obtener datos como JSON directamente (evitamos ast.literal_eval)
+        datos = json.loads(request.POST["data"])
+        
+        # Datos y parámetros
+        usuario_actual = request.user  # No necesitamos una consulta adicional
+        actividades = datos.get('datos', [])
+        cant_act = len(actividades)
+        
+        logger.info(f"Iniciando procesamiento de carga con {cant_act} actividades")
+        
+        # Crear carga (utilizamos transacción para asegurar integridad)
+        with transaction.atomic():
+            carga_actividades = Carga(
+                usuario=usuario_actual,
+                estado="procesando",
+                observacion=datos.get("observacion", "")
+            )
+            carga_actividades.save()
+            logger.debug(f"Carga ID {carga_actividades.id} creada correctamente")
+        
+        # Calcular número de bloques y crear tareas
+        if cant_act > 0:
+            # División en lotes más eficiente
+            num_bloques = (cant_act + size_task - 1) // size_task  # Redondeo hacia arriba
+            logger.info(f"Dividiendo {cant_act} actividades en {num_bloques} bloques")
+            
+            # Crear tareas asíncronas
+            for i in range(num_bloques):
+                inicio = i * size_task
+                fin = min((i + 1) * size_task, cant_act)  # Evitar índices fuera de rango
+                lote_actividades = actividades[inicio:fin]
+                
+                logger.debug(f"Creando tarea para lote {i}: {len(lote_actividades)} actividades")
+                
+                # Crear tarea asíncrona con batch_size optimizado
+                async_task(
+                    'home.modules.task.procesar_cargue_actividades', 
+                    carga_actividades.id, 
+                    lote_actividades, 
+                    i, 
+                    cant_act, 
+                    tiempo_inicial,
+                    task_name=f'carga_{carga_actividades.id}_lote_{i}',
+                    group='cargue',  # Agrupar tareas para mejor gestión
+                )
+        
+        # Preparar respuesta
+        resultados_cargue = {
+            "num_carga": carga_actividades.id,
+            "estado": carga_actividades.estado,
+            "mensaje": "Carga en proceso",
+            "total_actividades": cant_act,
+            "lotes": num_bloques if cant_act > 0 else 0
+        }
+        
+        logger.info(f"Carga ID {carga_actividades.id} iniciada exitosamente con {num_bloques} lotes")
+        return JsonResponse(resultados_cargue, safe=False)
     
+    except Exception as e:
+        # Manejo de errores para evitar fallos silenciosos
+        logger.error(f"Error en procesarCargue: {str(e)}", exc_info=True)
+        return JsonResponse({
+            "estado": "error",
+            "mensaje": f"Error al procesar la carga: {str(e)}"
+        }, status=500)
 
 # GRABAR ADMISIONES
 @login_required(login_url="/login/")
