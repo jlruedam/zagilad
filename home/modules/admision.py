@@ -32,6 +32,8 @@ admision_prueba =  [{
         "Embarazo": "",#VARIABLE
         "Id_sede": 1,#VARIABLE
         "PuntoAtencion": 16,#VARIABLE
+        # "EntornoAtencion":""
+        "TipoUsuario": 1,#QUEMADO
         "PolizaSalud": "",#QUEMADO
         "serviciosObjDTOS": [
             {
@@ -67,7 +69,7 @@ admision_prueba =  [{
 #                    usuario_id, usuario_nombre, tipo_diag, actividad):
     
 
-def crear_admision(autoid, regimen, codigo_entidad, tipo_diag, actividad):
+def crear_admision(autoid, regimen, tipo_usuario, codigo_entidad, tipo_diag, actividad):
 
     # Validar tipo de actividad
     if not actividad.tipo_actividad:
@@ -129,6 +131,8 @@ def crear_admision(autoid, regimen, codigo_entidad, tipo_diag, actividad):
         "Embarazo": "",#QUEMADO
         "Id_sede": actividad.parametros_programa.sede.id_zeus,#VARIABLE
         "PuntoAtencion": actividad.parametros_programa.punto_atencion.id_zeus,#VARIABLE
+        # "EntornoAtencion":""
+        "TipoUsuario":f"{tipo_usuario:02d}",#QUEMADO
         "PolizaSalud": "",#QUEMADO
         "serviciosObjDTOS": [
             {

@@ -175,7 +175,7 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
             ruta = f"/api/SisDeta/GetDatosBasicosPaciente?NumeroIdentificacion={actividad.documento_paciente}&TipoIdentificacion={actividad.tipo_documento}"
             datos_afiliado = peticiones_http.consultar_data(ruta)
 
-            # print(datos_afiliado['Datos'])
+            print(datos_afiliado['Datos'])
 
             # Consultador datos del usuario
             # ruta = f"/api/Usuario/GetUserByCedula?Cedula={actividad.medico.documento}"
@@ -223,6 +223,7 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
                 # AutoID y nombre del regimen del afiliado
                 auto_id = datos_afiliado['Datos'][0]['autoid']
                 regimen = datos_afiliado['Datos'][0]['NombreRegimen']
+                tipo_usuario = datos_afiliado['Datos'][0]['tipo_usuario'] 
 
                 if not datos_afiliado['Datos'][0]['NombreRegimen']:
                     raise Exception("No tiene regimen relacionado")
@@ -231,6 +232,7 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
                 admision_actividad = admision.crear_admision(
                     autoid = auto_id,
                     regimen = regimen,
+                    tipo_usuario = tipo_usuario,
                     codigo_entidad = parametros_generales.CODIGO_ENTIDAD[regimen],
                     # num_usuario =parametros_generales.NUMERO_USUARIO,
                     # usuario_id = parametros_generales.IDENTIFICACION_USUARIO,
