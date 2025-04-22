@@ -19,7 +19,7 @@ const enviarAdminsionPrueba = async () => {
     }
     // $('#respuestaAdmision').toggleClass("no_show");
     // $('#respuestaAdmision').html(String(respuesta.resultados.DatosGuardados + "/" + respuesta.resultados.DatosEnError));
-    $('#admisionesEnviadas').html(respuesta.resultados.length);
+    $('#admisionesEnviadas').html(respuesta.resultados);
 }
 
 const grabarAdmisiones = async () => {

@@ -1,6 +1,6 @@
 from datetime import datetime, date, timedelta
 
-hoy = date.today() - timedelta(days=10)
+hoy = date.today() 
 
 admision_prueba =  [{
         "autoid": 34678, #VARIABLE

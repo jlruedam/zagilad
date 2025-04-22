@@ -4,11 +4,6 @@ from zagilad.settings import URL_API_ZEUS, URL_API_ZEUS_PRUEBA, USUARIO_API_ZEUS
 from home.models import TokenApiZeus
 
 
-# ZEUS_API = {
-#     "prueba":"http://10.244.21.17:8022",
-#     "produccion":"http://131.0.170.93:8030"
-# }
-
 
 USERNAME = USUARIO_API_ZEUS
 PASSWORD = PASSWORD_API_ZEUS
@@ -72,7 +67,11 @@ def crear_admision_prueba(admision, token):
     respuesta = requests.post(URL_API_ZEUS + ruta_endpoint, headers=cabeceras, data = json.dumps(admision) ) 
     print(respuesta)
     if respuesta.status_code == 200:
-        respuesta = respuesta.json()
+        try:
+            respuesta = respuesta.json()
+        except Exception as e:
+            print("Error al convertir a JSON", e)
+            respuesta = False
     else:
         respuesta = False
        

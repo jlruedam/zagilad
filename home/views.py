@@ -322,7 +322,7 @@ def grabar_admision_prueba(request):
     for i in range(0,cantidad):
 
         # Se genera un nuevo objeto de admisión para cada iteración
-        respuesta = peticiones_http.crear_admision(admision_enviar,token)
+        respuesta = peticiones_http.crear_admision_prueba(admision_enviar,token)
         respuestas.append(respuesta)
         print(f"ADMISIÓN-{i+1}", respuesta)
 
@@ -349,10 +349,13 @@ def grabar_admision_prueba(request):
                 )
                 admision_prueba.save()
         else:
-            print
+            print(respuesta)
         
     for r in respuestas:
-        resultados.append(r['Datos'][0]['infoTrasaction'])
+        if r:
+            resultados.append(r['Datos'][0]['infoTrasaction'])
+        else:
+            resultados.append("Error al crear admisión")
 
     ctx = {
         "resultados":resultados, 
