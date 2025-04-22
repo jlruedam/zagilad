@@ -33,13 +33,38 @@ admision_prueba =  [{
         "Id_sede": 1,#VARIABLE
         "PuntoAtencion": 16,#VARIABLE
         # "EntornoAtencion":""
-        "TipoUsuario": 1,#QUEMADO
+        "TipoUsuario": '01',#QUEMADO
         "PolizaSalud": "",#QUEMADO
         "serviciosObjDTOS": [
             {
                 "autoid": 34678,#VARIABLE
                 "fuente_tips": 87,#VARIABLE //Viene siendo el codigo del servicio
                 "num_servicio": 1,#VARIABLE
+                "cod_servicio": "990211", #"990204",#VARIABLE
+                "fecha_servicio": hoy.isoformat(),#CALCULADO
+                "descripcion": "EDUCACION INDIVIDUAL EN SALUD, POR ENFERMERIA",#VARIABLE
+                "cantidad": 1, #PARÁMETRO
+                "vlr_servicio": 0,#PARÁMETRO
+                "total": 0,#PARAMETRO
+                "personal_ate": "1",#QUEMADO
+                "cod_medico": "1",#QUEMADO
+                "tipo_diag": 1,#VARIABLE
+                "cod_diap": "",#VARIABLE
+                "cod_diagn1": "",#VARIABLE
+                "cod_diagn2": "",#VARIABLE
+                "cod_diagn3": "",#VARIABLE
+                "finalidad": 10,#QUEMADO
+                "ambito_proc": 1,#QUEMADO
+                "ccosto": "0016",#PARÁMETRO
+                "tipo_estudio": "A",#QUEMADO
+                "ufuncional": 63,#VARIABLE
+                "usuario": 1,#PARÁMETRO
+                "tipoItem": "Procedimiento"#PARÁMETRO
+            },
+             {
+                "autoid": 34678,#VARIABLE
+                "fuente_tips": 87,#VARIABLE //Viene siendo el codigo del servicio
+                "num_servicio": 2,#VARIABLE
                 "cod_servicio": "990211", #"990204",#VARIABLE
                 "fecha_servicio": hoy.isoformat(),#CALCULADO
                 "descripcion": "EDUCACION INDIVIDUAL EN SALUD, POR ENFERMERIA",#VARIABLE

@@ -316,17 +316,43 @@ def grabar_admision_prueba(request):
     inicio = time.time()
     cantidad = int(request.GET['cantidad'])
     token = peticiones_http.obtener_token()
-    print(token)
     admision_enviar = admision.admision_prueba
     respuestas = []
     resultados = []
     for i in range(0,cantidad):
+
+        # Se genera un nuevo objeto de admisión para cada iteración
         respuesta = peticiones_http.crear_admision(admision_enviar,token)
         respuestas.append(respuesta)
-        print(i, respuesta)
+        print(f"ADMISIÓN-{i+1}", respuesta)
 
+        if respuesta:
+            respuesta_admision =  ast.literal_eval(respuesta['Datos'][0]['infoTrasaction'])
+
+            # Se verifica si la respuesta contiene datos de error o guardados
+            datos_error = respuesta_admision[0]['DatosEnError']
+    
+            # Se verifica si la respuesta contiene datos guardados
+            datos_guardados = respuesta_admision[0]['DatosGuardados']
+            
+            if datos_error:
+                print("Datos en error:", datos_error)
+
+            # Se guarda la admisión si no hay errores
+            if datos_guardados:
+                
+                admision_prueba = Admision(
+                    documento_paciente = datos_guardados[0]['NumDoc'],
+                    numero_estudio = datos_guardados[0]['Estudio'],
+                    observacion = "Admisión de prueba",
+                    json = admision_enviar
+                )
+                admision_prueba.save()
+        else:
+            print
+        
     for r in respuestas:
-        resultados.append(r['Datos'][0])
+        resultados.append(r['Datos'][0]['infoTrasaction'])
 
     ctx = {
         "resultados":resultados, 

@@ -1,6 +1,6 @@
 import requests
 import json
-from zagilad.settings import URL_API_ZEUS, USUARIO_API_ZEUS, PASSWORD_API_ZEUS
+from zagilad.settings import URL_API_ZEUS, URL_API_ZEUS_PRUEBA, USUARIO_API_ZEUS, PASSWORD_API_ZEUS
 from home.models import TokenApiZeus
 
 
@@ -57,7 +57,29 @@ def obtener_token():
 
     return token
 
+
+def crear_admision_prueba(admision, token):
+    print("CONECTADO A:", URL_API_ZEUS_PRUEBA)
+    respuesta = []
+    ruta_endpoint = "/api/Admision/GrabarAdmision"
+    cabeceras = {
+        'cache-control': 'no-cache', 
+        'Access-Control-Allow-Origin': '*.sersocial.org',
+        'Content-Type': 'application/json',
+        'Authorization':token,
+    }
+
+    respuesta = requests.post(URL_API_ZEUS + ruta_endpoint, headers=cabeceras, data = json.dumps(admision) ) 
+    print(respuesta)
+    if respuesta.status_code == 200:
+        respuesta = respuesta.json()
+    else:
+        respuesta = False
+       
+    return respuesta
+
 def crear_admision(admision, token):
+    print("CONECTADO A:", URL_API_ZEUS)
     respuesta = []
     ruta_endpoint = "/api/Admision/GrabarAdmision"
     cabeceras = {

@@ -12,6 +12,7 @@ class Admision(models.Model):
     id = models.AutoField(primary_key=True)
     documento_paciente = models.IntegerField()
     numero_estudio = models.IntegerField()
+    observacion = models.CharField(max_length=150, blank=True, null=True)
     json = models.JSONField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
