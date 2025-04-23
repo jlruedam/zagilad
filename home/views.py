@@ -315,6 +315,20 @@ def grabar_admision(request):
 def grabar_admision_prueba(request):
     cantidad = int(request.GET['cantidad'])
     print("CANTIDAD A ADMISIONAR: ", cantidad)
+    num_lotes = cantidad // 2000 + (1 if cantidad % 2000 > 0 else 0)
+    for i in range(num_lotes):
+        inicio = i * 2000
+        fin = min((i + 1) * 2000, cantidad)
+        print(f"Creando tarea para lote {i}: {fin - inicio} actividades")
+        
+        # Crear tarea asíncrona con batch_size optimizado
+        async_task(
+            'home.modules.task.tarea_grabar_admisiones_prueba', 
+            inicio, 
+            fin, 
+            task_name=f'lote_{i}',
+            group='admision_prueba',  # Agrupar tareas para mejor gestión
+        )
     async_task('home.modules.task.tarea_grabar_admisiones_prueba', cantidad)
     
     return JsonResponse({"estado":"Admisiones de prueba en proceso"}, safe=False)

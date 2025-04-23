@@ -305,14 +305,14 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
 
     return f"CARGA PROCESADA"
 
-def tarea_grabar_admisiones_prueba(cantidad):
+def tarea_grabar_admisiones_prueba(inicio, fin):
     print("INICIA TAREA DE ADMISIONES DE PRUEBA")
-    inicio = time.time()
+    tiempo_inicio = time.time()
     respuestas = []
     resultados = []
     admision_enviar = admision.admision_prueba
     token = peticiones_http.obtener_token()
-    for i in range(0,cantidad):
+    for i in range(inicio,fin):
 
         # Se genera un nuevo objeto de admisión para cada iteración
         respuesta = peticiones_http.crear_admision_prueba(admision_enviar,token)
@@ -353,7 +353,7 @@ def tarea_grabar_admisiones_prueba(cantidad):
     ctx = {
         "resultados":resultados, 
     }
-    final= time.time()
+    tiempo_final= time.time()
 
-    print("Tiempo de creación admisiones:", final - inicio)
+    print("Tiempo de creación admisiones:", tiempo_final - tiempo_inicio)
     return True
