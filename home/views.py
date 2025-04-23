@@ -329,7 +329,6 @@ def grabar_admision_prueba(request):
             task_name=f'lote_{i}',
             group='admision_prueba',  # Agrupar tareas para mejor gestión
         )
-    async_task('home.modules.task.tarea_grabar_admisiones_prueba', cantidad)
     
     return JsonResponse({"estado":"Admisiones de prueba en proceso"}, safe=False)
 
