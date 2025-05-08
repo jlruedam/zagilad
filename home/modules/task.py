@@ -22,6 +22,7 @@ from home.modules import validador_actividades
 from home.modules import notificaciones_email
 from home.modules import parametros_generales
 from home.modules import admision
+from home.modules import utils
 
 logger = get_task_logger(__name__)
 
@@ -61,6 +62,12 @@ def procesar_actividad(carga, valores):
         # Validar si la actividad ya se encuentra en la carga actual.
         if validador_actividades.valida_actividad_repetida_paciente(actividad, carga):
             raise Exception("Actividad repetida en la misma carga, validar.")
+        
+        # Obtener tipo de Usuario
+        tipo_usuario = utils.obtener_tipo_usuario(actividad.documento_paciente)
+        print(tipo_usuario.loc[0][0])
+        print(tipo_usuario.loc[0][1])
+        actividad.tipo_usuario = tipo_usuario.loc[0][0]
             
     except Exception as e:
         error = e
@@ -223,7 +230,8 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
                 # AutoID y nombre del regimen del afiliado
                 auto_id = datos_afiliado['Datos'][0]['autoid']
                 regimen = datos_afiliado['Datos'][0]['NombreRegimen']
-                tipo_usuario = datos_afiliado['Datos'][0]['tipo_usuario'] 
+                # tipo_usuario = datos_afiliado['Datos'][0]['tipo_usuario'] 
+                tipo_usuario = actividad.tipo_usuario
 
                 if not datos_afiliado['Datos'][0]['NombreRegimen']:
                     raise Exception("No tiene regimen relacionado")

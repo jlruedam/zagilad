@@ -157,7 +157,7 @@ def crear_admision(autoid, regimen, tipo_usuario, codigo_entidad, tipo_diag, act
         "Id_sede": actividad.parametros_programa.sede.id_zeus,#VARIABLE
         "PuntoAtencion": actividad.parametros_programa.punto_atencion.id_zeus,#VARIABLE
         # "EntornoAtencion":""
-        "TipoUsuario":f"{tipo_usuario:02d}",#QUEMADO
+        "TipoUsuario":tipo_usuario,#QUEMADO
         "PolizaSalud": "",#QUEMADO
         "serviciosObjDTOS": [
             {
