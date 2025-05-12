@@ -26,6 +26,7 @@ from home.modules import utils
 
 logger = get_task_logger(__name__)
 
+# Funciones auxiliares
 def procesar_actividad(carga, valores):
     # regional = valores[6]
     # medico = Medico.objects.get(documento = (valores[10]).strip()) 
@@ -132,7 +133,8 @@ def procesar_lote_actividades(id_carga, bloque):
     carga.save()
     
     return True
-    
+
+# Tareas a procesar
 def procesar_cargue_actividades(id_carga, datos, num_lote, cantidad_actividades, tiempo_inicial):
     estado = "procesando"
     carga = Carga.objects.get(id= id_carga)
@@ -145,7 +147,6 @@ def procesar_cargue_actividades(id_carga, datos, num_lote, cantidad_actividades,
         # Validar si se completa la carga
         numero_actividades_carga = Actividad.objects.filter(carga = id_carga).count() 
         if numero_actividades_carga == cantidad_actividades:
-            print("CARGA : pasa a procesada")
             estado = "procesada"
             final = time.time()
             carga.tiempo_procesamiento = (final - tiempo_inicial)/60
@@ -184,23 +185,10 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
 
             print(datos_afiliado['Datos'])
 
-            # Consultador datos del usuario
-            # ruta = f"/api/Usuario/GetUserByCedula?Cedula={actividad.medico.documento}"
-            # datos_usuario = peticiones_http.consultar_data(ruta, token)
-
-            # print("DATOS USUARIO:",datos_usuario['Id'])
-            # print("DATOS USUARIO:",datos_usuario['NombreUsuario'])
-            # print("DATOS USUARIO:",datos_usuario['Cedula'])
-            # print("DATOS USUARIO:",datos_usuario['Nombre'])
-
             actividad.id_usuario = '1'
             actividad.nombre_usuario = 'admin'
             actividad.cedula_usuario = '123'
             actividad.nombre_persona_usuario = 'admin'
-
-            # Validar Si el usuario existe
-            # if not len(datos_usuario['Datos']):
-            #     raise Exception("Usuario no encontrado en Zeus.")
 
             # Validar Si el afiliado existe
             if not len(datos_afiliado['Datos']):
@@ -242,9 +230,6 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
                     regimen = regimen,
                     tipo_usuario = tipo_usuario,
                     codigo_entidad = parametros_generales.CODIGO_ENTIDAD[regimen],
-                    # num_usuario =parametros_generales.NUMERO_USUARIO,
-                    # usuario_id = parametros_generales.IDENTIFICACION_USUARIO,
-                    # usuario_nombre = parametros_generales.NOMBRE_USUARIO,
                     tipo_diag = parametros_generales.TIPO_DIAGNOSTICO,
                     actividad = actividad
                 )
@@ -324,6 +309,7 @@ def tarea_grabar_admisiones_prueba(inicio, fin):
         try:
             # Se obtiene el token de Zeus
             token = peticiones_http.obtener_token()
+
             # Se genera un nuevo objeto de admisión para cada iteración
             respuesta = peticiones_http.crear_admision_prueba(admision_enviar,token)
             respuestas.append(respuesta)
@@ -357,25 +343,8 @@ def tarea_grabar_admisiones_prueba(inicio, fin):
         except Exception as e:
             print("Error al crear admisión:", e)
             resultados.append("Error al crear admisión")
-            # Se guarda la respuesta de error
-            respuesta = {
-                "Datos": [
-                    {
-                        "infoTrasaction": str(e)
-                    }
-                ]
-            }
-            respuestas.append(respuesta)
-        
-    for r in respuestas:
-        if r:
-            resultados.append(r['Datos'][0]['infoTrasaction'])
-        else:
-            resultados.append("Error al crear admisión")
 
-    ctx = {
-        "resultados":resultados, 
-    }
+           
     tiempo_final= time.time()
 
     print("Tiempo de creación admisiones:", tiempo_final - tiempo_inicio)

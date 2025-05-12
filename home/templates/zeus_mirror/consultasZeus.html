@@ -9,9 +9,33 @@
 <div>
        
     <section class="tablas">
-        <input type="text" id = "cantidadAdmisiones" /> 
-        <button onclick="enviarAdminsionPrueba()">Enviar Admisión de Prueba</button> Admisiones cargadas: <span id="admisionesEnviadas">0</span>
-        <p id="respuestaAdmision" display = None></p>
+        <div>
+             <div>
+                <label for="cantidadAdmisiones">Cantidad: </label>
+                <input type="number" id = "cantidadAdmisiones" /> 
+            </div>
+            <div>
+                <button onclick="enviarAdmisionPrueba()">Enviar Admisiones de Prueba</button> 
+            </div>
+            <div>
+                Respuesta: <span id="respuestaEnvioPruebas"></span>
+            </div>
+        </div>
+       
+        <div>
+            <h2>Consultar Admisiones prueba</h2>
+             <div>
+            <label for="fechaInicialCargadas">Fecha inicial </label>
+                <input type="date" name="" id="fechaInicialCargadas">
+            </div>
+            
+            <div>
+                <button onclick="consultarAdmisionesPrueba()">Consultar admisiones de prueba</button> 
+            </div>
+            <div>
+                Admisiones cargadas: <span id="admisionesPruebaEnviadas">0</span>
+            </div>
+        </div>
     </section>
     
     <!--Datos Paciente -->

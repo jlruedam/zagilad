@@ -234,6 +234,7 @@ def cargar_actividades(request):
 
 @login_required(login_url="/login/")
 def procesarCargue(request):
+    
     # Medir tiempo inicial
     tiempo_inicial = time.time()
     size_task = 2000
@@ -305,12 +306,6 @@ def procesarCargue(request):
             "mensaje": f"Error al procesar la carga: {str(e)}"
         }, status=500)
 
-# GRABAR ADMISIONES
-@login_required(login_url="/login/")
-def grabar_admision(request):
-    ctx = {}
-    return render(request,"home/index.html",ctx)
-
 @login_required(login_url="/login/")
 def grabar_admision_prueba(request):
     cantidad = int(request.GET['cantidad'])
@@ -333,15 +328,23 @@ def grabar_admision_prueba(request):
     return JsonResponse({"estado":"Admisiones de prueba en proceso"}, safe=False)
 
 @login_required(login_url="/login/")
-def grabar_admisiones(request):
-    token = peticiones_http.obtener_token()
-    
-    task.tarea_grabar_admisiones.delay(token)
-    
-    respuesta = {
-        "inconsistencias":"0"
-    }
-    return JsonResponse(respuesta)
+def consultar_admisiones_prueba(request):
+    fecha_str = request.GET.get('fechaInicial')
+    print(fecha_str)
+
+    try:
+        # Convierte string a objeto datetime (ajusta formato según cómo llegue)
+        fecha = datetime.strptime(fecha_str, '%Y-%m-%d')
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "Fecha inválida"}, status=400)
+
+    cantidad = Admision.objects.filter(
+        observacion="Admisión de prueba",
+        created_at__gte=fecha
+    ).only("id").count()
+
+    print(cantidad)
+    return JsonResponse({"cantidad": cantidad}, safe=False)
 
 @login_required(login_url="/login/")
 def admisionar_actividades_carga(request, id_carga):

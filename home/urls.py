@@ -20,7 +20,8 @@ urlpatterns = [
     path('listarActividadesCarga/<num_carga>', views.listar_actividades_carga),
     # Grabar admisiones
     path('grabarAdmisionPrueba/', views.grabar_admision_prueba),
-    path('grabarAdmisiones/', views.grabar_admisiones),
+    path('consultarAdmisionesPrueba/', views.consultar_admisiones_prueba),
+    # path('grabarAdmisiones/', views.grabar_admisiones),
     path('admisionarActividadesCarga/<id_carga>', views.admisionar_actividades_carga),
     path('admisionarActividadIndividual/<id_actividad>/<pagina>', views.admisionar_actividad_individual),
     path('eliminarActividadesInconsistenciaCarga/<id_carga>/<tipo_inconsistencia>', views.eliminar_actividades_inconsistencia_carga),
@@ -32,8 +33,6 @@ urlpatterns = [
     path('verCarga/<id_carga>/<pagina>', views.ver_carga),
     path('descargarArchivo/<nombre_archivo>', views.descargar_archivo),
     path('exportarCargaExcel/<id_carga>/<tipo>', views.exportar_carga_excel),
-
-    # path('ejecutarCarga/<id_carga>', views.ejecutar_carga),
     # Administración
     path('administrador/', views.vista_administrador),
     path('cargarConfiguracionArranque/', views.cargar_configuracion_arranque),

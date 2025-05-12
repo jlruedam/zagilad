@@ -179,7 +179,7 @@ PASSWORD_API_ZEUS = config('PASSWORD_API_ZEUS')
 
 
 Q_CLUSTER = {
-    'name': 'DjangoCluster',
+    'name': config('NAME_CLUSTER'),
     'workers': 30,  # Número de trabajadores
     'recycle': 500,  # Reciclaje de trabajadores tras un número de tareas
     'timeout': 72000,  # Tiempo máximo de ejecución de tareas
