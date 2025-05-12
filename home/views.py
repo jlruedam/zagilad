@@ -313,54 +313,24 @@ def grabar_admision(request):
 
 @login_required(login_url="/login/")
 def grabar_admision_prueba(request):
-    inicio = time.time()
     cantidad = int(request.GET['cantidad'])
-    token = peticiones_http.obtener_token()
-    admision_enviar = admision.admision_prueba
-    respuestas = []
-    resultados = []
-    for i in range(0,cantidad):
-
-        # Se genera un nuevo objeto de admisión para cada iteración
-        respuesta = peticiones_http.crear_admision(admision_enviar,token)
-        respuestas.append(respuesta)
-        print(f"ADMISIÓN-{i+1}", respuesta)
-
-        if respuesta:
-            respuesta_admision =  ast.literal_eval(respuesta['Datos'][0]['infoTrasaction'])
-
-            # Se verifica si la respuesta contiene datos de error o guardados
-            datos_error = respuesta_admision[0]['DatosEnError']
-    
-            # Se verifica si la respuesta contiene datos guardados
-            datos_guardados = respuesta_admision[0]['DatosGuardados']
-            
-            if datos_error:
-                print("Datos en error:", datos_error)
-
-            # Se guarda la admisión si no hay errores
-            if datos_guardados:
-                
-                admision_prueba = Admision(
-                    documento_paciente = datos_guardados[0]['NumDoc'],
-                    numero_estudio = datos_guardados[0]['Estudio'],
-                    observacion = "Admisión de prueba",
-                    json = admision_enviar
-                )
-                admision_prueba.save()
-        else:
-            print
+    print("CANTIDAD A ADMISIONAR: ", cantidad)
+    num_lotes = cantidad // 2000 + (1 if cantidad % 2000 > 0 else 0)
+    for i in range(num_lotes):
+        inicio = i * 2000
+        fin = min((i + 1) * 2000, cantidad)
+        print(f"Creando tarea para lote {i}: {fin - inicio} actividades")
         
-    for r in respuestas:
-        resultados.append(r['Datos'][0]['infoTrasaction'])
-
-    ctx = {
-        "resultados":resultados, 
-    }
-    final= time.time()
-
-    print("Tiempo de creación admisiones:", final - inicio)
-    return JsonResponse(ctx)
+        # Crear tarea asíncrona con batch_size optimizado
+        async_task(
+            'home.modules.task.tarea_grabar_admisiones_prueba', 
+            inicio, 
+            fin, 
+            task_name=f'lote_{i}',
+            group='admision_prueba',  # Agrupar tareas para mejor gestión
+        )
+    
+    return JsonResponse({"estado":"Admisiones de prueba en proceso"}, safe=False)
 
 @login_required(login_url="/login/")
 def grabar_admisiones(request):

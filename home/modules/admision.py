@@ -1,6 +1,6 @@
 from datetime import datetime, date, timedelta
 
-hoy = date.today() - timedelta(days=10)
+hoy = date.today() 
 
 admision_prueba =  [{
         "autoid": 34678, #VARIABLE
@@ -33,7 +33,7 @@ admision_prueba =  [{
         "Id_sede": 1,#VARIABLE
         "PuntoAtencion": 16,#VARIABLE
         # "EntornoAtencion":""
-        "TipoUsuario": '01',#QUEMADO
+        "TipoUsuario": '04',#QUEMADO
         "PolizaSalud": "",#QUEMADO
         "serviciosObjDTOS": [
             {
@@ -53,7 +53,7 @@ admision_prueba =  [{
                 "cod_diagn1": "",#VARIABLE
                 "cod_diagn2": "",#VARIABLE
                 "cod_diagn3": "",#VARIABLE
-                "finalidad": 10,#QUEMADO
+                "finalidad": 44,#QUEMADO
                 "ambito_proc": 1,#QUEMADO
                 "ccosto": "0016",#PARÁMETRO
                 "tipo_estudio": "A",#QUEMADO
