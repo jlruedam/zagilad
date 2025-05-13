@@ -339,8 +339,8 @@ def consultar_admisiones_prueba(request):
         return JsonResponse({"error": "Fecha inválida"}, status=400)
 
     cantidad = Admision.objects.filter(
-        observacion="Admisión de prueba",
-        created_at__gte=fecha
+        created_at__gte=fecha,
+        observacion="Admisión de prueba"   
     ).only("id").count()
 
     print(cantidad)

@@ -24,7 +24,6 @@ const enviarAdmisionPrueba = async () => {
     console.log(respuesta);
 }
 
-
 const consultarAdmisionesPrueba = async () => {
     let respuesta = "";
     let fechaInicial =  $('#fechaInicialCargadas').val();
@@ -90,7 +89,7 @@ const consultarPaciente = async () => {
     }
 
     // ruta = `${ruta}?id=${docPaciente}&tipo=cc`; 
-    let respuesta =  await peticion_http(data, ruta);
+    let respuesta = await peticion_http(data, ruta);
     console.log(respuesta);
 
     let datosColaborador = respuesta["Datos"];
@@ -146,7 +145,6 @@ const consultarUsuariosZeus = async () => {
         columns: encabezados
     }); 
 }
-
 
 const listarTiposServicios = async () => {
     let ruta = "/listarTiposServicios/";

@@ -6,7 +6,7 @@ $('#archivoMasivoActividades').on('change', () => {
     console.log("Si carga el archivo");
 });
 
-$('#btnCargarActividadesArchivo').on('click',() => {
+$('#btnCargarActividadesArchivo').on('click',async () => {
     $('.iconoCargador').addClass("loader");
     let archivo = $('#archivoMasivoActividades').get(0).files[0];
 
@@ -18,7 +18,7 @@ $('#btnCargarActividadesArchivo').on('click',() => {
 
     data = JSON.stringify(json);
     
-    respuesta = peticion_archivos(data, ruta, "POST", false, archivo);
+    respuesta = await peticion_archivos(data, ruta, "POST", false, archivo);
 
     console.log(respuesta)
 
@@ -27,7 +27,7 @@ $('#btnCargarActividadesArchivo').on('click',() => {
     $('.iconoCargador').removeClass("loader");   
 });
 
-$('#btnEnviarCargaActividades').on('click', () => {
+$('#btnEnviarCargaActividades').on('click', async () => {
 
     let ruta = "/procesarCargueActividades/";
     
@@ -38,7 +38,7 @@ $('#btnEnviarCargaActividades').on('click', () => {
    
     data = JSON.stringify(data);
 
-    respuesta = peticion_archivos(data, ruta,"POST");
+    respuesta = await peticion_archivos(data, ruta,"POST");
 
     console.log(respuesta);
 

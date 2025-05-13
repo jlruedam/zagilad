@@ -1,77 +1,84 @@
 
 const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value; // Se utiliza para poder enviar petición tipo POST a Django
-
-const  peticion_http = async (data, ruta, metodo = "GET", archivo = []) => {
-    console.log(data, ruta, metodo, archivo);
-    var respuesta;
-    // let dataExportar = JSON.stringify({"data":data});
-    // let token = await obtenerToken();
-    $.ajax({
-        async:false,
-        url:ruta,
-        type:metodo,
-        data: data,
-        headers: {
-            'X-CSRFToken': csrftoken,
-        },
-        contentType: 'application/json',
-        enctype:'multipart/form-data',
-        // processData: false,
-        // cache: false,
-
-        success: function(response){ 
-            console.log(response);
-            respuesta =  response;
-            
-        }, 
-        error: function(error){
-            console.log(error);
-            respuesta = error;
-          
-        }
-    }); 
+const panel_loader = document.querySelector("#panel_loader");
 
 
-    return respuesta;
-}
+const peticion_http = async (data, ruta, metodo = "GET", archivo = []) => {
+    panel_loader.style.display = 'block';
 
-const  peticion_archivos = (data, ruta, metodo = "GET", sincrono = false, archivo = []) => {
-   
+    try {
+        const respuesta = await new Promise((resolve, reject) => {
+            $.ajax({
+                url: ruta,
+                type: metodo,
+                data: data,
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                },
+                contentType: 'application/json',
+                enctype: 'multipart/form-data',
+                success: function(response) {
+                    resolve(response);
+                },
+                error: function(error) {
+                    reject(error);
+                }
+            });
+        });
+
+        return respuesta;
+    } catch (error) {
+        console.error(error);
+        return error;
+    } finally {
+        panel_loader.style.display = 'none'; 
+    }
+};
+
+const  peticion_archivos = async (data, ruta, metodo = "GET", sincrono = false, archivo = []) => {
+    panel_loader.style.display = 'block';
     let formData = new FormData();
     let fileData = archivo;
-    var res;
 
     formData.append("data", data);
     if(fileData){
         formData.append("adjunto",fileData);
     }
-        
-    $.ajax({
-        async:sincrono,
-        url: ruta,
-        method:metodo,
-        headers: {'X-CSRFToken': csrftoken},
-        contentType: false,
-        data: formData,
-        enctype:'multipart/form-data',
-        processData: false,
-        cache: false,
 
-        success: async function(response){
-            respuesta = response;
-            console.log(respuesta);
-            console.log("Petición exitosa");
-            alert("Carga enviada");
-        }, 
-        error: function(error){
-            console.log("Hay un Pendejo error")
-            console.log(error);
-            respuesta = false;
-            alert("No se pudo realizar la carga.");
-            //location.reload();
-        }
-        
-    });
-    return respuesta; 
+    try {
+        const respuesta = await new Promise((resolve, reject) =>{
 
+            $.ajax({
+                // async:sincrono,
+                url: ruta,
+                method:metodo,
+                headers: {'X-CSRFToken': csrftoken},
+                contentType: false,
+                data: formData,
+                enctype:'multipart/form-data',
+                processData: false,
+                cache: false,
+                success: async function(response){
+                    resolve(response);
+                    alert("Carga enviada");
+                }, 
+                error: function(error){
+                    reject(error);
+                    respuesta = false;
+                    alert("No se pudo realizar la carga.");
+                    
+                }
+        
+            });
+        });
+        
+        return respuesta;
+    }catch(error){
+        console.error(error);
+        return error;
+    }finally{
+        panel_loader.style.display = 'none'; 
+    }
+        
+   
 }

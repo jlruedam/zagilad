@@ -38,6 +38,11 @@
     </title>
 </head>
 <body>
+    <div id="panel_loader" style="display:none; width: 100%; height:100px; position: fixed;  z-index: 20; top:50vh; left:50vw" >
+        <!-- {% include 'includes/loader.html' %} - -->
+        <div class="loader"></div>
+    </div>
+    
     <div class="wrapper">
         {% csrf_token %} 
 
@@ -59,7 +64,8 @@
 
     <!-- Specific Page JS goes HERE  -->
     {% block javascripts %}{% endblock javascripts %}
-  
+    
+    
     
 </body>
 </html>
