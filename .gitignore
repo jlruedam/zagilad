@@ -34,6 +34,7 @@ apps/static/assets/.temp
 .env
 .env.produccion
 .env.local
+.env.test
 media
 
 # Exel files

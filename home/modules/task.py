@@ -26,10 +26,7 @@ from home.modules import utils
 
 logger = get_task_logger(__name__)
 
-# Funciones auxiliares
 def procesar_actividad(carga, valores):
-    # regional = valores[6]
-    # medico = Medico.objects.get(documento = (valores[10]).strip()) 
     try:
         actividad = Actividad()
         actividad.datos_json = valores
@@ -66,8 +63,6 @@ def procesar_actividad(carga, valores):
         
         # Obtener tipo de Usuario
         tipo_usuario = utils.obtener_tipo_usuario(actividad.documento_paciente)
-        print(tipo_usuario.loc[0][0])
-        print(tipo_usuario.loc[0][1])
         actividad.tipo_usuario = tipo_usuario.loc[0][0]
             
     except Exception as e:

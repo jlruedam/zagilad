@@ -19,11 +19,12 @@ import json
 import logging
 
 # ZAGILAD
-from home.modules import peticiones_http, admision, parametros_generales
-from home.modules import task, forms, generador_excel
 from home.models import TipoActividad, Actividad, ParametrosAreaPrograma
 from home.models import Admision, AreaPrograma, Carga
+from home.modules import peticiones_http, parametros_generales
+from home.modules import generador_excel, utils
 from home.modules import paginacion_actividades
+
 
 # DJANGO Q
 from django_q.tasks import async_task
@@ -208,10 +209,10 @@ def cargar_actividades(request):
             
             # Limpiar y formatear datos
             valores[1] = str(valores[1]).strip()  # numero_identificacion
-            valores[7] = str(valores[7]).split(" ")[0]  # fecha_gestion, solo la fecha sin hora
+            # Validar fechas - fecha_gestion, solo la fecha sin hora
+            valores[7] = utils.validar_fecha(str(valores[7]).split(" ")[0])
             valores[9] = str(valores[9]).strip()  # ciex
             valores[10] = str(valores[10]).strip()  # medico_id
-            
             # Agregar estado
             valores.append("A procesar")
             

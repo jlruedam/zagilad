@@ -64,9 +64,7 @@ const  peticion_archivos = async (data, ruta, metodo = "GET", sincrono = false, 
                 }, 
                 error: function(error){
                     reject(error);
-                    respuesta = false;
-                    alert("No se pudo realizar la carga.");
-                    
+                    alert(error.responseText);
                 }
         
             });

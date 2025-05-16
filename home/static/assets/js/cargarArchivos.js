@@ -19,12 +19,15 @@ $('#btnCargarActividadesArchivo').on('click',async () => {
     data = JSON.stringify(json);
     
     respuesta = await peticion_archivos(data, ruta, "POST", false, archivo);
-
-    console.log(respuesta)
-
-    tablaActividadesSubir.clear().draw();
-    tablaActividadesSubir.rows.add(respuesta).draw();
+    if(respuesta == 200){
+        tablaActividadesSubir.clear().draw();
+        tablaActividadesSubir.rows.add(respuesta).draw();
+        
+    }else{
+        alert(respuesta.responseText);
+    }
     $('.iconoCargador').removeClass("loader");   
+    
 });
 
 $('#btnEnviarCargaActividades').on('click', async () => {
