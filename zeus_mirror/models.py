@@ -98,18 +98,14 @@ class Medico(models.Model):
     def __str__(self):
         return f'Medico - {self.id} - {self.codigo} - {self.documento} - {self.nombre}'
 
-
+class Finalidad(models.Model):
+    id = models.AutoField(primary_key =True)
+    numero = models.CharField(max_length= 10)
+    valor = models.CharField(max_length= 10)
+    nombre = models.CharField(max_length= 10)
+    desplegable = models.CharField(max_length= 200)
+    created_at = models.DateTimeField(auto_now_add = True)
+    updated_at = models.DateTimeField(auto_now = True)
     
-# class UsuarioZeus(models.Model):
-#     id = models.AutoField(primary_key =True)
-#     id_zeus = models.CharField(max_length= 50)
-#     nombre_usuario = models.CharField(max_length= 250)
-#     cedula = models.CharField(max_length= 50, blank=True,null=True)
-#     nombre = models.CharField(max_length= 250)
-#     created_at = models.DateTimeField(auto_now_add = True)
-#     updated_at = models.DateTimeField(auto_now = True)
-
-#     def __str__(self):
-#         return f'UsuarioZeus - {self.id} - {self.id_zeus} - {self.nombre_usuario} - {self.cedula}- {self.nombre}'
-
-
+    def __str__(self):
+        return f'Finalidad - {self.numero} - {self.nombre} - {self.desplegable}'

@@ -23,15 +23,11 @@ def valida_actividad_repetida_paciente(actividad, carga_actual = []):
     return repetida
     
 
-        
-
 def validar_tipo_actividad(actividad):
    
     for tipo in TipoActividad.objects.all():
         nombre_tipo = tipo.nombre.replace(" ", "")
         nombre_actividad = actividad.nombre_actividad.replace(" ", "")
         if nombre_tipo in nombre_actividad:
-            return tipo
-        
-
+            return tipo  
     return False

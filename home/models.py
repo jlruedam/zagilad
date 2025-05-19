@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from zeus_mirror.models import Contrato, UnidadFuncional, CentroCosto, PuntoAtencion
-from zeus_mirror.models import Sede, TipoServicio, Medico
+from zeus_mirror.models import Sede, TipoServicio, Medico, Finalidad
 import datetime
 from datetime import timezone
 
@@ -137,9 +137,7 @@ class TipoActividad(models.Model):
     observacion = models.CharField(max_length=150, blank=True, null=True)
     entrega = models.CharField(max_length=150, blank=True, null=True)
     contrato = models.ForeignKey(ContratoMarco, models.SET_NULL, blank=True, null=True)
-    tipo_servicio = models.ForeignKey(
-        TipoServicio, models.SET_NULL, blank=True, null=True
-    )  # fuetnes tips # VALIDAR
+    tipo_servicio = models.ForeignKey(TipoServicio, models.SET_NULL, blank=True, null=True)  # fuentes tips # VALIDAR
     area = models.ForeignKey(AreaPrograma, models.SET_NULL, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -157,9 +155,7 @@ class Actividad(models.Model):
     regional = models.CharField(max_length=150)
     fecha_servicio = models.DateField()
     nombre_actividad = models.CharField(max_length=250)
-    tipo_actividad = models.ForeignKey(
-        TipoActividad, models.SET_NULL, blank=True, null=True
-    )
+    tipo_actividad = models.ForeignKey(TipoActividad, models.SET_NULL, blank=True, null=True)
     diagnostico_p = models.CharField(max_length=10, default="", blank=True, null=True)
     diagnostico_1 = models.CharField(max_length=10, default="", blank=True, null=True)
     diagnostico_2 = models.CharField(max_length=10, default="", blank=True, null=True)
@@ -167,10 +163,9 @@ class Actividad(models.Model):
     tipo_documento = models.CharField(max_length=10, default="CC")
     documento_paciente = models.CharField(max_length=50)
     nombre_paciente = models.CharField(max_length=200)
-    parametros_programa = models.ForeignKey(
-        ParametrosAreaPrograma, models.SET_NULL, blank=True, null=True
-    )
+    parametros_programa = models.ForeignKey(ParametrosAreaPrograma, models.SET_NULL, blank=True, null=True)
     carga = models.ForeignKey(Carga, models.SET_NULL, blank=True, null=True)
+    finalidad = models.ForeignKey(Finalidad, models.SET_NULL, blank=True, null=True)
     inconsistencias = models.CharField(max_length=500, null=True, blank=True)
     documento_medico = models.CharField(max_length=50, blank=True, null=True)
     medico = models.ForeignKey(Medico, models.SET_NULL, blank=True, null=True)

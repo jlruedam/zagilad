@@ -16,7 +16,7 @@ from django.db.models import Value
 # ZAGILAD
 from home.models import TipoActividad, Actividad, ParametrosAreaPrograma 
 from home.models import Regional, Admision, AreaPrograma, Carga
-from zeus_mirror.models import Medico
+from zeus_mirror.models import Medico, Finalidad
 from home.modules import peticiones_http
 from home.modules import validador_actividades
 from home.modules import notificaciones_email
@@ -39,9 +39,15 @@ def procesar_actividad(carga, valores):
         actividad.fecha_servicio = str(valores[7])
         actividad.nombre_actividad = (valores[8]).strip()
         actividad.diagnostico_p = valores[9]
+        
         # Consultar médico
         actividad.documento_medico = (valores[10]).strip()
         actividad.medico = Medico.objects.get(documento = (valores[10]).strip()) 
+
+        # Validar finalidad
+        numero_finalidad =  (valores[11]).strip()
+        actividad.finalidad = numero_finalidad
+
         # Atributos inferidos
         regional = Regional.objects.get(regional = actividad.regional)
        

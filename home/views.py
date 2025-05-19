@@ -184,7 +184,7 @@ def cargar_actividades(request):
         encabezados_esperados = [
             "tipo_identificacion", "numero_identificacion", "primer_apellido",
             "segundo_apellido", "primer_nombre", "segundo_nombre",
-            "regional", "fecha_gestion", "nombre", "ciex", "medico_id"
+            "regional", "fecha_gestion", "nombre", "ciex", "medico_id", "finalidad"
         ]
         
         # Verificar columnas
@@ -209,10 +209,13 @@ def cargar_actividades(request):
             
             # Limpiar y formatear datos
             valores[1] = str(valores[1]).strip()  # numero_identificacion
+            
             # Validar fechas - fecha_gestion, solo la fecha sin hora
             valores[7] = utils.validar_fecha(str(valores[7]).split(" ")[0])
             valores[9] = str(valores[9]).strip()  # ciex
             valores[10] = str(valores[10]).strip()  # medico_id
+            valores[11] = str(valores[11]).strip()  # medico_id
+
             # Agregar estado
             valores.append("A procesar")
             
@@ -224,7 +227,7 @@ def cargar_actividades(request):
                 registros_vistos.add(registro_tupla)
                 respuesta.append(valores)
         
-        return JsonResponse(respuesta, safe=False)
+        return JsonResponse(respuesta, safe=False, status=200)
     
     except pd.errors.EmptyDataError:
         return JsonResponse({'error': 'El archivo está vacío'}, status=400)

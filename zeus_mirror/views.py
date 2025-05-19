@@ -15,7 +15,7 @@ from home.modules import peticiones_http
 
 # MODELS zeus mirror
 from zeus_mirror.models import Contrato, UnidadFuncional, PuntoAtencion 
-from zeus_mirror.models import CentroCosto, Sede, TipoServicio, Medico
+from zeus_mirror.models import CentroCosto, Sede, TipoServicio, Medico, Finalidad
 
 # Create your views here.
 
@@ -76,14 +76,6 @@ def listar_tipos_diagnosticos(request):
     # https://dev.to/chryzcode/django-json-response-safe-false-4f9i
     return JsonResponse(respuesta, safe = False)
 
-def listar_finalidades(request):
-    print(request.GET)
-    respuesta = peticiones_http.consultar_data("/api/Sismaelm/GetFinalidades")
-    print(respuesta, type(respuesta))
-
-    # https://dev.to/chryzcode/django-json-response-safe-false-4f9i
-    return JsonResponse(respuesta, safe = False)
-
 def listar_estratos(request):
     token = peticiones_http.obtener_token()
     print(token)
@@ -94,12 +86,31 @@ def listar_estratos(request):
     return JsonResponse(respuesta, safe = False)
 
 # EN BD
+def listar_finalidades(request):
+    print(request.GET)
+    respuesta = peticiones_http.consultar_data("/api/Sismaelm/GetFinalidades")
+    cantidad_bd_unidades = Finalidad.objects.count()
+   
+    if cantidad_bd_unidades <= 0:
+
+        for f in respuesta['Data']:
+            print("-"*100)
+            print(f)
+            print("-"*100)
+            finalidad = Finalidad()
+            finalidad.numero = f['Nro']
+            finalidad.valor = f['Valor']
+            finalidad.nombre = f['Nombre']
+            finalidad.desplegable = f['Desplegable']
+            finalidad.save()
+
+    # https://dev.to/chryzcode/django-json-response-safe-false-4f9i
+    return JsonResponse(respuesta, safe = False)
 
 def listar_unidades_funcionales(request):
     
     respuesta = peticiones_http.consultar_data("/api/Ufuncionales")
     cantidad_bd_unidades = UnidadFuncional.objects.count()
-    cantidad_respuesta = len(respuesta)
 
     if cantidad_bd_unidades <= 0:
 

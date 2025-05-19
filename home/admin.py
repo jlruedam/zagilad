@@ -156,7 +156,7 @@ class TipoActividadAdmin(admin.ModelAdmin):
             'fields': ('grupo', 'nombre', 'cups', 'responsable', 'diagnostico')
         }),
         ('Detalles Adicionales', {
-            'fields': ('finalidad', 'fuente', 'observacion', 'entrega'),
+            'fields': ('finalidad','fuente', 'observacion', 'entrega'),
             'classes': ('collapse',),  # Sección plegable
         }),
         ('Relaciones', {
@@ -201,7 +201,7 @@ class ActividadAdmin(admin.ModelAdmin):
         }),
         ('Relaciones y Estado', {
             'fields': (
-                'admision', 'parametros_programa', 'carga', 
+                'finalidad','admision', 'parametros_programa', 'carga', 
                 'inconsistencias', 'admisionada_otra_carga', 'datos_json',
             )
         }),
@@ -220,7 +220,7 @@ class ActividadAdmin(admin.ModelAdmin):
     # Listado
     list_display = (
         'id', 'tipo_fuente', 'fecha_servicio', 'nombre_actividad', 
-        'documento_paciente', 'nombre_paciente', 'carga', 
+        'documento_paciente', 'nombre_paciente', 'carga', 'finalidad',
         'admision', 'created_at', 'updated_at',
     )
 

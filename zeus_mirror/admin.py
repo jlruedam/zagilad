@@ -1,7 +1,7 @@
 
 # Register your models here.
 from django.contrib import admin
-from .models import Contrato, UnidadFuncional, PuntoAtencion, CentroCosto, Sede, TipoServicio, Medico
+from .models import Contrato, UnidadFuncional, PuntoAtencion, CentroCosto, Sede, TipoServicio, Medico, Finalidad
 
 @admin.register(Contrato)
 class ContratoAdmin(admin.ModelAdmin):
@@ -43,3 +43,12 @@ class TipoServicioAdmin(admin.ModelAdmin):
 class MedicoAdmin(admin.ModelAdmin):
     list_display = ('codigo', 'documento', 'nombre', 'created_at')
     search_fields = ('codigo', 'documento', 'nombre')
+
+@admin.register(Finalidad)
+class FinalidadAdmin(admin.ModelAdmin):
+    list_display = ('id', 'numero', 'nombre', 'created_at', 'updated_at')
+    list_filter = ('id', 'numero', 'nombre', 'created_at', 'updated_at')
+    search_fields = ('id', 'numero', 'nombre',)
+    readonly_fields = ('created_at', 'updated_at')
+
+
