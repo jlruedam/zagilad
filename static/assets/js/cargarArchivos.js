@@ -6,28 +6,30 @@ $('#archivoMasivoActividades').on('change', () => {
     console.log("Si carga el archivo");
 });
 
-$('#btnCargarActividadesArchivo').on('click',() => {
+$('#btnCargarActividadesArchivo').on('click',async () => {
     $('.iconoCargador').addClass("loader");
     let archivo = $('#archivoMasivoActividades').get(0).files[0];
 
     let ruta = "/cargarActividades/";
 
     json = {};
-
     console.log(json);
-
     data = JSON.stringify(json);
     
-    respuesta = peticion_archivos(data, ruta, "POST", false, archivo);
-
-    console.log(respuesta)
-
-    tablaActividadesSubir.clear().draw();
-    tablaActividadesSubir.rows.add(respuesta).draw();
+    respuesta = await peticion_archivos(data, ruta, "POST", false, archivo);
+    console.log(respuesta);
+    if(!respuesta.status){
+        tablaActividadesSubir.clear().draw();
+        tablaActividadesSubir.rows.add(respuesta).draw();
+        
+    }else{
+        alert("Error: "+ respuesta.responseText);
+    }
     $('.iconoCargador').removeClass("loader");   
+    
 });
 
-$('#btnEnviarCargaActividades').on('click', () => {
+$('#btnEnviarCargaActividades').on('click', async () => {
 
     let ruta = "/procesarCargueActividades/";
     
@@ -38,16 +40,17 @@ $('#btnEnviarCargaActividades').on('click', () => {
    
     data = JSON.stringify(data);
 
-    respuesta = peticion_archivos(data, ruta,"POST");
+    respuesta = await peticion_archivos(data, ruta,"POST");
 
     console.log(respuesta);
 
     tablaActividadesSubir.clear().draw();
 
-    if(respuesta){
+    if(!respuesta.status){
         alert(`✅Se ha creado la Carga # ${respuesta.num_carga}`);
     }else{
         alert(`🚫Error al procesar la carga`)
+        console.log(respuesta)
     }
     
 });

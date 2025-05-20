@@ -46,7 +46,7 @@ def procesar_actividad(carga, valores):
 
         # Validar finalidad
         numero_finalidad =  (valores[11]).strip()
-        actividad.finalidad = numero_finalidad
+        actividad.finalidad = Finalidad.objects.get(valor = numero_finalidad)
 
         # Atributos inferidos
         regional = Regional.objects.get(regional = actividad.regional)

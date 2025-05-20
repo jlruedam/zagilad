@@ -242,3 +242,6 @@ LOGGING = {
         },
     },
 }
+
+# # Manejo de archivos estáticos
+# STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'

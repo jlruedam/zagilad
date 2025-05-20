@@ -37,6 +37,7 @@ $(document).ready(async function () {
             },
             {data:'inconsistencias'},
             {data:'medico__documento'},
+            {data:'finalidad__valor'},
             {
                 data:'id',
                 "render": function(data, type, row) {
@@ -49,6 +50,7 @@ $(document).ready(async function () {
                     return '<div id="botonesGestionActividad"><span class = "mybtn-emoji"><a href="/admisionarActividadIndividual/'+data+'/1" title="Admisionar" id="botonesGestionActividad">🆙</a></span><span class = "mybtn-emoji"><a href="/eliminarActividadIndividual/'+data+'/1" title="Eliminar">🗑️</a></span></div>'
                  }
             },
+            
             
         ],
         ordering:false,

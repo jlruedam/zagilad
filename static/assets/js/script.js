@@ -1,8 +1,12 @@
+const respuestaEnvioPrueba = document.getElementById('respuestaEnvioPruebas');
+const admisionesPruebaEnviadas = document.getElementById('admisionesPruebaEnviadas');
+
 let hoy = new Date()
 
-const enviarAdminsionPrueba = async () => {
+const enviarAdmisionPrueba = async () => {
     let respuesta = "";
     let cantidad =  $('#cantidadAdmisiones').val();
+    let fechaInicial =  $('#fechaInicialCargadas').val();
     ruta = "/grabarAdmisionPrueba/";
 
     data = {
@@ -10,16 +14,34 @@ const enviarAdminsionPrueba = async () => {
     }
     try{
         respuesta = await peticion_http(data, ruta, "GET");
-        // respuesta = respuesta.Datos[0].infoTrasaction;
-        console.log(respuesta);
+        respuesta = respuesta.estado;
+        
     }catch(error){
-        console.log(error);
         respuesta = `error: ${error.status} - ${error.statusText} - ${error.responseText}`;
         
     }
-    // $('#respuestaAdmision').toggleClass("no_show");
-    // $('#respuestaAdmision').html(String(respuesta.resultados.DatosGuardados + "/" + respuesta.resultados.DatosEnError));
-    $('#admisionesEnviadas').html(respuesta.resultados.length);
+    respuestaEnvioPrueba.innerHTML = respuesta;
+    console.log(respuesta);
+}
+
+const consultarAdmisionesPrueba = async () => {
+    let respuesta = "";
+    let fechaInicial =  $('#fechaInicialCargadas').val();
+    ruta = "/consultarAdmisionesPrueba/";
+
+    data = {
+        "fechaInicial":fechaInicial,
+    }
+    try{
+        respuesta = await peticion_http(data, ruta, "GET");
+        respuesta = respuesta.cantidad;
+    }catch(error){
+        respuesta = `error: ${error.status} - ${error.statusText} - ${error.responseText}`;
+        
+    }
+    admisionesPruebaEnviadas.innerHTML = respuesta;
+    console.log(respuesta);
+
 }
 
 const grabarAdmisiones = async () => {
@@ -30,7 +52,6 @@ const grabarAdmisiones = async () => {
     data = {}
     try{
         respuesta = await peticion_http(data, ruta, "GET");
-        // respuesta = respuesta.Datos[0].infoTrasaction;
         console.log(respuesta);
     }catch(error){
         console.log(error);
@@ -68,7 +89,7 @@ const consultarPaciente = async () => {
     }
 
     // ruta = `${ruta}?id=${docPaciente}&tipo=cc`; 
-    let respuesta =  await peticion_http(data, ruta);
+    let respuesta = await peticion_http(data, ruta);
     console.log(respuesta);
 
     let datosColaborador = respuesta["Datos"];
@@ -124,7 +145,6 @@ const consultarUsuariosZeus = async () => {
         columns: encabezados
     }); 
 }
-
 
 const listarTiposServicios = async () => {
     let ruta = "/listarTiposServicios/";

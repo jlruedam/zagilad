@@ -19,7 +19,7 @@ def actividades_paginadas(dt, actividades):
         # Filtrar los campos que son texto
         filtros = Q(id__icontains=search)|Q(tipo_fuente__icontains=search)|Q(regional__icontains=search)
         filtros |= Q(nombre_actividad__icontains=search)|Q(diagnostico_p__icontains=search)|Q(documento_paciente__icontains=search)
-        filtros |= Q(nombre_paciente__icontains=search)|Q(inconsistencias__icontains=search)
+        filtros |= Q(nombre_paciente__icontains=search)|Q(inconsistencias__icontains=search)|Q(finalidad__valor__icontains=search)
         filtros |= Q(tipo_documento=search)
         # Intentamos convertir el valor a una fecha 
         try:
@@ -50,7 +50,7 @@ def actividades_paginadas(dt, actividades):
 
     context["data"] = list((obj).values('id','regional', 'fecha_servicio', 
                                               'nombre_actividad','diagnostico_p', 'tipo_documento', 'documento_paciente',
-                                              'nombre_paciente', 'carga','admision__numero_estudio','inconsistencias', 'medico__documento'))
+                                              'nombre_paciente', 'carga','admision__numero_estudio','inconsistencias', 'medico__documento', 'finalidad__valor'))
     print("datos pagínados: ", context["data"])
 
     return context
