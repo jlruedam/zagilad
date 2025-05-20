@@ -1,5 +1,5 @@
 {% extends "layouts/base.html" %}
-
+{% load static %}
 {% block title %} Carga de actividades {% endblock %} 
 
 {% block stylesheets %}
@@ -42,16 +42,11 @@
         </table>
     </div>
     
-    
-
-    
 </section>
 
-
-  
 {% endblock content %}
 
 <!-- Specific Page JS goes HERE  -->
 {% block javascripts %}
-<script src="../../static/assets/js/cargarActividadesInconsistencias.js"></script>
+<script src="{% static 'assets/js/cargarActividadesInconsistencias.js' %}"></script>
 {% endblock javascripts %}

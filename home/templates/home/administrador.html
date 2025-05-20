@@ -8,10 +8,10 @@
     <div class="administrador">
         <div class="myIndex">
             <ul>
-                <li><a href="/cargarConfiguracionArranque/" >Cargar configuración de arranque </a></li>
+                <li><a href="{% url 'cargar_configuracion_arranque' %}">Cargar configuración de arranque</a></li>
                 <li><a href="/admin/">Administrador Django</a></li>
-                <li><a href="/tiposActividad/">Tipos de Actividades o Servicios</a></li>
-                <li><a href="/parametrosAreaPrograma/">Parametros Area o Programa</a></li>
+                <li><a href="{% url 'tipos_actividad' %}">Tipos de Actividades o Servicios</a></li>
+                <li><a href="{% url 'parametros_area_programa' %}">Parametros Area o Programa</a></li>
             </ul>
             
         </div>

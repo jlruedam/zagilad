@@ -1,20 +1,50 @@
 {% extends "layouts/base.html" %}
-
+{% load static %}
 {% block title %} Home {% endblock %} 
 
 {% block stylesheets %}{% endblock stylesheets %}
 
 {% block content %}
     <div class = "bloqueBtn">
-        <div class="mybtn"><a href="/informeCargas/"><img width="96" height="96" src="https://img.icons8.com/deco/96/return.png" alt="return"/></a></div>
-        <div class="mybtn"><a href="/admisionarActividadesCarga/{{carga.id}}" onclick="alert('🔃Admisiones en proceso!')">Admisionar actividades</a></div>
-        <div class="mybtn"><a href="/eliminarActividadesInconsistenciaCarga/{{carga.id}}/all">Eliminar actividades con inconsistencias</a></div>
+        <div class="mybtn">
+            <a href="{% url 'informe_cargas' %}">
+                <img width="96" height="96" src="https://img.icons8.com/deco/96/return.png" alt="return"/>
+            </a>
+        </div>
+        <div class="mybtn">
+            <a href="{% url 'admisionar_actividades_carga' carga.id %}" onclick="alert('🔃Admisiones en proceso!')">Admisionar actividades</a>
+        </div>
+        <div class="mybtn">
+            <a href="{% url 'eliminar_actividades_inconsistencia_carga' carga.id 'all' %}">Eliminar actividades con inconsistencias</a>
+        </div>
         <!-- <div class="mybtn"><a href="/exportarCargaExcel/{{carga.id}}"><img width="80" height="80" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/></a></div> -->
-        <div class="mybtn"><a href="/exportarCargaExcel/{{carga.id}}/all"><img width="20" height="20" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>Actividades en total: <br> {{carga.cantidad_actividades}}</a></div>
-        <div class="mybtn"><a href="/exportarCargaExcel/{{carga.id}}/inconsistencias"><img width="20" height="20" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>Actividades inconsistencias: <br> {{carga.cantidad_actividades_inconsistencias}}</a></div>
-        <div class="mybtn"><a href="/exportarCargaExcel/{{carga.id}}/admisionar"><img width="20" height="20" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>Actividades para admisionar: <br> {{carga.cantidad_actividades_ok}}</a></div>
-        <div class="mybtn"><a href="/exportarCargaExcel/{{carga.id}}/admisionadas"><img width="20" height="20" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>Actividades admisionadas: <br> {{carga.cantidad_actividades_admisionadas}}</a></div>
-        <div class="mybtn">Tiempo de carga inicial:<br>{{carga.tiempo_procesamiento|stringformat:"1.2f"}} min</div>
+        <div class="mybtn">
+            <a href="{% url 'exportar_carga_excel' carga.id 'all' %}">
+                <img width="20" height="20" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>
+                Actividades en total: <br> {{carga.cantidad_actividades}}
+            </a>
+        </div>
+        <div class="mybtn">
+            <a href="{% url 'exportar_carga_excel' carga.id 'inconsistencias' %}">
+                <img width="20" height="20" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>
+                Actividades inconsistencias: <br> {{carga.cantidad_actividades_inconsistencias}}
+            </a>
+        </div>
+        <div class="mybtn">
+            <a href="{% url 'exportar_carga_excel' carga.id 'admisionar' %}">
+                <img width="20" height="20" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>
+                Actividades para admisionar: <br> {{carga.cantidad_actividades_ok}}
+            </a>
+        </div>
+        <div class="mybtn">
+            <a href="{% url 'exportar_carga_excel' carga.id 'admisionadas' %}">
+                <img width="20" height="20" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>
+                Actividades admisionadas: <br> {{carga.cantidad_actividades_admisionadas}}
+            </a>
+        </div>
+        <div class="mybtn">
+            Tiempo de carga inicial:<br>{{carga.tiempo_procesamiento|stringformat:"1.2f"}} min
+        </div>
     </div>
     {% if resumen_inconsistencias %}
     <div class="bloqueTablaResumenInconsistencias">
@@ -30,7 +60,7 @@
                         <td>{{inconsistencia.inconsistencias}}</td>
                         <td>{{inconsistencia.cantidad}}</td>
                         <td class="mybtn-emoji" >
-                            <a id="botonEliminarActividadesInconsistencia" href="/eliminarActividadesInconsistenciaCarga/{{carga.id}}/{{inconsistencia.inconsistencias}}" >
+                            <a id="botonEliminarActividadesInconsistencia" href="{% url 'eliminar_actividades_inconsistencia_carga' carga.id inconsistencia.inconsistencias %}">
                                 🗑️
                             </a>
                         </td>
@@ -78,5 +108,5 @@
 
 <!-- Specific Page JS goes HERE  -->
 {% block javascripts %}
-<script src="../../static/assets/js/cargarActividadesCarga.js"></script>
+<script src="{% static 'assets/js/cargarActividadesCarga.js' %}"></script>
 {% endblock javascripts %}
