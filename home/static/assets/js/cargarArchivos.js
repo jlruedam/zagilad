@@ -21,7 +21,7 @@ $('#btnCargarActividadesArchivo').on('click',async () => {
     if(!respuesta.status){
         tablaActividadesSubir.clear().draw();
         tablaActividadesSubir.rows.add(respuesta).draw();
-        
+        alert("Archivo cargado correctamente, por favor revise la tabla de actividades para verificar los datos.");
     }else{
         alert("Error: "+ respuesta.responseText);
     }

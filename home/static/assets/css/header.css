@@ -2,12 +2,12 @@
     position:sticky;
     top: 0;
     width: 100%;
-    background: aquamarine;
+    background: whitesmoke;
     display: flex;
     justify-content:space-between;
     align-items: center;
     height: 10vh;
-    border: 2px solid blanchedalmond;
+    /* border: 2px solid blanchedalmond; */
     -webkit-box-shadow: 26px 20px 68px -7px rgba(0,0,0,0.75);
     -moz-box-shadow: 26px 20px 68px -7px rgba(0,0,0,0.75);
     box-shadow: 26px 20px 68px -7px rgba(0,0,0,0.75);
@@ -22,6 +22,7 @@
 
 .myTitle {
     font-size: 30px;
+    letter-spacing: 5px;
 }
 
 .myTitle a{
