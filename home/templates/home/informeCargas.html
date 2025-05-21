@@ -45,13 +45,21 @@
                         <td>{{carga.observacion}}</td>
                         <td>{{carga.created_at}}</td>
                         <td>{{carga.updated_at}}</td>
-                        <td><a href="/exportarCargaExcel/{{carga.id}}/all"><img width="30" height="30" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/></a></td>
+                        <td>
+                            <a href="{% url 'exportar_carga_excel' carga.id 'all' %}">
+                                <img width="30" height="30" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>
+                            </a>
+                        </td>
                         {% if carga.estado == "procesada" %}
-                            <td><span class = "iconosGestion"><a href="/verCarga/{{carga.id}}/1">👁️</a></span></td>
+                            <td>
+                                <span class="iconosGestion">
+                                    <a href="{% url 'ver_carga' carga.id 1 %}">👁️</a>
+                                </span>
+                            </td>
                         {% elif carga.estado == "cancelada" %}
-                            <td><span class = "iconosGestion">❌</span></td>
+                            <td><span class="iconosGestion">❌</span></td>
                         {% else %}
-                            <td><span class = "iconosGestion">🕰️</span></td>
+                            <td><span class="iconosGestion">🕰️</span></td>
                         {% endif %}
                         
                     </tr>
