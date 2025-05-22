@@ -8,9 +8,11 @@
     align-items: center;
     height: 10vh;
     /* border: 2px solid blanchedalmond; */
-    -webkit-box-shadow: 26px 20px 68px -7px rgba(0,0,0,0.75);
+    /* -webkit-box-shadow: 26px 20px 68px -7px rgba(0,0,0,0.75);
     -moz-box-shadow: 26px 20px 68px -7px rgba(0,0,0,0.75);
-    box-shadow: 26px 20px 68px -7px rgba(0,0,0,0.75);
+    box-shadow: 26px 20px 68px -7px rgba(0,0,0,0.75); */
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    font-style: italic;
     z-index: 1;
 }
 
@@ -30,9 +32,14 @@
     color: gray;
 }
 
+.myLogo {
+    transition: all 5s cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
 .myLogo img {
     width: 16rem;
     height: 4rem;
+    
 }
 
 .myHeader .myIconoMenu {
@@ -41,6 +48,7 @@
     justify-content: end;
     margin-right: 20px;
     align-items: center;
+    transition: all 5s cubic-bezier(0.075, 0.82, 0.165, 1);
 }
 
 .myIconoMenu:hover{
@@ -58,8 +66,13 @@
     transform: scale(1.1);
 }
 
+.myTitle {
+    transition: all 5s cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
 .myTitle:hover {
     transform: scale(1.1);
+    
 }
 
 

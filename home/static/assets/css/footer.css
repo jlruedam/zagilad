@@ -9,7 +9,7 @@
     color: gray;
     font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
     font-style: italic;
-    transition: all 1s cubic-bezier(0.075, 0.82, 0.165, 1);
+    transition: all 5s cubic-bezier(0.075, 0.82, 0.165, 1);
 }
 
 .myFooter:hover{
