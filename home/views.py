@@ -1,6 +1,6 @@
 # DJANGO
 from django.shortcuts import render, redirect 
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect, JsonResponse, FileResponse
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect, JsonResponse, FileResponse, HttpResponseServerError
 from django.core.serializers import json
 from django.core import serializers
 from django.contrib.auth.decorators import login_required
@@ -437,19 +437,42 @@ def cargar_configuracion_arranque(request):
 #     FOLDER_MEDIA = 'media/'    
 #     return FileResponse(open(FOLDER_MEDIA+nombre_archivo, 'rb'), as_attachment=True, filename = nombre_archivo)
 
-@login_required(login_url="/login/")
-def descargar_archivo(request, nombre_archivo):
-    print("Archivo a descargar:", nombre_archivo)
+# @login_required(login_url="/login/")
+# def descargar_archivo(request, nombre_archivo):
+#     print("Archivo a descargar:", nombre_archivo)
     
-    # Ruta segura usando MEDIA_ROOT
-    ruta_archivo = os.path.join(settings.MEDIA_ROOT, nombre_archivo)
+#     # Ruta segura usando MEDIA_ROOT
+#     ruta_archivo = os.path.join(settings.MEDIA_ROOT, nombre_archivo)
 
-    # Verificación de existencia del archivo
-    if not os.path.exists(ruta_archivo):
+#     # Verificación de existencia del archivo
+#     if not os.path.exists(ruta_archivo):
+#         raise Http404("El archivo no existe.")
+
+#     # Retornar el archivo como descarga
+#     return FileResponse(open(ruta_archivo, 'rb'), as_attachment=True, filename=nombre_archivo)
+
+def descargar_archivo(request, nombre_archivo):
+    # Ruta absoluta al directorio "Formatos" (mismo nivel que media/)
+    carpeta_formatos = os.path.join(settings.BASE_DIR, 'formatos')
+    
+    # Construir ruta completa al archivo
+    ruta_archivo = os.path.join(carpeta_formatos, nombre_archivo)
+
+    logger.info(f"Descarga solicitada: {ruta_archivo}")
+
+    # Verifica si el archivo existe
+    if not os.path.isfile(ruta_archivo):
+        logger.warning(f"Archivo no encontrado: {ruta_archivo}")
         raise Http404("El archivo no existe.")
 
-    # Retornar el archivo como descarga
-    return FileResponse(open(ruta_archivo, 'rb'), as_attachment=True, filename=nombre_archivo)
+    try:
+        return FileResponse(open(ruta_archivo, 'rb'), as_attachment=True, filename=nombre_archivo)
+    except PermissionError as e:
+        logger.error(f"Permiso denegado: {ruta_archivo} - {e}")
+        return HttpResponseServerError("Error de permisos al acceder al archivo.")
+    except Exception as e:
+        logger.error(f"Error inesperado: {ruta_archivo} - {e}")
+        return HttpResponseServerError("Error inesperado al descargar el archivo.")
 
 
 @login_required(login_url="/login/")    
