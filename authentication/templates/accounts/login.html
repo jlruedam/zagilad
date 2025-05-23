@@ -8,47 +8,39 @@
 {% endblock stylesheets %}
 
 {% block content %}
-   
+
 <div class="login">
-    <!-- <div class="login-header">
-        <h4 class="login-title">
-          Acceso
-        </h4>
-    </div> -->
-    <div class="login-body">
+  <div class="login-body">
 
-        <h6 class="login-mensaje">
-            {% if msg %}
-                <span class="text-danger">{{ msg | safe }}</span>
-            {% else %}
-                Ingresa tus credenciales
-            {% endif %}  
-        </h6>
-        <form class="login-formulario" role="form" method="post" action="">
-            
-            {% csrf_token %} 
-            
-            <div class="login-username">
-            <label class="bmd-label-floating"></label>
-            {{ form.username }}
-            </div>
+    <h6 class="login-mensaje" role="alert">
+      {% if msg %}
+        <span class="text-danger">{{ msg }}</span>
+      {% else %}
+        Ingresa tus credenciales
+      {% endif %}
+    </h6>
 
-            <div class="login-password">
-            <label class="bmd-label-floating"></label>
-            {{ form.password }}
-            </div>
-        
-            <div class="login-submit">
-            <button type="submit" name="login" class="btnLog" id="btnLogin">Ingresar</button> 
-            </div>
+    <form class="login-formulario" method="post" action="" role="form">
+      {% csrf_token %}
 
-        </form>
-    </div>
-   
+      <div class="login-username">
+        <label for="{{ form.username.id_for_label }}">Usuario</label>
+        {{ form.username }}
+      </div>
+
+      <div class="login-password">
+        <label for="{{ form.password.id_for_label }}">Contraseña</label>
+        {{ form.password }}
+      </div>
+
+      <div class="login-submit">
+        <button type="submit" name="login" class="btnLog" id="btnLogin">Ingresar</button> 
+      </div>
+    </form>
+  </div>
 </div>
+
 {% endblock content %}
 
-<!-- Specific Page JS goes HERE  -->
 {% block javascripts %}
-
 {% endblock javascripts %}

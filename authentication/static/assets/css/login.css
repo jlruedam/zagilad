@@ -1,29 +1,67 @@
 .login {
-    
-    display: flex;
-    justify-content: center;
-    text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  background-color: #f8f9fa;
+  font-family: Arial, sans-serif;
 }
 
 .login-body {
-    
-    margin: 50px;
+  background: white;
+  padding: 40px 50px;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+  width: 320px;
 }
 
-.login-body .login-mensaje {
-    font-size: large;
-    color: gray;
+.login-mensaje {
+  font-size: 1.1rem;
+  margin-bottom: 25px;
+  color: #333;
 }
 
-
-/* .login-formulario {
-    
-} */
-
-.login-formulario .login-username {
-    margin: 30px;
+.text-danger {
+  color: #dc3545;
+  font-weight: bold;
 }
 
-.login-formulario .login-submit {
-    margin: 30px;
+.login-formulario label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #555;
+}
+
+.login-formulario input {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 20px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease;
+}
+
+.login-formulario input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.btnLog {
+  width: 100%;
+  background-color: #007bff;
+  border: none;
+  padding: 12px;
+  color: white;
+  font-weight: 700;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btnLog:hover {
+  background-color: #0056b3;
 }
