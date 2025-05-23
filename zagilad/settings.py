@@ -245,3 +245,6 @@ LOGGING = {
 
 # Manejo de archivos estáticos
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # o la ruta absoluta correcta
+MEDIA_URL = '/media/'

@@ -8,7 +8,8 @@ from django.contrib.auth.models import User
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db.models import Q, Count
 from django.db import transaction
-
+from django.http import FileResponse, Http404
+from django.conf import settings
 
 # PYTHON
 from datetime import datetime, date
@@ -17,6 +18,7 @@ import pandas as pd
 import numpy as np
 import json
 import logging
+import os
 
 # ZAGILAD
 from home.models import TipoActividad, Actividad, ParametrosAreaPrograma
@@ -28,6 +30,9 @@ from home.modules import paginacion_actividades
 
 # DJANGO Q
 from django_q.tasks import async_task
+
+
+
 
 
 # Configurar el logger
@@ -426,11 +431,26 @@ def cargar_configuracion_arranque(request):
     
     return render(request,"home/administrador.html",ctx)
 
-@login_required(login_url="/login/")    
+# @login_required(login_url="/login/")    
+# def descargar_archivo(request, nombre_archivo):
+#     print("Archivo a descargar:",nombre_archivo)
+#     FOLDER_MEDIA = 'media/'    
+#     return FileResponse(open(FOLDER_MEDIA+nombre_archivo, 'rb'), as_attachment=True, filename = nombre_archivo)
+
+@login_required(login_url="/login/")
 def descargar_archivo(request, nombre_archivo):
-    print("Archivo a descargar:",nombre_archivo)
-    FOLDER_MEDIA = 'media/'    
-    return FileResponse(open(FOLDER_MEDIA+nombre_archivo, 'rb'), as_attachment=True, filename = nombre_archivo)
+    print("Archivo a descargar:", nombre_archivo)
+    
+    # Ruta segura usando MEDIA_ROOT
+    ruta_archivo = os.path.join(settings.MEDIA_ROOT, nombre_archivo)
+
+    # Verificación de existencia del archivo
+    if not os.path.exists(ruta_archivo):
+        raise Http404("El archivo no existe.")
+
+    # Retornar el archivo como descarga
+    return FileResponse(open(ruta_archivo, 'rb'), as_attachment=True, filename=nombre_archivo)
+
 
 @login_required(login_url="/login/")    
 def exportar_carga_excel(request, id_carga,tipo):
