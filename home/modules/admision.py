@@ -177,7 +177,7 @@ def crear_admision(autoid, regimen, tipo_usuario, codigo_entidad, tipo_diag, act
                 "cod_diagn1":"" if actividad.diagnostico_1 == None or actividad.diagnostico_1 == 'nan' or actividad.diagnostico_1 == '0' else actividad.diagnostico_1.strip(),#VARIABLE
                 "cod_diagn2": "" if actividad.diagnostico_2 == None or actividad.diagnostico_2 == 'nan' or actividad.diagnostico_2 == '0' else actividad.diagnostico_2.strip(),#VARIABLE
                 "cod_diagn3": "" if actividad.diagnostico_3 == None or actividad.diagnostico_3 == 'nan' or actividad.diagnostico_3 == '0' else actividad.diagnostico_3.strip(),#VARIAB
-                "finalidad": 10,#QUEMADO
+                "finalidad": actividad.finalidad.valor,
                 "ambito_proc": 1,#QUEMADO
                 "ccosto": actividad.parametros_programa.centro_costo.codigo,#PARÁMETRO
                 "tipo_estudio": "A",#QUEMADO
