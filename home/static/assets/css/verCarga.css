@@ -25,16 +25,19 @@
     justify-content: center;
     align-items: center;
     flex-wrap: wrap;
+    padding: 0px 0px 0px 0px;
+    margin: 20px 0 40px 0;
+    
 }
 
 .mybtn {
     border: 1px solid whitesmoke;
     border-radius: 20px;
     list-style: none;
-    width: 150px;
-    height: 100px;
+    width: 20rem;
+    height: 5rem;
     padding: 20px;
-    margin: 20px;
+    margin: 5px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -43,9 +46,9 @@
     background: whitesmoke;
     color: gray;
     font-size: 20px;
-    -webkit-box-shadow: 26px 20px 68px -7px rgba(0,0,0,0.75);
+    /* -webkit-box-shadow: 26px 20px 68px -7px rgba(0,0,0,0.75);
     -moz-box-shadow: 26px 20px 68px -7px rgba(0,0,0,0.75);
-    box-shadow: 26px 20px 68px -7px rgba(0,0,0,0.75);
+    box-shadow: 26px 20px 68px -7px rgba(0,0,0,0.75); */
     transition:all 1s cubic-bezier(0.075, 0.82, 0.165, 1)
 }
 

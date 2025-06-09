@@ -20,15 +20,17 @@
             <a class="mylink" href="{% url 'descargar_archivo' 'forma_carga_actividad_plantilla.xlsx' %}" download>📥Formato de carga</a>
         </div>
         <div>
-            <label for="archivoMasivoActividades" class="">Subir archivo</label>
-            <input type="file" id="archivoMasivoActividades" accept=".xlsx">
+            <div>
+                <label for="archivoMasivoActividades" class="">Subir archivo</label>
+                <input type="file" id="archivoMasivoActividades" accept=".xlsx">
+            </div>
+            <div>
+                <label for="observacion_carga" class="">Observación</label>
+                <textarea type="text" id="observacion_carga" name="observacion_carga" rows="4" cols="40"></textarea>
+            </div>
+            
             <button id="btnCargarActividadesArchivo">Cargar</button>
         </div>
-        <div>
-            <label for="observacion_carga" class="">Observación</label>
-            <textarea type="text" id="observacion_carga" name="observacion_carga" rows="4" cols="40"></textarea>
-        </div>
-        
     </div>
    
     
