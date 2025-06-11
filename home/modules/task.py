@@ -226,10 +226,20 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
                 auto_id = datos_afiliado['Datos'][0]['autoid']
                 regimen = datos_afiliado['Datos'][0]['NombreRegimen']
                 # tipo_usuario = datos_afiliado['Datos'][0]['tipo_usuario'] 
+
                 tipo_usuario = actividad.tipo_usuario
+                if not tipo_usuario:
+                    try:
+                        tipo_usuario = utils.obtener_tipo_usuario(actividad.documento_paciente)
+                        print(tipo_usuario)            
+                        actividad.tipo_usuario = tipo_usuario.loc[0][0]
+                    except Exception as e:
+                        error = e
+                        actividad.inconsistencias = ("⚠️Error el consultar el Tipo de Usuario:" + str(error))[:500]
 
                 if not datos_afiliado['Datos'][0]['NombreRegimen']:
                     raise Exception("No tiene regimen relacionado")
+
                 
                 # Inicializo la admisión con los parametros generales y la información de la actividad
                 admision_actividad = admision.crear_admision(
