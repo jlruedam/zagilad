@@ -68,12 +68,18 @@ def procesar_actividad(carga, valores):
             raise Exception("Actividad repetida en la misma carga, validar.")
         
         # Obtener tipo de Usuario
-        tipo_usuario = utils.obtener_tipo_usuario(actividad.documento_paciente)
-        actividad.tipo_usuario = tipo_usuario.loc[0][0]
+        
+        try:
+            tipo_usuario = utils.obtener_tipo_usuario(actividad.documento_paciente)            
+            actividad.tipo_usuario = tipo_usuario.loc[0][0]
+        except Exception as e:
+            error = e
+            actividad.inconsistencias = ("⚠️Error el consultar el Tipo de Usuario:" + str(error))[:500]
+
             
     except Exception as e:
         error = e
-        actividad.inconsistencias = "⚠️" + str(error)
+        actividad.inconsistencias = ("⚠️Error al procesar la actividad" + str(error))[:500]
         # print(e)
 
     actividad.save()
