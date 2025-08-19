@@ -179,16 +179,11 @@ def listar_puntos_atencion(request):
 def listar_contratos(request):
     token = peticiones_http.obtener_token()
     respuesta = peticiones_http.consultar_data("/api/Contratos",token = token)
-    cantidad_bd_contratos = Contrato.objects.count()
-    cantidad_respuesta = len(respuesta)
 
-    if cantidad_bd_contratos <= 0:
-
-        for contrato in respuesta:
-            print("-"*100)
-
-            # Consultar si el contrato existe sin cambios
-            contrato_existente_sin_cambios = Contrato.objects.filter(
+    for contrato in respuesta:
+        if not list(Contrato.objects.filter(codigo=contrato['Codigo'])): 
+            
+            nuevo_contrato = Contrato(
                 codigo = contrato["Codigo"],
                 nombre = contrato["Nombre"],
                 empresa = contrato["Empresa"],
@@ -200,48 +195,68 @@ def listar_contratos(request):
                 regimen = contrato["Regimen"],
                 activo = contrato["Activo"],
             )
+            nuevo_contrato.save()
+            print("Contrato Creado")
+    # if cantidad_bd_contratos <= 0:
 
-            # Si no existe contratos existente sin cambios
-            if not contrato_existente_sin_cambios:
+    #     for contrato in respuesta:
+    #         print("-"*100)
+
+    #         # Consultar si el contrato existe sin cambios
+    #         contrato_existente_sin_cambios = Contrato.objects.filter(
+    #             codigo = contrato["Codigo"],
+    #             nombre = contrato["Nombre"],
+    #             empresa = contrato["Empresa"],
+    #             fecha_inicial = contrato["Fechai"],
+    #             fecha_final = contrato["Fechaf"],
+    #             observacion = contrato["Obs"],
+    #             numero = contrato["Numero"],
+    #             id_sede = contrato["IdSede"],
+    #             regimen = contrato["Regimen"],
+    #             activo = contrato["Activo"],
+    #         )
+
+    #         # Si no existe contratos existente sin cambios
+    #         if not contrato_existente_sin_cambios:
                 
-                # Consultar si ya existe por el código.
-                contrato_existente = Contrato.objects.filter(
-                    codigo = contrato["Codigo"],
-                )
+    #             # Consultar si ya existe por el código.
+    #             contrato_existente = Contrato.objects.filter(
+    #                 codigo = contrato["Codigo"],
+    #             )
 
-                print("CONTRATO EXISTENTE:", contrato_existente)
+    #             print("CONTRATO EXISTENTE:", contrato_existente)
 
-                if contrato_existente:
-                    print("Actualizar Contrato")
-                    # Entonces uno de sus campos cambió y se debe actualizar.
-                    contrato_existente[0].nombre = contrato["Nombre"]
-                    contrato_existente[0].empresa = contrato["Empresa"]
-                    contrato_existente[0].fecha_inicial = contrato["Fechai"]
-                    contrato_existente[0].fecha_final = contrato["Fechaf"]
-                    contrato_existente[0].observacion = contrato["Obs"]
-                    contrato_existente[0].numero = contrato["Numero"]
-                    contrato_existente[0].id_sede = contrato["IdSede"]
-                    contrato_existente[0].regimen = contrato["Regimen"]
-                    contrato_existente[0].activo = contrato["Activo"]
-                    contrato_existente[0].save()
+    #             if contrato_existente:
+    #                 print("Actualizar Contrato")
+    #                 # Entonces uno de sus campos cambió y se debe actualizar.
+    #                 contrato_existente[0].nombre = contrato["Nombre"]
+    #                 contrato_existente[0].empresa = contrato["Empresa"]
+    #                 contrato_existente[0].fecha_inicial = contrato["Fechai"]
+    #                 contrato_existente[0].fecha_final = contrato["Fechaf"]
+    #                 contrato_existente[0].observacion = contrato["Obs"]
+    #                 contrato_existente[0].numero = contrato["Numero"]
+    #                 contrato_existente[0].id_sede = contrato["IdSede"]
+    #                 contrato_existente[0].regimen = contrato["Regimen"]
+    #                 contrato_existente[0].activo = contrato["Activo"]
+    #                 contrato_existente[0].save()
 
-                else:
-                    print("Crear Contrato")
-                    nuevo_contrato = Contrato(
-                        codigo = contrato["Codigo"],
-                        nombre = contrato["Nombre"],
-                        empresa = contrato["Empresa"],
-                        fecha_inicial = contrato["Fechai"],
-                        fecha_final = contrato["Fechaf"],
-                        observacion = contrato["Obs"],
-                        numero = contrato["Numero"],
-                        id_sede = contrato["IdSede"],
-                        regimen = contrato["Regimen"],
-                        activo = contrato["Activo"],
-                    )
-                    nuevo_contrato.save()
+    #             else:
+    #                 print("Crear Contrato")
+    #                 nuevo_contrato = Contrato(
+    #                     codigo = contrato["Codigo"],
+    #                     nombre = contrato["Nombre"],
+    #                     empresa = contrato["Empresa"],
+    #                     fecha_inicial = contrato["Fechai"],
+    #                     fecha_final = contrato["Fechaf"],
+    #                     observacion = contrato["Obs"],
+    #                     numero = contrato["Numero"],
+    #                     id_sede = contrato["IdSede"],
+    #                     regimen = contrato["Regimen"],
+    #                     activo = contrato["Activo"],
+    #                 )
+    #                 nuevo_contrato.save()
 
-            print(contrato)
+    #         print(contrato)
         
     # https://dev.to/chryzcode/django-json-response-safe-false-4f9i
     return JsonResponse(respuesta, safe = False)
@@ -273,9 +288,6 @@ def listar_seriales_sedes(request):
 def listar_tipos_servicios(request):
     
     respuesta = peticiones_http.consultar_data("/api/SisTipo")
-    cantidad_bd_servicios = TipoServicio.objects.count()
-    cantidad_respuesta = len(respuesta)
-
     for servicio in respuesta:
         if not list(TipoServicio.objects.filter(id_zeus=servicio['Id'])): 
             tipo_servicio = TipoServicio()
@@ -293,12 +305,7 @@ def listar_tipos_servicios(request):
 def consultar_medicos(request):
     
     respuesta = peticiones_http.consultar_data("/api/SisMedi")
-    cantidad_bd_medicos = Medico.objects.count()
-
     for medico in respuesta:
-        # print("-"*100)
-        # print(medico)
-        # print("-"*100)
         if not list(Medico.objects.filter(documento=medico['Cedula'])):
             medico_bd = Medico()
             medico_bd.codigo = medico['Codigo']
