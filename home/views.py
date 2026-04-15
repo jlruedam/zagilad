@@ -167,12 +167,11 @@ def listar_resumen_cargas(request):
             procesadas = carga.cantidad_actividades_ok + carga.cantidad_actividades_inconsistencias
             porcentaje_procesamiento = min(int(procesadas / carga.cantidad_actividades * 100), 99)
 
-        if carga.estado == "admisionando":
-            total_admisionable = carga.cantidad_actividades_ok + carga.cantidad_actividades_admisionadas
-            if total_admisionable > 0:
-                porcentaje_admisionado = int(
-                    carga.cantidad_actividades_admisionadas / total_admisionable * 100
-                )
+        if carga.estado == "admisionando" and carga.cantidad_actividades > 0:
+            # Las inconsistencias ya están "resueltas" (no se admisionarán),
+            # por eso se suman al numerador junto con las admisionadas.
+            resueltas = carga.cantidad_actividades_admisionadas + carga.cantidad_actividades_inconsistencias
+            porcentaje_admisionado = min(int(resueltas / carga.cantidad_actividades * 100), 99)
 
         resumen.append({
             "id": carga.id,
