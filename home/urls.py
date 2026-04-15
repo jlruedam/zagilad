@@ -28,6 +28,7 @@ urlpatterns = [
     path('cargarActividades/', views.cargar_actividades, name='cargar_actividades'),
     path('procesarCargueActividades/', views.procesarCargue, name='procesar_cargue_actividades'),
     path('informeCargas/', views.informe_cargas, name='informe_cargas'),
+    path('listarResumenCargas/', views.listar_resumen_cargas, name='listar_resumen_cargas'),
     path('verCarga/<id_carga>/<pagina>', views.ver_carga, name='ver_carga'),
     path('descargarArchivo/<nombre_archivo>', views.descargar_archivo, name='descargar_archivo'),
     path('exportarCargaExcel/<id_carga>/<tipo>', views.exportar_carga_excel, name='exportar_carga_excel'),

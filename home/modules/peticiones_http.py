@@ -24,8 +24,6 @@ def obtener_token():
         
         # Guardar el último token vigente
         token = TokenApiZeus.objects.filter(vigente = True).last()
-        print("TOKEN AUN VIGENTE", token) 
-
         if token:
             return token.token
         
@@ -39,7 +37,6 @@ def obtener_token():
         "UserName":USERNAME,
         "Password":PASSWORD
     }
-    print(auth_data)
     respuesta = requests.post(URL_API_ZEUS + ruta_endpoint, headers=cabeceras, data = json.dumps(auth_data) ) 
     if respuesta.status_code == 200:
         respuesta = respuesta.json()
@@ -48,13 +45,11 @@ def obtener_token():
         )
         token_bd.save()
         token = token_bd.token
-        print("NUEVO TOKEN: ", token)
 
     return token
 
 
 def crear_admision_prueba(admision, token):
-    print("CONECTADO A:", URL_API_ZEUS_PRUEBA)
     respuesta = []
     ruta_endpoint = "/api/Admision/GrabarAdmision"
     cabeceras = {
@@ -65,7 +60,6 @@ def crear_admision_prueba(admision, token):
     }
 
     respuesta = requests.post(URL_API_ZEUS + ruta_endpoint, headers=cabeceras, data = json.dumps(admision) ) 
-    print(respuesta)
     if respuesta.status_code == 200:
         try:
             respuesta = respuesta.json()
@@ -78,7 +72,6 @@ def crear_admision_prueba(admision, token):
     return respuesta
 
 def crear_admision(admision, token):
-    print("CONECTADO A:", URL_API_ZEUS)
     respuesta = []
     ruta_endpoint = "/api/Admision/GrabarAdmision"
     cabeceras = {
@@ -89,7 +82,6 @@ def crear_admision(admision, token):
     }
 
     respuesta = requests.post(URL_API_ZEUS + ruta_endpoint, headers=cabeceras, data = json.dumps(admision) ) 
-    print(respuesta)
     if respuesta.status_code == 200:
         respuesta = respuesta.json()
     else:
@@ -98,7 +90,6 @@ def crear_admision(admision, token):
     return respuesta
 
 def consultar_data(ruta, data = [], token = ""):
-    print("CONECTADO A:", URL_API_ZEUS)
     respuesta = []
     ruta_endpoint = ruta
     cabeceras = {
@@ -111,7 +102,6 @@ def consultar_data(ruta, data = [], token = ""):
 
     if data:
         respuesta = requests.get(URL_API_ZEUS + ruta_endpoint, headers=cabeceras ,data=data) 
-        print(respuesta.json())
     else:
         respuesta = requests.get(URL_API_ZEUS + ruta_endpoint, headers=cabeceras) 
         # print(respuesta.status_code)

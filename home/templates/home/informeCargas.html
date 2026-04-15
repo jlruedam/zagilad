@@ -1,8 +1,35 @@
 {% extends "layouts/base.html" %}
+{% load static %}
 
-{% block title %} Home {% endblock %} 
+{% block title %} Home {% endblock %}
 
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+<style>
+    .barra-progreso {
+        width: 130px;
+        height: 10px;
+        background-color: #e0e0e0;
+        border-radius: 5px;
+        overflow: hidden;
+        display: block;
+        margin-bottom: 3px;
+    }
+    .barra-relleno {
+        height: 100%;
+        border-radius: 5px;
+        transition: width 0.6s ease;
+        width: 0%;
+    }
+    .barra-procesando  { background-color: #2196F3; }
+    .barra-admisionando { background-color: #4CAF50; }
+    .texto-progreso {
+        font-size: 0.75rem;
+        color: #555;
+        white-space: nowrap;
+    }
+    .celda-avance { min-width: 140px; }
+</style>
+{% endblock stylesheets %}
 
 {% block content %}
     <div class="infoCargas">
@@ -10,7 +37,7 @@
             <table id="tablaCargas">
                 <caption>
                     <h2>
-                        Cargas 
+                        Cargas
                     </h2>
                 </caption>
                 <thead>
@@ -18,6 +45,7 @@
                         <th>ID Carga</th>
                         <th>Usuario</th>
                         <th>Estado</th>
+                        <th class="celda-avance">Avance</th>
                         <th>Total Actividades</th>
                         <th>Actividades inconsistencias</th>
                         <th>Actividades para admisionar</th>
@@ -28,50 +56,64 @@
                         <th>Updated</th>
                         <th>Exportar</th>
                         <th>Ver</th>
-                        <!-- <th>Ejecutar</th> -->
                     </tr>
                 </thead>
                 <tbody>
                     {% for carga in cargas %}
-                    <tr>
+                    <tr data-carga-id="{{carga.id}}">
                         <td>{{carga.id}}</td>
-                        <td>{{carga.usuario}}</td>
-                        <td>{{carga.estado}}</td>
-                        <td>{{carga.cantidad_actividades}}</td>
-                        <td>{{carga.cantidad_actividades_inconsistencias}}</td>
-                        <td>{{carga.cantidad_actividades_ok}}</td>
-                        <td>{{carga.cantidad_actividades_admisionadas}}</td>
-                        <td>{{carga.tiempo_procesamiento|stringformat:"1.2f"}} min</td>
+                        <td data-carga-campo="usuario">{{carga.usuario}}</td>
+                        <td data-carga-campo="estado">{{carga.estado}}</td>
+                        <td data-carga-campo="progreso" class="celda-avance">
+                            {% if carga.estado == "procesando" %}
+                                <div class="barra-progreso">
+                                    <div class="barra-relleno barra-procesando"></div>
+                                </div>
+                                <small class="texto-progreso">Iniciando...</small>
+                            {% elif carga.estado == "admisionando" %}
+                                <div class="barra-progreso">
+                                    <div class="barra-relleno barra-admisionando"></div>
+                                </div>
+                                <small class="texto-progreso">Iniciando...</small>
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td data-carga-campo="cantidad_actividades">{{carga.cantidad_actividades}}</td>
+                        <td data-carga-campo="cantidad_actividades_inconsistencias">{{carga.cantidad_actividades_inconsistencias}}</td>
+                        <td data-carga-campo="cantidad_actividades_ok">{{carga.cantidad_actividades_ok}}</td>
+                        <td data-carga-campo="cantidad_actividades_admisionadas">{{carga.cantidad_actividades_admisionadas}}</td>
+                        <td><span data-carga-campo="tiempo_procesamiento">{{carga.tiempo_procesamiento|stringformat:"1.2f"}}</span> min</td>
                         <td>{{carga.observacion}}</td>
                         <td>{{carga.created_at}}</td>
-                        <td>{{carga.updated_at}}</td>
+                        <td data-carga-campo="updated_at">{{carga.updated_at}}</td>
                         <td>
                             <a href="{% url 'exportar_carga_excel' carga.id 'all' %}">
                                 <img width="30" height="30" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>
                             </a>
                         </td>
                         {% if carga.estado == "procesada" %}
-                            <td>
+                            <td data-carga-campo="gestion">
                                 <span class="iconosGestion">
                                     <a href="{% url 'ver_carga' carga.id 1 %}">👁️</a>
                                 </span>
                             </td>
                         {% elif carga.estado == "cancelada" %}
-                            <td><span class="iconosGestion">❌</span></td>
+                            <td data-carga-campo="gestion"><span class="iconosGestion">❌</span></td>
                         {% else %}
-                            <td><span class="iconosGestion">🕰️</span></td>
+                            <td data-carga-campo="gestion"><span class="iconosGestion">🕰️</span></td>
                         {% endif %}
-                        
+
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
-  
+
 {% endblock content %}
 
 <!-- Specific Page JS goes HERE  -->
 {% block javascripts %}
-
+<script src="{% static 'assets/js/informeCargas.js' %}"></script>
 {% endblock javascripts %}

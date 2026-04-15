@@ -172,8 +172,39 @@ class Actividad(models.Model):
     admisionada_otra_carga = models.BooleanField(default=False)
     datos_json = models.JSONField(blank=True, null=True)
     tipo_usuario = models.CharField(max_length=2, blank=True, null=True)
+    contrato = models.ForeignKey(ContratoMarco, models.SET_NULL, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(
+                fields=["carga", "admision"],
+                name="act_carga_adm_idx",
+            ),
+            models.Index(
+                fields=[
+                    "documento_paciente",
+                    "fecha_servicio",
+                    "nombre_actividad",
+                    "tipo_actividad",
+                    "medico",
+                    "admision",
+                ],
+                name="act_dup_adm_idx",
+            ),
+            models.Index(
+                fields=[
+                    "carga",
+                    "documento_paciente",
+                    "fecha_servicio",
+                    "nombre_actividad",
+                    "tipo_actividad",
+                    "medico",
+                ],
+                name="act_dup_carga_idx",
+            ),
+        ]
 
     def __str__(self):
         return (

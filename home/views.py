@@ -140,6 +140,44 @@ def informe_cargas(request):
     ctx = {"cargas":cargas}
     return render(request,"home/informeCargas.html",ctx)
 
+
+@login_required(login_url="/login/")
+def listar_resumen_cargas(request):
+    resumen = []
+    for carga in Carga.objects.select_related("usuario").order_by("id"):
+        porcentaje_procesamiento = 0
+        porcentaje_admisionado = 0
+
+        if carga.estado == "procesando" and carga.cantidad_actividades > 0:
+            procesadas = carga.cantidad_actividades_ok + carga.cantidad_actividades_inconsistencias
+            porcentaje_procesamiento = min(int(procesadas / carga.cantidad_actividades * 100), 99)
+
+        if carga.estado == "admisionando":
+            total_admisionable = carga.cantidad_actividades_ok + carga.cantidad_actividades_admisionadas
+            if total_admisionable > 0:
+                porcentaje_admisionado = int(
+                    carga.cantidad_actividades_admisionadas / total_admisionable * 100
+                )
+
+        resumen.append({
+            "id": carga.id,
+            "usuario": str(carga.usuario) if carga.usuario else "",
+            "estado": carga.estado,
+            "cantidad_actividades": carga.cantidad_actividades,
+            "cantidad_actividades_inconsistencias": carga.cantidad_actividades_inconsistencias,
+            "cantidad_actividades_ok": carga.cantidad_actividades_ok,
+            "cantidad_actividades_admisionadas": carga.cantidad_actividades_admisionadas,
+            "tiempo_procesamiento": f"{carga.tiempo_procesamiento:.2f}",
+            "observacion": carga.observacion or "",
+            "created_at": carga.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            "updated_at": carga.updated_at.strftime("%Y-%m-%d %H:%M:%S"),
+            "ver_url": f"/verCarga/{carga.id}/1",
+            "porcentaje_procesamiento": porcentaje_procesamiento,
+            "porcentaje_admisionado": porcentaje_admisionado,
+        })
+
+    return JsonResponse({"cargas": resumen}, safe=False)
+
 @login_required(login_url="/login/")
 def ver_carga(request, id_carga, pagina):
 
@@ -203,14 +241,15 @@ def cargar_actividades(request):
             if columnas_adicionales:
                 mensaje_error += f"Columnas adicionales: {', '.join(columnas_adicionales)}."
             return JsonResponse({'error': mensaje_error}, status=400)
+        archivo_masivo = archivo_masivo[encabezados_esperados]
         
         # Procesar registros
         respuesta = []
         registros_vistos = set()  # Para controlar registros duplicados
         
-        for _, fila in archivo_masivo.iterrows():
+        for fila in archivo_masivo.itertuples(index=False, name=None):
             # Crear una lista con los valores de la fila
-            valores = fila.tolist()
+            valores = list(fila)
             
             # Limpiar y formatear datos
             valores[1] = str(valores[1]).strip()  # numero_identificacion
@@ -264,6 +303,7 @@ def procesarCargue(request):
             carga_actividades = Carga(
                 usuario=usuario_actual,
                 estado="procesando",
+                cantidad_actividades=cant_act,
                 observacion=datos.get("observacion", "")
             )
             carga_actividades.save()
@@ -359,7 +399,6 @@ def consultar_admisiones_prueba(request):
 def admisionar_actividades_carga(request, id_carga):
     try:
         token = peticiones_http.obtener_token()
-        print(token)
     except Exception as e:
         print(e)
         return HttpResponseBadRequest("No se pudo obtener el token de acceso", e)
