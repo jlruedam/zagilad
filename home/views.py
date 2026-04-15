@@ -434,7 +434,8 @@ def admisionar_actividad_individual(request, id_actividad, pagina):
     return redirect(f'/verCarga/{actividad.carga.id}/{pagina}')
 
 @login_required(login_url="/login/")
-def eliminar_actividades_inconsistencia_carga(request, id_carga, tipo_inconsistencia = None):
+def eliminar_actividades_inconsistencia_carga(request, id_carga):
+    tipo_inconsistencia = request.POST.get('tipo_inconsistencia', 'all')
     carga = Carga.objects.get(id = int(id_carga))
     actividades_carga_inconsistencia = Actividad.objects.filter(carga=carga).exclude(inconsistencias=None)
     if tipo_inconsistencia != 'all':

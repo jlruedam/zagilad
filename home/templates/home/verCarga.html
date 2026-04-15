@@ -22,11 +22,14 @@
             <i class="fa fa-paper-plane"></i> Admisionar actividades
         </a>
 
-        <!-- Eliminar inconsistencias -->
-        <a href="{% url 'eliminar_actividades_inconsistencia_carga' carga.id 'all' %}"
-           class="ver-btn ver-btn--danger">
-            <i class="fa fa-trash"></i> Eliminar inconsistencias
-        </a>
+        <!-- Eliminar todas las inconsistencias -->
+        <form method="post" action="{% url 'eliminar_actividades_inconsistencia_carga' carga.id %}" style="display:inline">
+            {% csrf_token %}
+            <input type="hidden" name="tipo_inconsistencia" value="all">
+            <button type="submit" class="ver-btn ver-btn--danger">
+                <i class="fa fa-trash"></i> Eliminar inconsistencias
+            </button>
+        </form>
     </div>
 
     <!-- Exportar -->
@@ -72,9 +75,11 @@
                     <td>{{ inconsistencia.inconsistencias }}</td>
                     <td>{{ inconsistencia.cantidad }}</td>
                     <td class="mybtn-emoji">
-                        <a href="{% url 'eliminar_actividades_inconsistencia_carga' carga.id inconsistencia.inconsistencias %}">
-                            🗑️
-                        </a>
+                        <form method="post" action="{% url 'eliminar_actividades_inconsistencia_carga' carga.id %}" style="display:inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="tipo_inconsistencia" value="{{ inconsistencia.inconsistencias }}">
+                            <button type="submit" style="background:none;border:none;cursor:pointer;font-size:inherit" title="Eliminar estas actividades">🗑️</button>
+                        </form>
                     </td>
                 </tr>
                 {% endfor %}
