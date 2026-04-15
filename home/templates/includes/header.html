@@ -1,19 +1,21 @@
 {% load static %}
-<div class="myHeader">
+<header class="myHeader">
     <div class="myLogo">
         <a href="/">
-            <i><img src="{% static 'assets/img/SERSOCIAL_IPS_horizontal.png' %}" alt=""></i>
+            <img src="{% static 'assets/img/SERSOCIAL_IPS_horizontal.png' %}" alt="Fundación SERSOCIAL IPS">
         </a>
     </div>
     <div class="myTitle">
-        <a href="/"><i> ZAGILAD</i></a>
+        <a href="/">ZAGILAD</a>
     </div>
     <div class="myIconoMenu">
         {% if request.user.is_authenticated %}
-        <span class="myUser">{{request.user}}</span>
-        {% endif %}
-        <a href="{% url 'exit' %}">
-            <img width="48" height="48" src="https://img.icons8.com/deco/48/exit.png" alt="exit"/>
+        <span class="myUser">
+            <i class="fa fa-user-circle" style="margin-right:5px;color:var(--azul-cielo)"></i>{{ request.user }}
+        </span>
+        <a href="{% url 'exit' %}" title="Cerrar sesión" class="myIconoMenu__salir">
+            <i class="fa fa-sign-out"></i>
         </a>
+        {% endif %}
     </div>
-</div>
+</header>

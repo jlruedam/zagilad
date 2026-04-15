@@ -1,5 +1,45 @@
+/* ============================================================
+   Módulo: Administrador — SERSOCIAL
+   ============================================================ */
+
+/* ── Menú de administrador (hereda .myIndex) ── */
 .administrador .mensaje {
     text-align: center;
-    color: gray;
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-family: var(--fuente);
+    font-size: 14px;
+    color: var(--gris-texto);
+    padding: 12px 40px;
+}
+
+/* ── Páginas de tablas del administrador ── */
+.admin-tabla-page {
+    padding: 32px 40px 48px;
+}
+
+.admin-tabla-header {
+    border-bottom: 1px solid var(--gris-medio);
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+}
+
+.admin-tabla-titulo {
+    font-family: var(--fuente);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--azul-rey);
+    margin: 0;
+}
+
+.admin-tabla-wrapper {
+    background: var(--blanco);
+    border-radius: var(--radio);
+    box-shadow: var(--sombra-sm);
+    overflow: hidden;
+    padding: 6px;
+}
+
+@media (max-width: 900px) {
+    .admin-tabla-page {
+        padding: 20px 16px 40px;
+    }
 }

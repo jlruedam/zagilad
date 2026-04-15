@@ -1,82 +1,95 @@
 {% extends "layouts/base.html" %}
 {% load static %}
-{% block title %} Home {% endblock %} 
+{% block title %} Carga {{ carga.id }} {% endblock %}
 
 {% block stylesheets %}{% endblock stylesheets %}
 
 {% block content %}
-    <div class = "bloqueBtn">
-        <div class="mybtn">
-            <a href="{% url 'informe_cargas' %}">
-                <img width="96" height="96" src="https://img.icons8.com/deco/96/return.png" alt="return"/>
-            </a>
-        </div>
-        <div class="mybtn">
-            <a href="{% url 'admisionar_actividades_carga' carga.id %}" onclick="alert('🔃Admisiones en proceso!')">Admisionar actividades</a>
-        </div>
-        <div class="mybtn">
-            <a href="{% url 'eliminar_actividades_inconsistencia_carga' carga.id 'all' %}">Eliminar actividades con inconsistencias</a>
-        </div>
-        <!-- <div class="mybtn"><a href="/exportarCargaExcel/{{carga.id}}"><img width="80" height="80" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/></a></div> -->
-        <div class="mybtn">
-            <a href="{% url 'exportar_carga_excel' carga.id 'all' %}">
-                <img width="20" height="20" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>
-                Actividades en total: <br> {{carga.cantidad_actividades}}
-            </a>
-        </div>
-        <div class="mybtn">
-            <a href="{% url 'exportar_carga_excel' carga.id 'inconsistencias' %}">
-                <img width="20" height="20" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>
-                Actividades inconsistencias: <br> {{carga.cantidad_actividades_inconsistencias}}
-            </a>
-        </div>
-        <div class="mybtn">
-            <a href="{% url 'exportar_carga_excel' carga.id 'admisionar' %}">
-                <img width="20" height="20" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>
-                Actividades para admisionar: <br> {{carga.cantidad_actividades_ok}}
-            </a>
-        </div>
-        <div class="mybtn">
-            <a href="{% url 'exportar_carga_excel' carga.id 'admisionadas' %}">
-                <img width="20" height="20" src="https://img.icons8.com/officel/80/ms-excel.png" alt="ms-excel"/>
-                Actividades admisionadas: <br> {{carga.cantidad_actividades_admisionadas}}
-            </a>
-        </div>
-        <div class="mybtn">
-            Tiempo de carga inicial:<br>{{carga.tiempo_procesamiento|stringformat:"1.2f"}} min
+
+<!-- Barra de acciones -->
+<div class="ver-carga-toolbar">
+
+    <!-- Volver -->
+    <a href="{% url 'informe_cargas' %}" class="ver-btn ver-btn--back" title="Volver al informe">
+        <i class="fa fa-arrow-left"></i> Volver
+    </a>
+
+    <div class="ver-btn-group">
+        <!-- Admisionar -->
+        <a href="{% url 'admisionar_actividades_carga' carga.id %}"
+           onclick="alert('🔃 Admisiones en proceso!')"
+           class="ver-btn ver-btn--primary">
+            <i class="fa fa-paper-plane"></i> Admisionar actividades
+        </a>
+
+        <!-- Eliminar inconsistencias -->
+        <a href="{% url 'eliminar_actividades_inconsistencia_carga' carga.id 'all' %}"
+           class="ver-btn ver-btn--danger">
+            <i class="fa fa-trash"></i> Eliminar inconsistencias
+        </a>
+    </div>
+
+    <!-- Exportar -->
+    <div class="ver-btn-group ver-btn-group--export">
+        <a href="{% url 'exportar_carga_excel' carga.id 'all' %}" class="ver-btn ver-btn--export" title="Exportar todas">
+            <img width="18" height="18" src="https://img.icons8.com/officel/80/ms-excel.png" alt="Excel"/>
+            Total <span class="ver-badge">{{ carga.cantidad_actividades }}</span>
+        </a>
+        <a href="{% url 'exportar_carga_excel' carga.id 'inconsistencias' %}" class="ver-btn ver-btn--export" title="Exportar inconsistencias">
+            <img width="18" height="18" src="https://img.icons8.com/officel/80/ms-excel.png" alt="Excel"/>
+            Inconsistencias <span class="ver-badge ver-badge--warn">{{ carga.cantidad_actividades_inconsistencias }}</span>
+        </a>
+        <a href="{% url 'exportar_carga_excel' carga.id 'admisionar' %}" class="ver-btn ver-btn--export" title="Exportar para admisionar">
+            <img width="18" height="18" src="https://img.icons8.com/officel/80/ms-excel.png" alt="Excel"/>
+            Para admisionar <span class="ver-badge ver-badge--ok">{{ carga.cantidad_actividades_ok }}</span>
+        </a>
+        <a href="{% url 'exportar_carga_excel' carga.id 'admisionadas' %}" class="ver-btn ver-btn--export" title="Exportar admisionadas">
+            <img width="18" height="18" src="https://img.icons8.com/officel/80/ms-excel.png" alt="Excel"/>
+            Admisionadas <span class="ver-badge ver-badge--success">{{ carga.cantidad_actividades_admisionadas }}</span>
+        </a>
+        <div class="ver-btn ver-btn--info">
+            <i class="fa fa-clock-o"></i>
+            {{ carga.tiempo_procesamiento|stringformat:"1.2f" }} min
         </div>
     </div>
-    {% if resumen_inconsistencias %}
+</div>
+
+<!-- Resumen de inconsistencias -->
+{% if resumen_inconsistencias %}
+<div class="ver-resumen-wrapper">
     <div class="bloqueTablaResumenInconsistencias">
         <table>
             <thead>
-                <th>Inconsistencias</th>  
-                <th>Cantidad Actividades</th>  
-                <th>Eliminar Actividades</th>  
+                <tr>
+                    <th>Tipo de inconsistencia</th>
+                    <th>Cantidad</th>
+                    <th>Eliminar</th>
+                </tr>
             </thead>
             <tbody>
                 {% for inconsistencia in resumen_inconsistencias %}
-                    <tr>
-                        <td>{{inconsistencia.inconsistencias}}</td>
-                        <td>{{inconsistencia.cantidad}}</td>
-                        <td class="mybtn-emoji" >
-                            <a id="botonEliminarActividadesInconsistencia" href="{% url 'eliminar_actividades_inconsistencia_carga' carga.id inconsistencia.inconsistencias %}">
-                                🗑️
-                            </a>
-                        </td>
-                    </tr>
+                <tr>
+                    <td>{{ inconsistencia.inconsistencias }}</td>
+                    <td>{{ inconsistencia.cantidad }}</td>
+                    <td class="mybtn-emoji">
+                        <a href="{% url 'eliminar_actividades_inconsistencia_carga' carga.id inconsistencia.inconsistencias %}">
+                            🗑️
+                        </a>
+                    </td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
-        
     </div>
-    {% endif %}
-    <div class = "bloqueTabla">
-        <table id="tablaActividadesCargadas" carga="{{carga.id}}">
+</div>
+{% endif %}
+
+<!-- Tabla de actividades -->
+<div class="ver-tabla-wrapper">
+    <div class="bloqueTabla">
+        <table id="tablaActividadesCargadas" carga="{{ carga.id }}">
             <caption>
-                <h2>
-                    Actividades de la Carga {{carga.id}}
-                </h2>
+                <h2>Actividades — Carga {{ carga.id }}</h2>
             </caption>
             <thead>
                 <tr>
@@ -84,29 +97,24 @@
                     <th>Regional</th>
                     <th>Fecha servicio</th>
                     <th>Nombre actividad</th>
-                    <th>Diagnóstico Principal</th>
-                    <th>Tipo documento</th>
-                    <th>Documento paciente</th>
+                    <th>Diagnóstico</th>
+                    <th>Tipo doc.</th>
+                    <th>Documento</th>
                     <th>Nombre paciente</th>
                     <th>Carga</th>
                     <th>Admisión</th>
                     <th>Inconsistencias</th>
                     <th>Médico</th>
                     <th>Finalidad</th>
-                    <th>Gestion</th>
+                    <th>Gestión</th>
                 </tr>
             </thead>
-           
         </table>
-        
     </div>
-    
-    
-   
-  
+</div>
+
 {% endblock content %}
 
-<!-- Specific Page JS goes HERE  -->
 {% block javascripts %}
 <script src="{% static 'assets/js/cargarActividadesCarga.js' %}"></script>
 {% endblock javascripts %}

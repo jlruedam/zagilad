@@ -1,52 +1,91 @@
-/*TABLAS*/
-a {
-   text-decoration: none !important;
-}
+/* ============================================================
+   Estilos globales de tablas y paginación — SERSOCIAL
+   ============================================================ */
 
+/* ── Tablas ── */
 .bloqueTabla {
     width: 100%;
     text-align: center;
     box-sizing: border-box;
-    overflow-x: scroll;
+    overflow-x: auto;
 }
 
 .bloqueTabla table {
-   border: 0.5px solid gray;
-   color: gray;
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--fuente);
+    font-size: 14px;
+    background: var(--blanco);
+    box-shadow: var(--sombra-sm);
+    border-radius: var(--radio);
+    overflow: hidden;
 }
 
-.bloqueTabla table thead, tbody, tr, th, td {
-    border: 0.5px solid gray;
-
+.bloqueTabla table thead tr {
+    background: var(--azul-rey);
+    color: var(--blanco);
 }
 
-.bloqueTabla table  th, td {
-    width: fit-content;
- }
+.bloqueTabla table thead th {
+    padding: 12px 14px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    border: none;
+    white-space: nowrap;
+}
 
-.bloqueTabla table  tr:hover {
-    background-color: aquamarine;
-    opacity: 0.5;
- }
+.bloqueTabla table tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--gris-medio);
+    color: var(--gris-texto);
+    vertical-align: middle;
+}
 
+.bloqueTabla table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.bloqueTabla table tbody tr:hover {
+    background: rgba(118, 170, 219, 0.12);
+}
+
+/* ── Paginación ── */
 .bloquePaginacion {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
+    padding: 16px 0;
 }
 
- .bloquePaginacion .nav_paginacion .list_paginacion{
+.bloquePaginacion .nav_paginacion .list_paginacion {
     display: flex;
- }
-
- .list_paginacion .list_paginacion__item {
+    gap: 4px;
     list-style: none;
-    padding: 10px;
- }
+    padding: 0;
+    margin: 0;
+}
 
- .list_paginacion__item .list_paginacion__link {
+.list_paginacion .list_paginacion__item {
+    list-style: none;
+}
+
+.list_paginacion__item .list_paginacion__link {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 6px;
     text-decoration: none;
-    color: gray;
-    font-size: 20px;
- }
+    font-family: var(--fuente);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--azul-rey);
+    background: var(--blanco);
+    border: 1px solid var(--gris-medio);
+    transition: background 0.15s, color 0.15s;
+}
+
+.list_paginacion__item .list_paginacion__link:hover {
+    background: var(--azul-rey);
+    color: var(--blanco);
+    border-color: var(--azul-rey);
+}

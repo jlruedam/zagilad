@@ -1,52 +1,170 @@
 {% extends "layouts/base.html" %}
 {% load static %}
-{% block title %} Carga de actividades {% endblock %} 
+{% block title %} Actividades con inconsistencias {% endblock %}
 
 {% block stylesheets %}
+<style>
+/* ── Página ── */
+.inconsist-page { padding: 32px 40px 48px; }
 
+.inconsist-titulo {
+    font-family: var(--fuente);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--azul-rey);
+    margin: 0 0 4px;
+}
+.inconsist-subtitulo {
+    font-family: var(--fuente);
+    font-size: 13px;
+    color: #aaa;
+    margin: 0 0 28px;
+}
+
+/* ── Sección de estadísticas ── */
+.inconsist-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 28px;
+}
+.stats-card {
+    background: var(--blanco);
+    border-radius: var(--radio);
+    box-shadow: var(--sombra-sm);
+    border-top: 3px solid var(--azul-rey);
+    padding: 18px 20px;
+}
+.stats-card--naranja { border-top-color: var(--naranja); }
+
+.stats-card__titulo {
+    font-family: var(--fuente);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--azul-rey);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.stats-card--naranja .stats-card__titulo { color: var(--naranja); }
+
+.stats-cargando {
+    color: #bbb;
+    font-size: 13px;
+    font-style: italic;
+}
+
+/* Barras de progreso de estadísticas */
+.stats-fila {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-family: var(--fuente);
+    font-size: 13px;
+}
+.stats-fila__label {
+    flex: 1;
+    color: var(--gris-texto);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 55%;
+}
+.stats-fila__barra-wrap {
+    flex: 1;
+    background: var(--gris-medio);
+    border-radius: 4px;
+    height: 8px;
+    overflow: hidden;
+}
+.stats-fila__barra {
+    height: 100%;
+    border-radius: 4px;
+    background: var(--azul-rey);
+    transition: width 0.5s ease;
+}
+.stats-card--naranja .stats-fila__barra { background: var(--naranja); }
+
+.stats-fila__cant {
+    font-weight: 700;
+    color: var(--azul-rey);
+    min-width: 28px;
+    text-align: right;
+}
+.stats-card--naranja .stats-fila__cant { color: var(--naranja); }
+
+/* ── Tabla ── */
+.inconsist-tabla-wrapper {
+    background: var(--blanco);
+    border-radius: var(--radio);
+    box-shadow: var(--sombra-sm);
+    overflow: hidden;
+    padding: 6px;
+}
+
+@media (max-width: 900px) {
+    .inconsist-page { padding: 20px 16px 40px; }
+    .inconsist-stats { grid-template-columns: 1fr; }
+}
+</style>
 {% endblock stylesheets %}
 
 {% block content %}
+<div class="inconsist-page">
 
-<section class="section" id="">
-           
-    <h2 class="tituloSection">
-        ACTIVIDADES INCONSISTENCIAS
-    </h2>
+    <h1 class="inconsist-titulo">Actividades con inconsistencias</h1>
+    <p class="inconsist-subtitulo">Resumen de errores detectados durante el procesamiento de cargas</p>
 
-    <div class = "bloqueTabla">
-        <table id="tablaActividadesInconsistencias">
-            <caption>
-                <h2>
-                    Actividades inconsistencias
-                </h2>
-            </caption>
-            <thead>
-                <tr>
-                    <th>Id</th>
-                    <th>Regional</th>
-                    <th>Fecha servicio</th>
-                    <th>Nombre Actividad</th>
-                    <th>Diagnóstico Principal</th>
-                    <th>Tipo Documento</th>
-                    <th>Documento Paciente</th>
-                    <th>Nombre Paciente</th>
-                    <th>Carga</th>
-                    <th>Admisión</th>
-                    <th>Inconsistencias</th>
-                    <th>Médico</th>
-                    <!-- <th>Gestion</th> -->
-                </tr>
-            </thead>
-           
-        </table>
+    <!-- Bloque de estadísticas -->
+    <div class="inconsist-stats">
+
+        <div class="stats-card">
+            <p class="stats-card__titulo">
+                <i class="fa fa-exclamation-triangle"></i> Por tipo de inconsistencia
+            </p>
+            <div id="statsPorTipo" class="stats-cargando">Cargando...</div>
+        </div>
+
+        <div class="stats-card stats-card--naranja">
+            <p class="stats-card__titulo">
+                <i class="fa fa-list"></i> Por tipo de actividad (top 10)
+            </p>
+            <div id="statsPorActividad" class="stats-cargando">Cargando...</div>
+        </div>
+
     </div>
-    
-</section>
 
+    <!-- Tabla de actividades -->
+    <div class="inconsist-tabla-wrapper">
+        <div class="bloqueTabla">
+            <table id="tablaActividadesInconsistencias">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Regional</th>
+                        <th>Fecha</th>
+                        <th>Actividad</th>
+                        <th>Diagnóstico</th>
+                        <th>Tipo doc.</th>
+                        <th>Documento</th>
+                        <th>Nombre paciente</th>
+                        <th>Carga</th>
+                        <th>Admisión</th>
+                        <th>Inconsistencia</th>
+                        <th>Médico</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+
+</div>
 {% endblock content %}
 
-<!-- Specific Page JS goes HERE  -->
 {% block javascripts %}
 <script src="{% static 'assets/js/cargarActividadesInconsistencias.js' %}"></script>
 {% endblock javascripts %}

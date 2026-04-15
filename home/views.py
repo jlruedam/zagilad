@@ -105,6 +105,21 @@ def listar_actividades_inconsistencias(request):
     return JsonResponse(context, safe = False)
 
 @login_required(login_url="/login/")
+def stats_actividades_inconsistencias(request):
+    base_qs = Actividad.objects.exclude(inconsistencias=None)
+    por_tipo = list(
+        base_qs.values("inconsistencias")
+        .annotate(cantidad=Count("id"))
+        .order_by("-cantidad")
+    )
+    por_actividad = list(
+        base_qs.values("nombre_actividad")
+        .annotate(cantidad=Count("id"))
+        .order_by("-cantidad")[:20]
+    )
+    return JsonResponse({"por_tipo": por_tipo, "por_actividad": por_actividad})
+
+@login_required(login_url="/login/")
 def listar_actividades_admisionadas(request):
     dt = request.POST
     actividades = Actividad.objects.exclude(admision = None).order_by("id")

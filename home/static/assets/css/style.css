@@ -1,22 +1,107 @@
+/* ============================================================
+   ZAGILAD — Variables de marca SERSOCIAL
+   Manual de Identidad Corporativa
+   ============================================================ */
+:root {
+    --azul-rey:    #26438a;
+    --azul-cielo:  #76aadb;
+    --naranja:     #d57f23;
+    --blanco:      #ffffff;
+    --gris-claro:  #f5f6fa;
+    --gris-medio:  #e0e4ef;
+    --gris-texto:  #4a4a6a;
+    --sombra-sm:   0 2px 8px rgba(38, 67, 138, 0.10);
+    --sombra-md:   0 4px 18px rgba(38, 67, 138, 0.15);
+    --radio:       8px;
+    --fuente:      'Source Sans 3', 'Segoe UI', Arial, sans-serif;
+}
+
+/* ── Reset / Base ── */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
 body {
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
+    font-family: var(--fuente);
+    font-size: 15px;
+    color: var(--gris-texto);
+    background: var(--gris-claro);
     zoom: 0.92;
 }
 
+a {
+    text-decoration: none !important;
+}
 
+/* ── Utilidades de marca ── */
+.btn-marca {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 24px;
+    border: none;
+    border-radius: var(--radio);
+    font-family: var(--fuente);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+
+.btn-marca.primario {
+    background: var(--azul-rey);
+    color: var(--blanco);
+}
+.btn-marca.primario:hover {
+    background: #1e3470;
+    box-shadow: var(--sombra-md);
+    transform: translateY(-1px);
+}
+
+.btn-marca.secundario {
+    background: var(--blanco);
+    color: var(--azul-rey);
+    border: 2px solid var(--azul-rey);
+}
+.btn-marca.secundario:hover {
+    background: var(--gris-medio);
+}
+
+.btn-marca.acento {
+    background: var(--naranja);
+    color: var(--blanco);
+}
+.btn-marca.acento:hover {
+    background: #b86a18;
+    box-shadow: var(--sombra-md);
+    transform: translateY(-1px);
+}
+
+/* ── Panel / Card genérico ── */
+.card-zagilad {
+    background: var(--blanco);
+    border-radius: var(--radio);
+    box-shadow: var(--sombra-sm);
+    padding: 24px;
+    margin-bottom: 20px;
+}
+
+/* ── Misc heredado ── */
 .tablas {
-    background: whitesmoke;
-    border: 1px solid aquamarine;
+    background: var(--blanco);
+    border: 1px solid var(--gris-medio);
     width: 100%;
     height: 400px;
     overflow-x: scroll;
 }
 
 .panel_visualizacion {
-    background: palegoldenrod;
-    border: 3px solid bisque;
+    background: var(--gris-claro);
+    border: 2px solid var(--azul-cielo);
+    border-radius: var(--radio);
     width: 100%;
     height: 400px;
     overflow-x: scroll;
@@ -25,10 +110,3 @@ body {
 .no_show {
     display: none;
 }
-
-.botton_press {
-    
-}
-
-/* cargar tipo de actividad */
-

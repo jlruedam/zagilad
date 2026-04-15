@@ -1,5 +1,11 @@
+{% load static %}
 <div class="myFooter">
-    <p>
-        ...words and ideas can change the world.
-    </p>
+    <div class="myFooter__logo">
+        <img src="{% static 'assets/img/SERSOCIAL_IPS_horizontal.png' %}" alt="Fundación SERSOCIAL IPS">
+    </div>
+    <div class="myFooter__info">
+        <span class="myFooter__app">ZAGILAD</span>
+        <span class="myFooter__desc">Sistema de gestión de actividades de salud</span>
+        <span class="myFooter__copy">&copy; {% now "Y" %} Fundación SERSOCIAL IPS — Todos los derechos reservados</span>
+    </div>
 </div>

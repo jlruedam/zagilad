@@ -1,80 +1,272 @@
-.mybtn-emoji {
-    font-size: 25px;
-}
+/* ============================================================
+   verCarga — Identidad SERSOCIAL
+   ============================================================ */
 
-.mybtn-emoji a {
-    text-decoration: none;
-}
-
-.mybtn-emoji:hover {
-    font-size: 40px;
-}
-
-.btns-gestion {
-    width: 100px;
+/* ── Toolbar del detalle de carga ── */
+.ver-carga-toolbar {
     display: flex;
-    justify-content: center;
     align-items: center;
-    /* background: bisque;
-    border: 1px solid black; */
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 20px 40px;
+    background: var(--blanco);
+    border-bottom: 1px solid var(--gris-medio);
+    margin-bottom: 20px;
 }
 
+.ver-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: var(--radio);
+    font-family: var(--fuente);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, box-shadow 0.15s, transform 0.15s;
+    text-decoration: none !important;
+    white-space: nowrap;
+    border: none;
+}
+
+/* Volver */
+.ver-btn--back {
+    background: var(--gris-claro);
+    color: var(--azul-rey);
+    border: 1.5px solid var(--gris-medio);
+    margin-right: 8px;
+}
+.ver-btn--back:hover {
+    background: var(--azul-rey);
+    color: var(--blanco);
+    border-color: var(--azul-rey);
+}
+
+/* Acciones principales */
+.ver-btn-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.ver-btn-group--export {
+    margin-left: auto;
+    border-left: 1px solid var(--gris-medio);
+    padding-left: 12px;
+}
+
+.ver-btn--primary {
+    background: var(--azul-rey);
+    color: var(--blanco);
+    box-shadow: var(--sombra-sm);
+}
+.ver-btn--primary:hover {
+    background: #1e3470;
+    transform: translateY(-1px);
+    box-shadow: var(--sombra-md);
+}
+
+.ver-btn--danger {
+    background: var(--blanco);
+    color: #c0392b;
+    border: 1.5px solid #e57373;
+}
+.ver-btn--danger:hover {
+    background: #c0392b;
+    color: var(--blanco);
+    border-color: #c0392b;
+}
+
+/* Exportar */
+.ver-btn--export {
+    background: var(--blanco);
+    color: var(--gris-texto);
+    border: 1.5px solid var(--gris-medio);
+}
+.ver-btn--export:hover {
+    border-color: var(--azul-cielo);
+    background: #f0f5fc;
+    color: var(--azul-rey);
+}
+
+.ver-btn--info {
+    background: var(--gris-claro);
+    color: var(--azul-rey);
+    border: 1.5px solid var(--gris-medio);
+    cursor: default;
+    font-size: 13px;
+}
+
+/* Badges de conteo */
+.ver-badge {
+    display: inline-block;
+    min-width: 22px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    background: var(--gris-medio);
+    color: var(--gris-texto);
+}
+.ver-badge--warn    { background: #fff3e0; color: #e65100; }
+.ver-badge--ok      { background: #e3f2fd; color: var(--azul-rey); }
+.ver-badge--success { background: #e8f5e9; color: #2e7d32; }
+
+/* Wrapper resumen inconsistencias */
+.ver-resumen-wrapper {
+    margin: 0 40px 20px;
+}
+
+/* Wrapper de tabla principal */
+.ver-tabla-wrapper {
+    margin: 0 40px 40px;
+    background: var(--blanco);
+    border-radius: var(--radio);
+    box-shadow: var(--sombra-sm);
+    overflow: hidden;
+    padding: 6px;
+}
+
+@media (max-width: 900px) {
+    .ver-carga-toolbar,
+    .ver-resumen-wrapper,
+    .ver-tabla-wrapper {
+        margin-left: 12px;
+        margin-right: 12px;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+    .ver-btn-group--export {
+        margin-left: 0;
+        border-left: none;
+        padding-left: 0;
+        border-top: 1px solid var(--gris-medio);
+        padding-top: 8px;
+        width: 100%;
+    }
+}
+
+/* ── Bloque de botones de acción (heredado) ── */
 .bloqueBtn {
     width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
     flex-wrap: wrap;
-    padding: 0px 0px 0px 0px;
-    margin: 20px 0 40px 0;
-    
+    gap: 12px;
+    padding: 8px 0;
+    margin: 24px 0 36px;
 }
 
 .mybtn {
-    border: 1px solid whitesmoke;
-    border-radius: 20px;
-    list-style: none;
-    width: 20rem;
-    height: 5rem;
-    padding: 20px;
-    margin: 5px;
-    display: flex;
-    justify-content: center;
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 200px;
+    height: 52px;
+    padding: 10px 24px;
+    border-radius: var(--radio);
+    background: var(--blanco);
+    border: 2px solid var(--azul-rey);
+    color: var(--azul-rey);
+    font-family: var(--fuente);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
     text-align: center;
-    text-decoration: none;
-    background: whitesmoke;
-    color: gray;
-    font-size: 20px;
-    /* -webkit-box-shadow: 26px 20px 68px -7px rgba(0,0,0,0.75);
-    -moz-box-shadow: 26px 20px 68px -7px rgba(0,0,0,0.75);
-    box-shadow: 26px 20px 68px -7px rgba(0,0,0,0.75); */
-    transition:all 1s cubic-bezier(0.075, 0.82, 0.165, 1)
+    box-shadow: var(--sombra-sm);
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s;
 }
 
 .mybtn:hover {
-    background: aquamarine;
-    transform: rotate(10deg);
+    background: var(--azul-rey);
+    color: var(--blanco);
+    box-shadow: var(--sombra-md);
+    transform: translateY(-2px);
 }
-.mybtn a{
+
+.mybtn a {
     text-decoration: none;
-    color: gray;
+    color: inherit;
 }
 
+/* Variante naranja (acciones primarias como admisionar) */
+.mybtn.mybtn--primary {
+    background: var(--naranja);
+    border-color: var(--naranja);
+    color: var(--blanco);
+}
 
+.mybtn.mybtn--primary:hover {
+    background: #b86a18;
+    border-color: #b86a18;
+}
+
+/* ── Botones emoji pequeños ── */
+.mybtn-emoji {
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    transition: transform 0.15s;
+}
+
+.mybtn-emoji:hover {
+    transform: scale(1.3);
+}
+
+.mybtn-emoji a {
+    text-decoration: none;
+}
+
+.btns-gestion {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    min-width: 80px;
+}
+
+/* ── Tabla resumen inconsistencias ── */
 .bloqueTablaResumenInconsistencias {
-    width: 100% ;
+    width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
     text-align: center;
+    padding: 0 16px;
 }
 
-
 .bloqueTablaResumenInconsistencias table {
-    border: 0.5px solid gray;
-    color: gray;
     border-collapse: collapse;
-    margin: 20px;
-    width: 90%;
- }
+    margin: 20px auto;
+    width: 92%;
+    font-family: var(--fuente);
+    font-size: 13px;
+    background: var(--blanco);
+    box-shadow: var(--sombra-sm);
+    border-radius: var(--radio);
+    overflow: hidden;
+}
+
+.bloqueTablaResumenInconsistencias table thead tr {
+    background: var(--azul-rey);
+    color: var(--blanco);
+}
+
+.bloqueTablaResumenInconsistencias table thead th {
+    padding: 10px 14px;
+    font-weight: 600;
+    border: none;
+}
+
+.bloqueTablaResumenInconsistencias table tbody td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--gris-medio);
+    color: var(--gris-texto);
+    vertical-align: middle;
+}
+
+.bloqueTablaResumenInconsistencias table tbody tr:hover {
+    background: rgba(118, 170, 219, 0.10);
+}

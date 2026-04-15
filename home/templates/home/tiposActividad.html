@@ -1,26 +1,26 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} Home {% endblock %} 
+{% block title %} Tipos de actividades {% endblock %}
 
 {% block stylesheets %}{% endblock stylesheets %}
 
 {% block content %}
-    
-
-    <div class="bloqueTiposActividad">
-        <div class = "bloqueTabla">
+<div class="admin-tabla-page">
+    <div class="admin-tabla-header">
+        <h1 class="admin-tabla-titulo">
+            <i class="fa fa-list-alt" style="color:var(--naranja);margin-right:8px"></i>
+            Tipos de actividades o servicios
+        </h1>
+    </div>
+    <div class="admin-tabla-wrapper">
+        <div class="bloqueTabla">
             <table id="tablaTiposActividad">
-                <caption>
-                    <h2>
-                        Cargas 
-                    </h2>
-                </caption>
                 <thead>
                     <tr>
                         <th>Id</th>
                         <th>Grupo</th>
                         <th>Nombre</th>
-                        <th>Cups</th>
+                        <th>CUPS</th>
                         <th>Responsable</th>
                         <th>Diagnóstico</th>
                         <th>Finalidad</th>
@@ -28,42 +28,33 @@
                         <th>Observación</th>
                         <th>Entrega</th>
                         <th>Contrato</th>
-                        <th>Tipo de servicio</th>
-                        <th>area</th>
-                       
-                        
+                        <th>Tipo servicio</th>
+                        <th>Área</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for tipo in tipos_actividad %}
                     <tr>
-                        <td>{{tipo.id}}</td>
-                        <td>{{tipo.grupo}}</td>
-                        <td>{{tipo.nombre}}</td>
-                        <td>{{tipo.cups}}</td>
-                        <td>{{tipo.responsable}}</td>
-                        <td>{{tipo.diagnostico}}</td>
-                        <td>{{tipo.finalidad}}</td>
-                        <td>{{tipo.fuente}}</td>
-                        <td>{{tipo.observacion}}</td>
-                        <td>{{tipo.entrega}}</td>
-                        <td>{{tipo.contrato}}</td>
-                        <td>{{tipo.tipo_servicio}}</td>
-                        <td>{{tipo.area}}</td>
-                
-                       
-                        
+                        <td>{{ tipo.id }}</td>
+                        <td>{{ tipo.grupo }}</td>
+                        <td>{{ tipo.nombre }}</td>
+                        <td>{{ tipo.cups }}</td>
+                        <td>{{ tipo.responsable }}</td>
+                        <td>{{ tipo.diagnostico }}</td>
+                        <td>{{ tipo.finalidad }}</td>
+                        <td>{{ tipo.fuente }}</td>
+                        <td>{{ tipo.observacion }}</td>
+                        <td>{{ tipo.entrega }}</td>
+                        <td>{{ tipo.contrato }}</td>
+                        <td>{{ tipo.tipo_servicio }}</td>
+                        <td>{{ tipo.area }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
-
-  
+</div>
 {% endblock content %}
 
-<!-- Specific Page JS goes HERE  -->
-{% block javascripts %}
-
-{% endblock javascripts %}
+{% block javascripts %}{% endblock javascripts %}

@@ -1,18 +1,62 @@
+/* ============================================================
+   Footer — Identidad SERSOCIAL
+   Fondo claro → logo en colores originales (manual pág. 5)
+   ============================================================ */
 .myFooter {
     display: flex;
-    justify-content: center;
     align-items: center;
-    text-align: center;
-    background: whitesmoke;
-    height: 20vh;
-    font-size: 30px;
-    color: gray;
-    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
-    font-style: italic;
-    transition: all 5s cubic-bezier(0.075, 0.82, 0.165, 1);
+    justify-content: center;
+    gap: 32px;
+    background: var(--gris-claro);
+    min-height: 80px;
+    padding: 20px 40px;
+    border-top: 3px solid var(--azul-rey);
 }
 
-.myFooter:hover{
-    transform: perspective(100rem);
-    font-size: 40px;
+.myFooter__logo img {
+    width: 150px;
+    height: auto;
+    /* Sin filtro — colores originales del manual */
+}
+
+.myFooter__info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border-left: 2px solid var(--azul-cielo);
+    padding-left: 24px;
+}
+
+.myFooter__app {
+    font-family: var(--fuente);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    color: var(--azul-rey);
+    text-transform: uppercase;
+}
+
+.myFooter__desc {
+    font-family: var(--fuente);
+    font-size: 13px;
+    color: var(--gris-texto);
+}
+
+.myFooter__copy {
+    font-family: var(--fuente);
+    font-size: 11px;
+    color: #aaa;
+}
+
+@media (max-width: 700px) {
+    .myFooter {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+    .myFooter__info {
+        border-left: none;
+        padding-left: 0;
+        align-items: center;
+    }
 }

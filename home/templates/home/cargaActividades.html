@@ -1,81 +1,122 @@
 {% extends "layouts/base.html" %}
+{% load static %}
 
-{% block title %} Carga de actividades {% endblock %} 
+{% block title %} Carga de actividades {% endblock %}
 
-{% block stylesheets %}
-
-{% endblock stylesheets %}
+{% block stylesheets %}{% endblock stylesheets %}
 
 {% block content %}
-
 <section class="section" id="sectionCargaActividades">
-           
-    <h2 class="tituloSection">
-        CARGA MASIVA DE ACTIVIDADES
-    </h2>
 
-    <div class="bloqueCargaArchivo">
-        
-        <div class="enlaceDescargaArchivo">
-            <a class="mylink" href="{% url 'descargar_archivo' 'forma_carga_actividad_plantilla.xlsx' %}" download>📥Formato de carga</a>
-        </div>
-        <div>
-            <div>
-                <label for="archivoMasivoActividades" class="">Subir archivo</label>
-                <input type="file" id="archivoMasivoActividades" accept=".xlsx">
+    <!-- Encabezado de página -->
+    <div class="carga-header">
+        <h1 class="carga-titulo">Carga masiva de actividades</h1>
+        <p class="carga-subtitulo">Sube el archivo Excel con las actividades a procesar</p>
+    </div>
+
+    <!-- Formulario de carga -->
+    <div class="carga-form-card">
+
+        <!-- Columna izquierda: archivo -->
+        <div class="carga-form-col">
+            <div class="carga-form-group">
+                <label class="carga-label" for="archivoMasivoActividades">
+                    <i class="fa fa-file-excel-o carga-label-icon"></i>
+                    Archivo de actividades <span class="carga-required">*</span>
+                </label>
+                <div class="carga-file-area" id="fileDropArea">
+                    <i class="fa fa-cloud-upload carga-file-icon"></i>
+                    <p class="carga-file-hint">Arrastra el archivo aquí o haz clic para seleccionar</p>
+                    <p class="carga-file-ext">Formato permitido: <strong>.xlsx</strong></p>
+                    <input type="file" id="archivoMasivoActividades" accept=".xlsx" class="carga-file-input">
+                    <span id="nombreArchivoSeleccionado" class="carga-file-name"></span>
+                </div>
             </div>
-            <div>
-                <label for="observacion_carga" class="">Observación</label>
-                <textarea type="text" id="observacion_carga" name="observacion_carga" rows="4" cols="40"></textarea>
+            <div class="carga-form-group carga-plantilla-link">
+                <a href="{% url 'descargar_archivo' 'forma_carga_actividad_plantilla.xlsx' %}" download class="carga-link-plantilla">
+                    <i class="fa fa-download"></i> Descargar plantilla de carga
+                </a>
             </div>
-            
-            <button id="btnCargarActividadesArchivo">Cargar</button>
+        </div>
+
+        <!-- Columna derecha: observación + botón -->
+        <div class="carga-form-col">
+            <div class="carga-form-group">
+                <label class="carga-label" for="observacion_carga">
+                    <i class="fa fa-comment-o carga-label-icon"></i>
+                    Observación
+                </label>
+                <textarea
+                    id="observacion_carga"
+                    name="observacion_carga"
+                    class="carga-textarea"
+                    rows="5"
+                    placeholder="Ingresa una observación o descripción para esta carga..."></textarea>
+            </div>
+            <div class="carga-btn-row">
+                <button id="btnCargarActividadesArchivo" class="carga-btn carga-btn--primary">
+                    <i class="fa fa-upload"></i> Cargar archivo
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Tabla de actividades a procesar -->
+    <div class="carga-tabla-seccion">
+        <div class="carga-tabla-header">
+            <h2 class="carga-tabla-titulo">
+                <i class="fa fa-table"></i> Actividades a procesar
+            </h2>
+            <span class="carga-tabla-hint">Haz clic en una fila para ver todos los datos</span>
+        </div>
+        <div class="bloqueTabla carga-tabla-wrapper">
+            <table id="tablaActividadesSubir">
+                <thead>
+                    <tr>
+                        <th>Tipo doc.</th>
+                        <th>N° identificación</th>
+                        <th>Primer apellido</th>
+                        <th>Segundo apellido</th>
+                        <th>Primer nombre</th>
+                        <th>Segundo nombre</th>
+                        <th>Regional</th>
+                        <th>Fecha servicio</th>
+                        <th>Actividad</th>
+                        <th>CIEx</th>
+                        <th>ID Médico</th>
+                        <th>Finalidad</th>
+                        <th id="estadoCargue">Estado</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
         </div>
     </div>
-   
-    
-    <div class = "bloqueTabla">
-        <table id="tablaActividadesSubir">
-            <caption>
-                <h2>
-                    Actividades a procesar
-                </h2>
-            </caption>
-            <thead>
-                <tr>
-                    <th>Tipo identificación</th>
-                    <th>Número de identificación</th>
-                    <th>Primer Apellido</th>
-                    <th>Segundo Apellido</th>
-                    <th>Primer nombre</th>
-                    <th>Segundo nombre</th>
-                    <th>Regional</th>
-                    <th>Fecha servicio</th>
-                    <th>Nombre</th>
-                    <th>Ciex</th>
-                    <th>Identificación Médico</th>
-                    <th>Finalidad</th>
-                    <th id="estadoCargue">Estado Cargue</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
+
+    <!-- Botón procesar -->
+    <div class="carga-procesar-row">
+        <button id="btnEnviarCargaActividades" class="carga-btn carga-btn--acento">
+            <i class="fa fa-cogs"></i> Procesar carga
+        </button>
     </div>
-    <div class="">
-        <button id="btnEnviarCargaActividades">Procesar</button>
-        
-    </div>
-    <div class="infoResultados">
-        
-    </div>
+
+    <div class="infoResultados"></div>
+
 </section>
 
-
-  
+<!-- Script para mostrar nombre del archivo seleccionado -->
+<script>
+document.getElementById('archivoMasivoActividades').addEventListener('change', function () {
+    const nombre = this.files[0] ? this.files[0].name : '';
+    document.getElementById('nombreArchivoSeleccionado').textContent = nombre;
+    if (nombre) {
+        document.getElementById('fileDropArea').classList.add('carga-file-area--selected');
+    } else {
+        document.getElementById('fileDropArea').classList.remove('carga-file-area--selected');
+    }
+});
+</script>
 {% endblock content %}
 
-<!-- Specific Page JS goes HERE  -->
-{% block javascripts %}
-
-{% endblock javascripts %}
+{% block javascripts %}{% endblock javascripts %}

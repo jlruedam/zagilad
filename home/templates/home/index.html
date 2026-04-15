@@ -1,29 +1,54 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} Home {% endblock %} 
+{% block title %} Inicio {% endblock %}
 
 {% block stylesheets %}{% endblock stylesheets %}
 
 {% block content %}
-    <div class="myIndex">
-        <ul>
-            <li><a href="{% url 'vista_carga_actividades' %}">Carga de actividades </a></li>
-            <li><a href="{% url 'informe_cargas' %}">Informe Cargas</a></li>
-            <!-- <li><a href="{% url 'vista_grabar_admisiones' %}">Grabar admisiones</a></li> -->
-            <li><a href="{% url 'vista_actividades_admisionadas' %}">Actividades admisionadas</a></li>
-            <li><a href="{% url 'vista_actividades_inconsistencias' %}">Actividades con inconsistencias</a></li>
-            <!-- <li><a href="{% url 'cargar_tipos_actividad' %}">Cargar tipos de actividades</a></li> -->
-            {% if request.user.is_staff %}
-            <li><a href="/consultasZeus/">Consultas Zeus</a></li>
-            <li><a href="{% url 'vista_administrador' %}">Administrador</a></li>
-            {% endif %}
-            <!-- <li><a href="/perfilUsuario/">Perfil usuario</a></li> -->
-        </ul>
-    </div>
-  
+<div class="myIndex">
+    <p class="myIndex__titulo">Fundación SERSOCIAL IPS</p>
+    <h1 class="myIndex__subtitulo">Sistema ZAGILAD</h1>
+    <ul>
+        <li>
+            <a href="{% url 'vista_carga_actividades' %}">
+                <i class="fa fa-upload menu-icon"></i>
+                Carga de actividades
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'informe_cargas' %}">
+                <i class="fa fa-bar-chart menu-icon"></i>
+                Informe de cargas
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'vista_actividades_admisionadas' %}">
+                <i class="fa fa-check-circle menu-icon"></i>
+                Actividades admisionadas
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'vista_actividades_inconsistencias' %}">
+                <i class="fa fa-exclamation-triangle menu-icon"></i>
+                Actividades con inconsistencias
+            </a>
+        </li>
+        {% if request.user.is_staff %}
+        <li>
+            <a href="/consultasZeus/">
+                <i class="fa fa-search menu-icon"></i>
+                Consultas Zeus
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'vista_administrador' %}">
+                <i class="fa fa-cogs menu-icon"></i>
+                Administrador
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</div>
 {% endblock content %}
 
-<!-- Specific Page JS goes HERE  -->
-{% block javascripts %}
-
-{% endblock javascripts %}
+{% block javascripts %}{% endblock javascripts %}

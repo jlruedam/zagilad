@@ -1,239 +1,298 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} Consultas Zeus {% endblock %} 
+{% block title %} Consultas Zeus {% endblock %}
 
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+<style>
+.zeus-page { padding: 32px 40px 48px; }
+.zeus-titulo {
+    font-family: var(--fuente);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--azul-rey);
+    margin: 0 0 4px;
+}
+.zeus-subtitulo {
+    font-family: var(--fuente);
+    font-size: 13px;
+    color: #aaa;
+    margin: 0 0 28px;
+}
+.zeus-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+}
+.zeus-card {
+    background: var(--blanco);
+    border-radius: var(--radio);
+    box-shadow: var(--sombra-sm);
+    border-top: 3px solid var(--azul-cielo);
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.zeus-card--wide {
+    grid-column: 1 / -1;
+}
+.zeus-card__endpoint {
+    font-family: monospace;
+    font-size: 11px;
+    color: var(--azul-cielo);
+    background: #f0f5fc;
+    padding: 3px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    word-break: break-all;
+}
+.zeus-card__title {
+    font-family: var(--fuente);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--azul-rey);
+    margin: 0;
+}
+.zeus-card__body {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+.zeus-card__body label {
+    font-family: var(--fuente);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gris-texto);
+}
+.zeus-card__body input {
+    font-family: var(--fuente);
+    font-size: 14px;
+    padding: 6px 10px;
+    border: 1.5px solid var(--gris-medio);
+    border-radius: 6px;
+    color: var(--gris-texto);
+    background: var(--gris-claro);
+    transition: border-color 0.2s;
+    width: 160px;
+}
+.zeus-card__body input:focus {
+    outline: none;
+    border-color: var(--azul-rey);
+    background: var(--blanco);
+}
+.zeus-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border: none;
+    border-radius: var(--radio);
+    background: var(--azul-rey);
+    color: var(--blanco);
+    font-family: var(--fuente);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+}
+.zeus-btn:hover {
+    background: #1e3470;
+    transform: translateY(-1px);
+}
+.zeus-card__result {
+    font-family: var(--fuente);
+    font-size: 13px;
+    color: var(--gris-texto);
+    background: var(--gris-claro);
+    border-radius: 6px;
+    padding: 8px 12px;
+    min-height: 32px;
+    word-break: break-word;
+}
+.zeus-card__result ul {
+    margin: 0;
+    padding-left: 18px;
+}
+.zeus-table-container {
+    overflow-x: auto;
+    margin-top: 4px;
+}
+</style>
+{% endblock stylesheets %}
 
 {% block content %}
-   
-<div>
-       
-    <section class="tablas">
-        <div>
-             <div>
-                <label for="cantidadAdmisiones">Cantidad: </label>
-                <input type="number" id = "cantidadAdmisiones" /> 
+<div class="zeus-page">
+
+    <h1 class="zeus-titulo">Consultas Zeus</h1>
+    <p class="zeus-subtitulo">Panel de prueba de endpoints de la API ZEUS</p>
+
+    <div class="zeus-grid">
+
+        <!-- Admisiones de prueba -->
+        <div class="zeus-card">
+            <h2 class="zeus-card__title"><i class="fa fa-send" style="color:var(--naranja);margin-right:6px"></i>Enviar admisiones de prueba</h2>
+            <span class="zeus-card__endpoint">/api/Admision/GrabarAdmision</span>
+            <div class="zeus-card__body">
+                <label for="cantidadAdmisiones">Cantidad</label>
+                <input type="number" id="cantidadAdmisiones" placeholder="Ej: 5" />
+                <button class="zeus-btn" onclick="enviarAdmisionPrueba()">
+                    <i class="fa fa-paper-plane"></i> Enviar
+                </button>
             </div>
-            <div>
-                <button onclick="enviarAdmisionPrueba()">Enviar Admisiones de Prueba</button> 
-            </div>
-            <div>
-                Respuesta: <span id="respuestaEnvioPruebas"></span>
+            <div class="zeus-card__result">
+                Respuesta: <span id="respuestaEnvioPruebas">—</span>
             </div>
         </div>
-       
-        <div>
-            <h2>Consultar Admisiones prueba</h2>
-             <div>
-            <label for="fechaInicialCargadas">Fecha inicial </label>
-                <input type="date" name="" id="fechaInicialCargadas">
+
+        <!-- Consultar admisiones de prueba -->
+        <div class="zeus-card">
+            <h2 class="zeus-card__title"><i class="fa fa-search" style="color:var(--naranja);margin-right:6px"></i>Consultar admisiones de prueba</h2>
+            <span class="zeus-card__endpoint">/api/Admision/...</span>
+            <div class="zeus-card__body">
+                <label for="fechaInicialCargadas">Fecha inicial</label>
+                <input type="date" id="fechaInicialCargadas" />
+                <button class="zeus-btn" onclick="consultarAdmisionesPrueba()">
+                    <i class="fa fa-search"></i> Consultar
+                </button>
             </div>
-            
-            <div>
-                <button onclick="consultarAdmisionesPrueba()">Consultar admisiones de prueba</button> 
-            </div>
-            <div>
+            <div class="zeus-card__result">
                 Admisiones cargadas: <span id="admisionesPruebaEnviadas">0</span>
             </div>
         </div>
-    </section>
-    
-    <!--Datos Paciente -->
-    <section class="tablas">
-        <label for="">Documento</label><input type="text" id = "documentoPaciente" />
-        <label for="">Tipo Doc</label><input type="text" id = "tipoDocumento" />
-        <button onclick="consultarPaciente()">Consultar paciente</button>
-        <ul id="datosPaciente"></ul>
-    </section>
-    
-    <!--Datos Empresas -->
-    <section class="tablas">
-        <button onclick="codigos_empresa()">Empresas</button>
-        <table id="tablaEmpresa">
-            <caption>
-                <h2>
-                    /api/SisEmpre
-                </h2>
-            </caption>
-            <thead>
-                
-            </thead>
-        </table>
-    </section>
 
-    <!--Datos Medicos -->
-    <section class="tablas">
-        <button onclick="consultarMedicos()">Consultar medicos</button>
-        <table id="tablaMedicos">
-            <caption>
-                <h2>
-                    /api/SisMedi
-                </h2>
-            </caption>
-            <thead>
-                
-            </thead>
-        </table>
-    </section>
+        <!-- Datos Paciente -->
+        <div class="zeus-card">
+            <h2 class="zeus-card__title"><i class="fa fa-user" style="color:var(--naranja);margin-right:6px"></i>Consultar paciente</h2>
+            <span class="zeus-card__endpoint">/api/SisDeta/GetDatosBasicosPaciente</span>
+            <div class="zeus-card__body">
+                <label for="documentoPaciente">Documento</label>
+                <input type="text" id="documentoPaciente" placeholder="N° identificación" />
+                <label for="tipoDocumento">Tipo</label>
+                <input type="text" id="tipoDocumento" placeholder="CC / TI..." style="width:80px" />
+                <button class="zeus-btn" onclick="consultarPaciente()">
+                    <i class="fa fa-search"></i> Consultar
+                </button>
+            </div>
+            <div class="zeus-card__result">
+                <ul id="datosPaciente"></ul>
+            </div>
+        </div>
 
-    <!--Datos Usuarios Zeus -->
-    <section class="tablas">
-        <button onclick="consultarUsuariosZeus()">Consultar Usuarios Zeus</button>
-        <table id="tablaUsuarioZeus">
-            <caption>
-                <h2>
-                    /api/Usuario/GetUserByCedula
-                </h2>
-            </caption>
-            <thead>
-                
-            </thead>
-        </table>
-    </section>
+        <!-- Empresas -->
+        <div class="zeus-card">
+            <h2 class="zeus-card__title"><i class="fa fa-building" style="color:var(--naranja);margin-right:6px"></i>Empresas</h2>
+            <span class="zeus-card__endpoint">/api/SisEmpre</span>
+            <button class="zeus-btn" onclick="codigos_empresa()"><i class="fa fa-refresh"></i> Consultar</button>
+            <div class="zeus-table-container"><table id="tablaEmpresa"></table></div>
+        </div>
 
-    <!--Datos tipos de Servicio -->
-    <section class="tablas">
-        <button onclick="listarTiposServicios()">Listar tipos de servicio</button>
-        <table id="tablaTiposServicios">
-            <caption>
-                <h2>
-                    ​/api​/SisTipo
-                </h2>
-            </caption>
-        </table>
-    </section>
+        <!-- Médicos -->
+        <div class="zeus-card">
+            <h2 class="zeus-card__title"><i class="fa fa-stethoscope" style="color:var(--naranja);margin-right:6px"></i>Médicos</h2>
+            <span class="zeus-card__endpoint">/api/SisMedi</span>
+            <button class="zeus-btn" onclick="consultarMedicos()"><i class="fa fa-refresh"></i> Consultar</button>
+            <div class="zeus-table-container"><table id="tablaMedicos"></table></div>
+        </div>
 
-    <!--Datos via de ingreso -->
-    <section class="tablas">
-        <button onclick="listarViaIngreso()">Listar Vía de Ingreso </button>
-        <table id="tablaViaIngreso">
-            <caption>
-                <h2>
-                    /api/Sismaelm/ObtenerViaIngreso
-                </h2>
-            </caption>
-            <!-- <thead>
-                
-            </thead> -->
-        </table>
-    </section>
-    
-    <!--Datos casusa externa -->
-    <section class="tablas">
-        <button onclick="listarCausaExterna()">Listar Causa Externa  </button>
-        <table id="tablaCausaExterna">
-            <caption>
-                <h2>
-                    /api/Sismaelm/GetCausaExterna
-                </h2>
-            </caption>
-        </table>
-    </section>
+        <!-- Usuarios Zeus -->
+        <div class="zeus-card">
+            <h2 class="zeus-card__title"><i class="fa fa-users" style="color:var(--naranja);margin-right:6px"></i>Usuarios Zeus</h2>
+            <span class="zeus-card__endpoint">/api/Usuario/GetUserByCedula</span>
+            <button class="zeus-btn" onclick="consultarUsuariosZeus()"><i class="fa fa-refresh"></i> Consultar</button>
+            <div class="zeus-table-container"><table id="tablaUsuarioZeus"></table></div>
+        </div>
 
-    <!--Datos casusa externa -->
-    <section class="tablas">
-        <button onclick="listarUnidadesFuncionales()">Listar Unidades Funcionales </button>
-        <table id="tablaUnidadFuncional">
-            <!-- <caption>
-                <h2>
-                    /api/Ufuncionales
-                </h2>
-            </caption> -->
-        </table>
-    </section>
+        <!-- Tipos de servicio -->
+        <div class="zeus-card">
+            <h2 class="zeus-card__title"><i class="fa fa-list-alt" style="color:var(--naranja);margin-right:6px"></i>Tipos de servicio</h2>
+            <span class="zeus-card__endpoint">/api/SisTipo</span>
+            <button class="zeus-btn" onclick="listarTiposServicios()"><i class="fa fa-refresh"></i> Listar</button>
+            <div class="zeus-table-container"><table id="tablaTiposServicios"></table></div>
+        </div>
 
-     <!--Datos codigo sede -->
-     <section class="tablas">
-        <button onclick="listarCodigosSedes()">Listar Seriales (Códigos sede)</button>
-        <table id="tablaCodigosSedes">
-            <caption>
-                <h2>
-                    /api/Seriales
-                </h2>
-            </caption>
-        </table>
-    </section>
+        <!-- Vía de ingreso -->
+        <div class="zeus-card">
+            <h2 class="zeus-card__title"><i class="fa fa-sign-in" style="color:var(--naranja);margin-right:6px"></i>Vía de ingreso</h2>
+            <span class="zeus-card__endpoint">/api/Sismaelm/ObtenerViaIngreso</span>
+            <button class="zeus-btn" onclick="listarViaIngreso()"><i class="fa fa-refresh"></i> Listar</button>
+            <div class="zeus-table-container"><table id="tablaViaIngreso"></table></div>
+        </div>
 
-    <!--Datos Puntos de atención -->
-    <section class="tablas">
-        <button onclick="listarPuntosAtencion()">Listar Puntos de Atención</button>
-        <table id="tablaPuntosAtencion">
-            <caption>
-                <h2>
-                    /api/Puntoatencion
-                </h2>
-            </caption>
-        </table>
-    </section>
+        <!-- Causa externa -->
+        <div class="zeus-card">
+            <h2 class="zeus-card__title"><i class="fa fa-exclamation-circle" style="color:var(--naranja);margin-right:6px"></i>Causa externa</h2>
+            <span class="zeus-card__endpoint">/api/Sismaelm/GetCausaExterna</span>
+            <button class="zeus-btn" onclick="listarCausaExterna()"><i class="fa fa-refresh"></i> Listar</button>
+            <div class="zeus-table-container"><table id="tablaCausaExterna"></table></div>
+        </div>
 
-    <!--Datos Tipos Diagnósticos -->
-    <section class="tablas">
-        <button onclick="listarTiposDiagnosticos()">Listar Tipos Diagnósticos</button>
-        <table id="tablaTiposDiagnosticos">
-            <caption>
-                <h2>
-                    /api/Sismaelm/GetTipoDiagnosticos
-                </h2>
-            </caption>
-        </table>
-    </section>
+        <!-- Unidades Funcionales -->
+        <div class="zeus-card">
+            <h2 class="zeus-card__title"><i class="fa fa-sitemap" style="color:var(--naranja);margin-right:6px"></i>Unidades Funcionales</h2>
+            <span class="zeus-card__endpoint">/api/Ufuncionales</span>
+            <button class="zeus-btn" onclick="listarUnidadesFuncionales()"><i class="fa fa-refresh"></i> Listar</button>
+            <div class="zeus-table-container"><table id="tablaUnidadFuncional"></table></div>
+        </div>
 
-    <!--Datos Finalidades -->
-    <section class="tablas">
-        <button onclick="listarFinalidades()">Listar Finalidades</button>
-        <table id="tablaFinalidades">
-            <caption>
-                <h2>
-                    /api/Sismaelm/GetFinalidades
-                </h2>
-            </caption>
-        </table>
-    </section>
+        <!-- Códigos sede -->
+        <div class="zeus-card">
+            <h2 class="zeus-card__title"><i class="fa fa-map-marker" style="color:var(--naranja);margin-right:6px"></i>Seriales (Códigos sede)</h2>
+            <span class="zeus-card__endpoint">/api/Seriales</span>
+            <button class="zeus-btn" onclick="listarCodigosSedes()"><i class="fa fa-refresh"></i> Listar</button>
+            <div class="zeus-table-container"><table id="tablaCodigosSedes"></table></div>
+        </div>
 
+        <!-- Puntos de atención -->
+        <div class="zeus-card">
+            <h2 class="zeus-card__title"><i class="fa fa-hospital-o" style="color:var(--naranja);margin-right:6px"></i>Puntos de atención</h2>
+            <span class="zeus-card__endpoint">/api/Puntoatencion</span>
+            <button class="zeus-btn" onclick="listarPuntosAtencion()"><i class="fa fa-refresh"></i> Listar</button>
+            <div class="zeus-table-container"><table id="tablaPuntosAtencion"></table></div>
+        </div>
 
-    <!--Datos Centros de Costo-->
-    <section class="tablas">
-        <button onclick="listarCentrosCosto()">Listar Centros de Costo</button>
-        <table id="tablaCentrosCostos">
-            <caption>
-                <h2>
-                    /api/CentroCostos
-                </h2>
-            </caption>
-        </table>
-    </section>
+        <!-- Tipos Diagnósticos -->
+        <div class="zeus-card">
+            <h2 class="zeus-card__title"><i class="fa fa-heartbeat" style="color:var(--naranja);margin-right:6px"></i>Tipos de diagnóstico</h2>
+            <span class="zeus-card__endpoint">/api/Sismaelm/GetTipoDiagnosticos</span>
+            <button class="zeus-btn" onclick="listarTiposDiagnosticos()"><i class="fa fa-refresh"></i> Listar</button>
+            <div class="zeus-table-container"><table id="tablaTiposDiagnosticos"></table></div>
+        </div>
 
-     <!--Datos Estratos-->
-     <section class="tablas">
-        <button onclick="listarEstratos()">Listar Estratos</button>
-        <table id="tablaEstratos">
-            <caption>
-                <h2>
-                    /api/Estrato
-                </h2>
-            </caption>
-        </table>
-    </section>
+        <!-- Finalidades -->
+        <div class="zeus-card">
+            <h2 class="zeus-card__title"><i class="fa fa-flag" style="color:var(--naranja);margin-right:6px"></i>Finalidades</h2>
+            <span class="zeus-card__endpoint">/api/Sismaelm/GetFinalidades</span>
+            <button class="zeus-btn" onclick="listarFinalidades()"><i class="fa fa-refresh"></i> Listar</button>
+            <div class="zeus-table-container"><table id="tablaFinalidades"></table></div>
+        </div>
 
-     <!--Datos Estratos-->
-     <section class="tablas">
-        <button onclick="listarContratos()">Listar Contratos</button>
-        <table id="tablaContratos">
-            <caption>
-                <h2>
-                    /api/Contratos
-                </h2>
-            </caption>
-        </table>
-    </section>
+        <!-- Centros de costo -->
+        <div class="zeus-card">
+            <h2 class="zeus-card__title"><i class="fa fa-dollar" style="color:var(--naranja);margin-right:6px"></i>Centros de costo</h2>
+            <span class="zeus-card__endpoint">/api/CentroCostos</span>
+            <button class="zeus-btn" onclick="listarCentrosCosto()"><i class="fa fa-refresh"></i> Listar</button>
+            <div class="zeus-table-container"><table id="tablaCentrosCostos"></table></div>
+        </div>
 
+        <!-- Estratos -->
+        <div class="zeus-card">
+            <h2 class="zeus-card__title"><i class="fa fa-bar-chart" style="color:var(--naranja);margin-right:6px"></i>Estratos</h2>
+            <span class="zeus-card__endpoint">/api/Estrato</span>
+            <button class="zeus-btn" onclick="listarEstratos()"><i class="fa fa-refresh"></i> Listar</button>
+            <div class="zeus-table-container"><table id="tablaEstratos"></table></div>
+        </div>
 
+        <!-- Contratos -->
+        <div class="zeus-card">
+            <h2 class="zeus-card__title"><i class="fa fa-file-text" style="color:var(--naranja);margin-right:6px"></i>Contratos</h2>
+            <span class="zeus-card__endpoint">/api/Contratos</span>
+            <button class="zeus-btn" onclick="listarContratos()"><i class="fa fa-refresh"></i> Listar</button>
+            <div class="zeus-table-container"><table id="tablaContratos"></table></div>
+        </div>
+
+    </div>
 </div>
-
-  
 {% endblock content %}
 
-<!-- Specific Page JS goes HERE  -->
-{% block javascripts %}
-
-{% endblock javascripts %}
+{% block javascripts %}{% endblock javascripts %}
