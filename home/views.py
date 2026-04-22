@@ -22,8 +22,8 @@ import os
 
 # ZAGILAD
 from home.models import TipoActividad, Actividad, ParametrosAreaPrograma
-from home.models import Admision, AreaPrograma, Carga, ContratoMarco
-from zeus_mirror.models import TipoServicio
+from home.models import Admision, AreaPrograma, Carga, ContratoMarco, Regional
+from zeus_mirror.models import TipoServicio, UnidadFuncional, PuntoAtencion, CentroCosto, Sede
 from home.modules import peticiones_http, parametros_generales
 from home.modules import generador_excel, utils
 from home.modules import paginacion_actividades
@@ -205,10 +205,162 @@ def crear_tipo_actividad(request):
     })
 
 @login_required(login_url="/login/")
+def vista_areas_programa(request):
+    areas = AreaPrograma.objects.order_by("identificador")
+    ctx = {"areas_programa": areas}
+    return render(request, "home/areasPrograma.html", ctx)
+
+
+@login_required(login_url="/login/")
+def crear_area_programa(request):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "Método no permitido"}, status=405)
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        return JsonResponse({"ok": False, "error": "JSON inválido"}, status=400)
+
+    identificador = (data.get("identificador") or "").strip()
+    nombre = (data.get("nombre") or "").strip()
+
+    if not identificador or not nombre:
+        faltantes = []
+        if not identificador: faltantes.append("Identificador")
+        if not nombre: faltantes.append("Nombre")
+        return JsonResponse(
+            {"ok": False, "error": f"Campos requeridos: {', '.join(faltantes)}"},
+            status=400,
+        )
+
+    if AreaPrograma.objects.filter(identificador=identificador).exists():
+        return JsonResponse(
+            {"ok": False, "error": f"Ya existe un área con el identificador '{identificador}'"},
+            status=400,
+        )
+
+    area = AreaPrograma.objects.create(identificador=identificador, nombre=nombre)
+    return JsonResponse({
+        "ok": True,
+        "area": {"id": area.id, "identificador": area.identificador, "nombre": area.nombre},
+    })
+
+
+@login_required(login_url="/login/")
+def editar_area_programa(request, id_area):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "Método no permitido"}, status=405)
+
+    try:
+        area = AreaPrograma.objects.get(id=id_area)
+    except AreaPrograma.DoesNotExist:
+        return JsonResponse({"ok": False, "error": "Área no encontrada"}, status=404)
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        return JsonResponse({"ok": False, "error": "JSON inválido"}, status=400)
+
+    identificador = (data.get("identificador") or "").strip()
+    nombre = (data.get("nombre") or "").strip()
+
+    if not identificador or not nombre:
+        faltantes = []
+        if not identificador: faltantes.append("Identificador")
+        if not nombre: faltantes.append("Nombre")
+        return JsonResponse(
+            {"ok": False, "error": f"Campos requeridos: {', '.join(faltantes)}"},
+            status=400,
+        )
+
+    if identificador != area.identificador and \
+       AreaPrograma.objects.filter(identificador=identificador).exclude(id=area.id).exists():
+        return JsonResponse(
+            {"ok": False, "error": f"Ya existe otra área con el identificador '{identificador}'"},
+            status=400,
+        )
+
+    area.identificador = identificador
+    area.nombre = nombre
+    area.save()
+
+    return JsonResponse({
+        "ok": True,
+        "area": {"id": area.id, "identificador": area.identificador, "nombre": area.nombre},
+    })
+
+
+@login_required(login_url="/login/")
 def parametros_area_programa(request):
-    areas = ParametrosAreaPrograma.objects.all()
-    ctx = {"areas":areas}
-    return render(request,"home/parametrosPrograma.html",ctx)
+    areas = ParametrosAreaPrograma.objects.select_related(
+        "area_programa", "regional", "unidad_funcional",
+        "punto_atencion", "centro_costo", "sede",
+    ).all()
+    ctx = {
+        "areas": areas,
+        "areas_programa": AreaPrograma.objects.order_by("identificador"),
+        "regionales": Regional.objects.order_by("regional"),
+        "unidades_funcionales": UnidadFuncional.objects.order_by("codigo"),
+        "puntos_atencion": PuntoAtencion.objects.order_by("nombre"),
+        "centros_costo": CentroCosto.objects.order_by("codigo"),
+        "sedes": Sede.objects.order_by("razon_social"),
+    }
+    return render(request, "home/parametrosPrograma.html", ctx)
+
+
+@login_required(login_url="/login/")
+def crear_parametros_area_programa(request):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "Método no permitido"}, status=405)
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        return JsonResponse({"ok": False, "error": "JSON inválido"}, status=400)
+
+    requeridos = {
+        "area_programa_id": ("Área de programa", AreaPrograma),
+        "regional_id": ("Regional", Regional),
+        "unidad_funcional_id": ("Unidad funcional", UnidadFuncional),
+        "punto_atencion_id": ("Punto de atención", PuntoAtencion),
+        "centro_costo_id": ("Centro de costo", CentroCosto),
+        "sede_id": ("Sede", Sede),
+    }
+
+    faltantes = [label for campo, (label, _) in requeridos.items() if not data.get(campo)]
+    if faltantes:
+        return JsonResponse(
+            {"ok": False, "error": f"Campos requeridos: {', '.join(faltantes)}"},
+            status=400,
+        )
+
+    resueltos = {}
+    for campo, (label, Modelo) in requeridos.items():
+        try:
+            resueltos[campo.replace("_id", "")] = Modelo.objects.get(id=data[campo])
+        except Modelo.DoesNotExist:
+            return JsonResponse(
+                {"ok": False, "error": f"{label} no válido (id {data[campo]})"},
+                status=400,
+            )
+
+    parametros = ParametrosAreaPrograma.objects.create(
+        area_programa=resueltos["area_programa"],
+        regional=resueltos["regional"],
+        unidad_funcional=resueltos["unidad_funcional"],
+        punto_atencion=resueltos["punto_atencion"],
+        centro_costo=resueltos["centro_costo"],
+        sede=resueltos["sede"],
+    )
+
+    return JsonResponse({
+        "ok": True,
+        "parametros": {
+            "id": parametros.id,
+            "area": str(parametros.area_programa),
+            "regional": str(parametros.regional),
+        },
+    })
 
 @login_required(login_url="/login/")
 def informe_cargas(request):

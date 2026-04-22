@@ -1,0 +1,338 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Áreas / Programas {% endblock %}
+
+{% block stylesheets %}
+<style>
+.ap-header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+.ap-btn-nuevo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--azul-rey);
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-family: var(--fuente);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+}
+.ap-btn-nuevo:hover { background: #0d3a7a; transform: translateY(-1px); }
+
+.ap-btn-editar {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    font-size: 15px;
+    background: #fff4e5;
+    color: #b06a00;
+    border: 1px solid #f5d0a0;
+    cursor: pointer;
+    transition: transform 0.12s, box-shadow 0.12s, background 0.12s;
+}
+.ap-btn-editar:hover { background: #ffe7c4; transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+
+/* ── Modal ── */
+.modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    z-index: 100;
+    padding: 40px 16px;
+    overflow-y: auto;
+}
+.modal-overlay.visible { display: flex; }
+.modal-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    width: 100%;
+    max-width: 560px;
+    overflow: hidden;
+    animation: modalIn 0.18s ease;
+}
+@keyframes modalIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+.modal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 24px;
+    border-bottom: 1px solid #eef0f3;
+    background: linear-gradient(180deg, #f9fafc, #fff);
+}
+.modal-head h2 {
+    margin: 0;
+    font-family: var(--fuente);
+    font-size: 18px; font-weight: 700;
+    color: var(--azul-rey);
+}
+.modal-close {
+    background: none; border: none;
+    font-size: 22px; line-height: 1;
+    color: #888; cursor: pointer;
+    padding: 4px 8px; border-radius: 6px;
+}
+.modal-close:hover { background: #f0f2f5; color: #333; }
+
+.modal-body { padding: 20px 24px; }
+.form-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+.form-field { display: flex; flex-direction: column; gap: 6px; }
+.form-field label {
+    font-family: var(--fuente);
+    font-size: 12px; font-weight: 700;
+    color: #555; text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.form-field label .req { color: #c5221f; margin-left: 2px; }
+.form-field input {
+    width: 100%; min-width: 0; box-sizing: border-box;
+    padding: 8px 10px;
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: var(--fuente);
+    color: var(--gris-texto);
+    background: #fff;
+    transition: border-color 0.1s, box-shadow 0.1s;
+}
+.form-field input:focus {
+    outline: none;
+    border-color: var(--azul-rey);
+    box-shadow: 0 0 0 3px rgba(18, 60, 126, 0.12);
+}
+.form-field small { color: #888; font-size: 11px; }
+
+.modal-msg {
+    margin: 12px 0 0; padding: 10px 14px;
+    border-radius: 6px; font-size: 13px;
+    display: none;
+}
+.modal-msg--error   { background: #fce8e6; color: #c5221f; display: block; }
+.modal-msg--success { background: #e6f4ea; color: #137333; display: block; }
+
+.modal-foot {
+    padding: 14px 24px;
+    border-top: 1px solid #eef0f3;
+    display: flex; justify-content: flex-end; gap: 10px;
+    background: #fafbfc;
+}
+.btn-ghost, .btn-primary {
+    padding: 9px 18px; border-radius: 6px;
+    font-family: var(--fuente);
+    font-size: 14px; font-weight: 600;
+    cursor: pointer; border: 1px solid transparent;
+}
+.btn-ghost { background: #fff; color: #555; border-color: #d0d5dd; }
+.btn-ghost:hover { background: #f4f6f8; }
+.btn-primary { background: var(--azul-rey); color: #fff; }
+.btn-primary:hover { background: #0d3a7a; }
+.btn-primary:disabled { background: #8896b3; cursor: progress; }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="admin-tabla-page">
+    <div class="admin-tabla-header">
+        <h1 class="admin-tabla-titulo">
+            <i class="fa fa-sitemap" style="color:var(--naranja);margin-right:8px"></i>
+            Áreas / Programas
+        </h1>
+    </div>
+
+    <div class="ap-header-actions">
+        <span style="font-size:13px;color:#888">{{ areas_programa|length }} área(s) registrada(s)</span>
+        <button type="button" class="ap-btn-nuevo" id="btnAbrirNuevaArea">
+            <i class="fa fa-plus"></i> Nueva área
+        </button>
+    </div>
+
+    <div class="admin-tabla-wrapper">
+        <div class="bloqueTabla">
+            <table id="tablaAreasPrograma">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Identificador</th>
+                        <th>Nombre</th>
+                        <th>Creada</th>
+                        <th>Actualizada</th>
+                        <th style="text-align:center">Editar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in areas_programa %}
+                    <tr>
+                        <td>{{ a.id }}</td>
+                        <td><strong>{{ a.identificador }}</strong></td>
+                        <td>{{ a.nombre }}</td>
+                        <td>{{ a.created_at|date:"d/m/Y H:i" }}</td>
+                        <td>{{ a.updated_at|date:"d/m/Y H:i" }}</td>
+                        <td style="text-align:center">
+                            <button type="button"
+                                    class="ap-btn-editar"
+                                    data-id="{{ a.id }}"
+                                    data-identificador="{{ a.identificador }}"
+                                    data-nombre="{{ a.nombre }}"
+                                    title="Editar">✏️</button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" style="text-align:center;color:#888;padding:20px">Sin áreas registradas</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal dual-mode: crear / editar -->
+<div class="modal-overlay" id="modalArea" role="dialog" aria-modal="true" aria-labelledby="tituloModalArea">
+    <div class="modal-card">
+        <div class="modal-head">
+            <h2 id="tituloModalArea">Nueva área</h2>
+            <button type="button" class="modal-close" id="btnCerrarModal" aria-label="Cerrar">×</button>
+        </div>
+        <form id="formArea" novalidate>
+            <input type="hidden" id="f_id" value="">
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="f_identificador">Identificador <span class="req">*</span></label>
+                        <input type="text" id="f_identificador" name="identificador" maxlength="10" required>
+                        <small>Código corto único (máx. 10 caracteres)</small>
+                    </div>
+                    <div class="form-field">
+                        <label for="f_nombre">Nombre <span class="req">*</span></label>
+                        <input type="text" id="f_nombre" name="nombre" maxlength="150" required>
+                        <small>Descripción del área o programa (máx. 150 caracteres)</small>
+                    </div>
+                </div>
+                <div class="modal-msg" id="modalMsg"></div>
+            </div>
+            <div class="modal-foot">
+                <button type="button" class="btn-ghost" id="btnCancelar">Cancelar</button>
+                <button type="submit" class="btn-primary" id="btnGuardar">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+(function () {
+    const overlay  = document.getElementById('modalArea');
+    const titulo   = document.getElementById('tituloModalArea');
+    const form     = document.getElementById('formArea');
+    const fId      = document.getElementById('f_id');
+    const fIdent   = document.getElementById('f_identificador');
+    const fNombre  = document.getElementById('f_nombre');
+    const msg      = document.getElementById('modalMsg');
+    const btnGuard = document.getElementById('btnGuardar');
+    const btnCerrar= document.getElementById('btnCerrarModal');
+    const btnCancel= document.getElementById('btnCancelar');
+    const btnAbrir = document.getElementById('btnAbrirNuevaArea');
+
+    function abrirCrear() {
+        titulo.textContent = 'Nueva área';
+        fId.value = '';
+        form.reset();
+        limpiarMsg();
+        overlay.classList.add('visible');
+        setTimeout(() => fIdent.focus(), 50);
+    }
+
+    function abrirEditar(id, identificador, nombre) {
+        titulo.textContent = 'Editar área #' + id;
+        fId.value = id;
+        fIdent.value = identificador;
+        fNombre.value = nombre;
+        limpiarMsg();
+        overlay.classList.add('visible');
+        setTimeout(() => fNombre.focus(), 50);
+    }
+
+    function cerrar() {
+        overlay.classList.remove('visible');
+        form.reset();
+        fId.value = '';
+        limpiarMsg();
+        btnGuard.disabled = false;
+        btnGuard.textContent = 'Guardar';
+    }
+
+    function limpiarMsg() { msg.className = 'modal-msg'; msg.textContent = ''; }
+
+    btnAbrir.addEventListener('click', abrirCrear);
+    btnCerrar.addEventListener('click', cerrar);
+    btnCancel.addEventListener('click', cerrar);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) cerrar(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && overlay.classList.contains('visible')) cerrar(); });
+
+    document.querySelectorAll('.ap-btn-editar').forEach(btn => {
+        btn.addEventListener('click', () => {
+            abrirEditar(btn.dataset.id, btn.dataset.identificador, btn.dataset.nombre);
+        });
+    });
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        limpiarMsg();
+
+        const payload = {
+            identificador: fIdent.value.trim(),
+            nombre: fNombre.value.trim(),
+        };
+        const esEdicion = !!fId.value;
+        const url = esEdicion ? `/editarAreaPrograma/${fId.value}/` : '/crearAreaPrograma/';
+
+        btnGuard.disabled = true;
+        btnGuard.textContent = esEdicion ? 'Actualizando...' : 'Guardando...';
+
+        try {
+            const resp = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify(payload),
+            });
+            const data = await resp.json().catch(() => ({}));
+            if (!resp.ok || !data.ok) {
+                msg.className = 'modal-msg modal-msg--error';
+                msg.textContent = data.error || 'No se pudo guardar el área';
+                btnGuard.disabled = false;
+                btnGuard.textContent = 'Guardar';
+                return;
+            }
+            msg.className = 'modal-msg modal-msg--success';
+            msg.textContent = esEdicion
+                ? `Área #${data.area.id} actualizada. Recargando...`
+                : `Área "${data.area.identificador}" creada (#${data.area.id}). Recargando...`;
+            setTimeout(() => window.location.reload(), 700);
+        } catch (err) {
+            msg.className = 'modal-msg modal-msg--error';
+            msg.textContent = 'Error de red: ' + err.message;
+            btnGuard.disabled = false;
+            btnGuard.textContent = 'Guardar';
+        }
+    });
+})();
+</script>
+{% endblock javascripts %}
