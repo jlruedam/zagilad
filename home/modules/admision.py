@@ -113,8 +113,13 @@ def crear_admision(autoid, regimen, tipo_usuario, codigo_entidad, tipo_diag, act
         raise Exception("Párametros del programa no están configurados")
     
 
-    contrato_subsidiado = actividad.tipo_actividad.contrato.contrato_subsidiado 
-    contrato_contributivo = actividad.tipo_actividad.contrato.contrato_contributivo
+    # Snapshot del contrato al crear la actividad (migración 0045). Fallback al
+    # contrato actual del tipo para actividades legacy sin snapshot backfilleado.
+    contrato_marco = actividad.contrato if actividad.contrato_id else actividad.tipo_actividad.contrato
+    if not contrato_marco:
+        raise Exception("No hay contrato asignado para esta actividad")
+    contrato_subsidiado = contrato_marco.contrato_subsidiado
+    contrato_contributivo = contrato_marco.contrato_contributivo
     
     contrato = {
         "Subsidiado": contrato_subsidiado.codigo if contrato_subsidiado else "",
