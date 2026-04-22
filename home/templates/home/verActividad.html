@@ -1,0 +1,278 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %} Actividad #{{ actividad.id }} {% endblock %}
+
+{% block stylesheets %}
+<style>
+.vact-page { padding: 32px 40px 48px; font-family: var(--fuente); }
+
+.vact-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+.vact-titulo {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--azul-rey);
+    margin: 0 0 4px;
+}
+.vact-subtitulo {
+    font-size: 13px;
+    color: #888;
+    margin: 0;
+}
+.vact-back {
+    font-size: 13px;
+    color: var(--azul-rey);
+    text-decoration: none;
+    font-weight: 600;
+}
+.vact-back:hover { text-decoration: underline; }
+
+.vact-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.vact-badge--ok       { background: #e6f4ea; color: #137333; }
+.vact-badge--error    { background: #fce8e6; color: #c5221f; }
+.vact-badge--pendiente{ background: #e8f0fe; color: #1967d2; }
+.vact-badge--info     { background: #fff4e5; color: #b06a00; }
+
+.vact-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+}
+.vact-card {
+    background: var(--blanco);
+    border-radius: var(--radio);
+    box-shadow: var(--sombra-sm);
+    padding: 18px 20px;
+    border-left: 3px solid var(--azul-rey);
+}
+.vact-card--error     { border-left-color: #c5221f; }
+.vact-card--ok        { border-left-color: #137333; }
+.vact-card--info      { border-left-color: var(--naranja); }
+.vact-card h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--azul-rey);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 14px;
+}
+.vact-card--error h3 { color: #c5221f; }
+.vact-card--ok h3    { color: #137333; }
+
+.vact-row { display: flex; gap: 8px; font-size: 13px; padding: 4px 0; border-bottom: 1px dashed #eee; }
+.vact-row:last-child { border-bottom: none; }
+.vact-row__label { min-width: 180px; color: #666; }
+.vact-row__value { flex: 1; color: var(--gris-texto); word-break: break-word; }
+
+.vact-full { grid-column: 1 / -1; }
+
+.vact-json {
+    background: var(--blanco);
+    border-radius: var(--radio);
+    box-shadow: var(--sombra-sm);
+    padding: 14px 18px;
+    margin-bottom: 16px;
+}
+.vact-json summary {
+    cursor: pointer;
+    font-weight: 700;
+    color: var(--azul-rey);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.vact-json pre {
+    margin: 12px 0 0;
+    max-height: 420px;
+    overflow: auto;
+    font-family: "Courier New", monospace;
+    font-size: 12px;
+    background: #fafbfc;
+    border: 1px solid #eef0f3;
+    border-radius: 6px;
+    padding: 12px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+@media (max-width: 900px) {
+    .vact-page { padding: 20px 16px 40px; }
+    .vact-grid { grid-template-columns: 1fr; }
+    .vact-row__label { min-width: 130px; }
+}
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="vact-page">
+
+    <div class="vact-header">
+        <div>
+            <h1 class="vact-titulo">Actividad #{{ actividad.id }}</h1>
+            <p class="vact-subtitulo">
+                {% if actividad.admision_id %}
+                    <span class="vact-badge vact-badge--ok">Admisionada</span>
+                {% elif actividad.inconsistencias %}
+                    <span class="vact-badge vact-badge--error">Con inconsistencia</span>
+                {% else %}
+                    <span class="vact-badge vact-badge--pendiente">Pendiente</span>
+                {% endif %}
+                &nbsp;Cargada el {{ actividad.created_at|date:"d/m/Y H:i" }}
+                {% if actividad.updated_at and actividad.updated_at != actividad.created_at %}
+                    · actualizada {{ actividad.updated_at|date:"d/m/Y H:i" }}
+                {% endif %}
+            </p>
+        </div>
+        <div>
+            {% if actividad.carga_id %}
+                <a class="vact-back" href="/verCarga/{{ actividad.carga_id }}/1">← Volver a la carga #{{ actividad.carga_id }}</a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if actividad.inconsistencias %}
+    <div class="vact-card vact-card--error vact-full" style="margin-bottom:20px">
+        <h3>Inconsistencia detectada</h3>
+        <div class="vact-row">
+            <span class="vact-row__value" style="font-weight:600">{{ actividad.inconsistencias }}</span>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="vact-grid">
+
+        <div class="vact-card">
+            <h3>Paciente</h3>
+            <div class="vact-row"><span class="vact-row__label">Tipo documento</span><span class="vact-row__value">{{ actividad.tipo_documento|default:"—" }}</span></div>
+            <div class="vact-row"><span class="vact-row__label">Documento</span><span class="vact-row__value">{{ actividad.documento_paciente|default:"—" }}</span></div>
+            <div class="vact-row"><span class="vact-row__label">Nombre</span><span class="vact-row__value">{{ actividad.nombre_paciente|default:"—" }}</span></div>
+            <div class="vact-row"><span class="vact-row__label">Tipo usuario</span><span class="vact-row__value">{{ actividad.tipo_usuario|default:"—" }}</span></div>
+        </div>
+
+        <div class="vact-card">
+            <h3>Servicio</h3>
+            <div class="vact-row"><span class="vact-row__label">Fecha servicio</span><span class="vact-row__value">{{ actividad.fecha_servicio|date:"d/m/Y"|default:"—" }}</span></div>
+            <div class="vact-row"><span class="vact-row__label">Regional</span><span class="vact-row__value">{{ actividad.regional|default:"—" }}</span></div>
+            <div class="vact-row"><span class="vact-row__label">Nombre actividad</span><span class="vact-row__value">{{ actividad.nombre_actividad|default:"—" }}</span></div>
+            <div class="vact-row"><span class="vact-row__label">Tipo actividad</span><span class="vact-row__value">
+                {% if actividad.tipo_actividad %}
+                    {{ actividad.tipo_actividad.nombre }} <span style="color:#888">({{ actividad.tipo_actividad.cups }})</span>
+                {% else %}—{% endif %}
+            </span></div>
+            <div class="vact-row"><span class="vact-row__label">Identificador fuente</span><span class="vact-row__value">{{ actividad.identificador|default:"—" }} / {{ actividad.tipo_fuente|default:"—" }}</span></div>
+            <div class="vact-row"><span class="vact-row__label">Finalidad</span><span class="vact-row__value">{% if actividad.finalidad %}{{ actividad.finalidad.valor }}{% else %}—{% endif %}</span></div>
+        </div>
+
+        <div class="vact-card">
+            <h3>Diagnósticos</h3>
+            <div class="vact-row"><span class="vact-row__label">Principal</span><span class="vact-row__value">{{ actividad.diagnostico_p|default:"—" }}</span></div>
+            <div class="vact-row"><span class="vact-row__label">Secundario 1</span><span class="vact-row__value">{{ actividad.diagnostico_1|default:"—" }}</span></div>
+            <div class="vact-row"><span class="vact-row__label">Secundario 2</span><span class="vact-row__value">{{ actividad.diagnostico_2|default:"—" }}</span></div>
+            <div class="vact-row"><span class="vact-row__label">Secundario 3</span><span class="vact-row__value">{{ actividad.diagnostico_3|default:"—" }}</span></div>
+        </div>
+
+        <div class="vact-card {% if not contrato_es_snapshot and contrato_marco %}vact-card--info{% endif %}">
+            <h3>
+                Contrato
+                {% if contrato_es_snapshot %}
+                    <span class="vact-badge vact-badge--ok" style="margin-left:8px">Snapshot</span>
+                {% elif contrato_marco %}
+                    <span class="vact-badge vact-badge--info" style="margin-left:8px">Actual del tipo (legacy)</span>
+                {% endif %}
+            </h3>
+            {% if contrato_marco %}
+                <div class="vact-row"><span class="vact-row__label">Contrato marco</span><span class="vact-row__value">{{ contrato_marco.numero }}</span></div>
+                <div class="vact-row"><span class="vact-row__label">Subsidiado</span><span class="vact-row__value">
+                    {% if contrato_marco.contrato_subsidiado %}{{ contrato_marco.contrato_subsidiado.codigo }} — {{ contrato_marco.contrato_subsidiado.empresa }}{% else %}—{% endif %}
+                </span></div>
+                <div class="vact-row"><span class="vact-row__label">Contributivo</span><span class="vact-row__value">
+                    {% if contrato_marco.contrato_contributivo %}{{ contrato_marco.contrato_contributivo.codigo }} — {{ contrato_marco.contrato_contributivo.empresa }}{% else %}—{% endif %}
+                </span></div>
+            {% else %}
+                <div class="vact-row"><span class="vact-row__value" style="color:#c5221f">Sin contrato asignado</span></div>
+            {% endif %}
+        </div>
+
+        <div class="vact-card">
+            <h3>Médico</h3>
+            <div class="vact-row"><span class="vact-row__label">Documento</span><span class="vact-row__value">{{ actividad.documento_medico|default:"—" }}</span></div>
+            {% if actividad.medico %}
+                <div class="vact-row"><span class="vact-row__label">Código Zeus</span><span class="vact-row__value">{{ actividad.medico.codigo }}</span></div>
+                <div class="vact-row"><span class="vact-row__label">Nombre</span><span class="vact-row__value">{{ actividad.medico }}</span></div>
+            {% else %}
+                <div class="vact-row"><span class="vact-row__value" style="color:#c5221f">Sin médico asignado</span></div>
+            {% endif %}
+        </div>
+
+        <div class="vact-card">
+            <h3>Programa / Parámetros</h3>
+            {% if actividad.parametros_programa %}
+                <div class="vact-row"><span class="vact-row__label">Área programa</span><span class="vact-row__value">{% if actividad.parametros_programa.area_programa %}{{ actividad.parametros_programa.area_programa.nombre }}{% else %}—{% endif %}</span></div>
+                <div class="vact-row"><span class="vact-row__label">Regional</span><span class="vact-row__value">{% if actividad.parametros_programa.regional %}{{ actividad.parametros_programa.regional.regional }}{% else %}—{% endif %}</span></div>
+                <div class="vact-row"><span class="vact-row__label">Unidad funcional</span><span class="vact-row__value">{% if actividad.parametros_programa.unidad_funcional %}{{ actividad.parametros_programa.unidad_funcional.codigo }}{% else %}—{% endif %}</span></div>
+                <div class="vact-row"><span class="vact-row__label">Punto atención</span><span class="vact-row__value">{% if actividad.parametros_programa.punto_atencion %}{{ actividad.parametros_programa.punto_atencion }}{% else %}—{% endif %}</span></div>
+                <div class="vact-row"><span class="vact-row__label">Centro costo</span><span class="vact-row__value">{% if actividad.parametros_programa.centro_costo %}{{ actividad.parametros_programa.centro_costo }}{% else %}—{% endif %}</span></div>
+                <div class="vact-row"><span class="vact-row__label">Sede</span><span class="vact-row__value">{% if actividad.parametros_programa.sede %}{{ actividad.parametros_programa.sede }}{% else %}—{% endif %}</span></div>
+            {% else %}
+                <div class="vact-row"><span class="vact-row__value" style="color:#c5221f">Sin parámetros configurados</span></div>
+            {% endif %}
+        </div>
+
+        <div class="vact-card vact-full">
+            <h3>Carga de origen</h3>
+            <div class="vact-row"><span class="vact-row__label">Carga</span><span class="vact-row__value">
+                {% if actividad.carga_id %}<a href="/verCarga/{{ actividad.carga_id }}/1">#{{ actividad.carga_id }}</a>{% else %}—{% endif %}
+            </span></div>
+            <div class="vact-row"><span class="vact-row__label">Usuario que cargó</span><span class="vact-row__value">
+                {% if actividad.carga and actividad.carga.usuario %}{{ actividad.carga.usuario.email|default:actividad.carga.usuario.username }}{% else %}—{% endif %}
+            </span></div>
+            <div class="vact-row"><span class="vact-row__label">Admisionada en otra carga</span><span class="vact-row__value">{{ actividad.admisionada_otra_carga|yesno:"Sí,No" }}</span></div>
+        </div>
+
+    </div>
+
+    {% if actividad.admision %}
+    <div class="vact-card vact-card--ok" style="margin-bottom:20px">
+        <h3>Datos de la admisión</h3>
+        <div class="vact-row"><span class="vact-row__label">ID admisión</span><span class="vact-row__value">{{ actividad.admision.id }}</span></div>
+        <div class="vact-row"><span class="vact-row__label">Número estudio</span><span class="vact-row__value">{{ actividad.admision.numero_estudio|default:"—" }}</span></div>
+        <div class="vact-row"><span class="vact-row__label">Documento paciente</span><span class="vact-row__value">{{ actividad.admision.documento_paciente|default:"—" }}</span></div>
+        <div class="vact-row"><span class="vact-row__label">Observación</span><span class="vact-row__value">{{ actividad.admision.observacion|default:"—" }}</span></div>
+        <div class="vact-row"><span class="vact-row__label">Creada</span><span class="vact-row__value">{{ actividad.admision.created_at|date:"d/m/Y H:i" }}</span></div>
+    </div>
+    {% endif %}
+
+    {% if datos_json_pretty %}
+    <details class="vact-json">
+        <summary>Payload enviado a Zeus (datos_json)</summary>
+        <pre>{{ datos_json_pretty }}</pre>
+    </details>
+    {% endif %}
+
+    {% if admision_json_pretty %}
+    <details class="vact-json">
+        <summary>Respuesta de Zeus (admision.json)</summary>
+        <pre>{{ admision_json_pretty }}</pre>
+    </details>
+    {% endif %}
+
+</div>
+{% endblock content %}
+
+{% block javascripts %}{% endblock javascripts %}

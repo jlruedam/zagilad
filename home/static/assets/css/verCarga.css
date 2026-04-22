@@ -223,9 +223,66 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 4px;
-    min-width: 80px;
+    gap: 8px;
+    min-width: 110px;
 }
+
+/* ── Botones de acción por fila (Ver / Admisionar / Eliminar / Hecho) ── */
+.btn-accion {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 15px;
+    line-height: 1;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease;
+    cursor: pointer;
+    user-select: none;
+}
+.btn-accion:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    text-decoration: none;
+}
+.btn-accion:focus-visible {
+    outline: 2px solid var(--azul-rey);
+    outline-offset: 2px;
+}
+
+.btn-accion--ver {
+    background: #e8f0fe;
+    color: #1967d2;
+    border-color: #c7dafc;
+}
+.btn-accion--ver:hover       { background: #d2e3fc; color: #1967d2; }
+
+.btn-accion--admisionar {
+    background: #e6f4ea;
+    color: #137333;
+    border-color: #c3e6cb;
+}
+.btn-accion--admisionar:hover{ background: #ceead6; color: #137333; }
+
+.btn-accion--eliminar {
+    background: #fce8e6;
+    color: #c5221f;
+    border-color: #f6c7c4;
+}
+.btn-accion--eliminar:hover  { background: #f6c7c4; color: #c5221f; }
+
+.btn-accion--done {
+    background: #137333;
+    color: #fff;
+    border-color: #137333;
+    cursor: default;
+}
+.btn-accion--done:hover      { transform: none; box-shadow: none; }
+
+.col-acciones { text-align: center; white-space: nowrap; }
 
 /* ── Tabla resumen inconsistencias ── */
 .bloqueTablaResumenInconsistencias {

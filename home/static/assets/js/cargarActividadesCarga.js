@@ -40,14 +40,22 @@ $(document).ready(async function () {
             {data:'finalidad__valor'},
             {
                 data:'id',
+                className: 'col-acciones',
+                "render": function(data) {
+                    return '<a class="btn-accion btn-accion--ver" href="/verActividad/'+data+'/" title="Ver detalle" aria-label="Ver detalle">🔍</a>';
+                }
+            },
+            {
+                data:'id',
+                className: 'col-acciones',
                 "render": function(data, type, row) {
-                    console.log(self.columns);
-                    console.log(admisionada);
                     if(admisionada){
-                        console.log(admisionada);
-                        return '✅'
+                        return '<span class="btn-accion btn-accion--done" title="Admisionada" aria-label="Admisionada">✓</span>';
                     }
-                    return '<div id="botonesGestionActividad"><span class = "mybtn-emoji"><a href="/admisionarActividadIndividual/'+data+'/1" title="Admisionar" id="botonesGestionActividad">🆙</a></span><span class = "mybtn-emoji"><a href="/eliminarActividadIndividual/'+data+'/1" title="Eliminar">🗑️</a></span></div>'
+                    return '<div class="btns-gestion">'
+                        + '<a class="btn-accion btn-accion--admisionar" href="/admisionarActividadIndividual/'+data+'/1" title="Admisionar" aria-label="Admisionar">🆙</a>'
+                        + '<a class="btn-accion btn-accion--eliminar" href="/eliminarActividadIndividual/'+data+'/1" title="Eliminar" aria-label="Eliminar">🗑️</a>'
+                        + '</div>';
                  }
             },
             

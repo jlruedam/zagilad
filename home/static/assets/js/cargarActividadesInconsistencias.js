@@ -26,6 +26,13 @@ $(document).ready(async function () {
             { data: 'admision__numero_estudio' },
             { data: 'inconsistencias' },
             { data: 'medico__documento' },
+            {
+                data: 'id',
+                className: 'col-acciones',
+                render: function (data) {
+                    return '<a class="btn-accion btn-accion--ver" href="/verActividad/' + data + '/" title="Ver detalle" aria-label="Ver detalle">🔍</a>';
+                }
+            },
         ],
         ordering: false,
         processing: true,

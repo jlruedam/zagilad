@@ -222,6 +222,51 @@ def ver_carga(request, id_carga, pagina):
     }
     return render(request,"home/verCarga.html",ctx)
 
+
+@login_required(login_url="/login/")
+def ver_actividad(request, id_actividad):
+    relaciones = [
+        "tipo_actividad",
+        "tipo_actividad__contrato",
+        "tipo_actividad__area",
+        "tipo_actividad__tipo_servicio",
+        "contrato",
+        "contrato__contrato_subsidiado",
+        "contrato__contrato_contributivo",
+        "parametros_programa",
+        "parametros_programa__area_programa",
+        "parametros_programa__regional",
+        "parametros_programa__unidad_funcional",
+        "parametros_programa__punto_atencion",
+        "parametros_programa__centro_costo",
+        "parametros_programa__sede",
+        "medico",
+        "finalidad",
+        "admision",
+        "carga",
+        "carga__usuario",
+    ]
+    actividad = (
+        Actividad.objects
+        .select_related(*relaciones)
+        .get(id=int(id_actividad))
+    )
+
+    contrato_marco = actividad.contrato if actividad.contrato_id else (
+        actividad.tipo_actividad.contrato if actividad.tipo_actividad else None
+    )
+    contrato_es_snapshot = bool(actividad.contrato_id)
+
+    ctx = {
+        "actividad": actividad,
+        "contrato_marco": contrato_marco,
+        "contrato_es_snapshot": contrato_es_snapshot,
+        "datos_json_pretty": json.dumps(actividad.datos_json, indent=2, ensure_ascii=False) if actividad.datos_json else "",
+        "admision_json_pretty": json.dumps(actividad.admision.json, indent=2, ensure_ascii=False) if actividad.admision and actividad.admision.json else "",
+    }
+    return render(request, "home/verActividad.html", ctx)
+
+
 # PROCESAMIENTO DE ACTIVIDADES
 @login_required(login_url="/login/")
 def cargar_actividades(request):
