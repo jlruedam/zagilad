@@ -12,6 +12,7 @@ urlpatterns = [
     path('vistaActividadesAdmisionadas/', views.vista_actividades_admisionadas, name='vista_actividades_admisionadas'),
     path('vistaActividadesInconsistencias/', views.vista_actividades_inconsistencias, name='vista_actividades_inconsistencias'),
     path('tiposActividad/', views.tipos_actividad, name='tipos_actividad'),
+    path('crearTipoActividad/', views.crear_tipo_actividad, name='crear_tipo_actividad'),
     path('parametrosAreaPrograma/', views.parametros_area_programa, name='parametros_area_programa'),
     path('listarActividadesInconsistencias/', views.listar_actividades_inconsistencias, name='listar_actividades_inconsistencias'),
     path('statsActividadesInconsistencias/', views.stats_actividades_inconsistencias, name='stats_actividades_inconsistencias'),

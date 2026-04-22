@@ -2,7 +2,170 @@
 
 {% block title %} Tipos de actividades {% endblock %}
 
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+<style>
+.tipos-header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+.tipos-btn-nuevo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--azul-rey);
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-family: var(--fuente);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+}
+.tipos-btn-nuevo:hover { background: #0d3a7a; transform: translateY(-1px); }
+.tipos-btn-nuevo:active { transform: translateY(0); }
+
+/* ── Modal ── */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    z-index: 100;
+    padding: 40px 16px;
+    overflow-y: auto;
+}
+.modal-overlay.visible { display: flex; }
+.modal-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    width: 100%;
+    max-width: 720px;
+    padding: 0;
+    overflow: hidden;
+    animation: modalIn 0.18s ease;
+}
+@keyframes modalIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+.modal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 24px;
+    border-bottom: 1px solid #eef0f3;
+    background: linear-gradient(180deg, #f9fafc, #fff);
+}
+.modal-head h2 {
+    margin: 0;
+    font-family: var(--fuente);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--azul-rey);
+}
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 22px;
+    line-height: 1;
+    color: #888;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background 0.1s;
+}
+.modal-close:hover { background: #f0f2f5; color: #333; }
+
+.modal-body { padding: 20px 24px; }
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 18px;
+}
+.form-field { display: flex; flex-direction: column; gap: 6px; }
+.form-field--full { grid-column: 1 / -1; }
+.form-field label {
+    font-family: var(--fuente);
+    font-size: 12px;
+    font-weight: 700;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.form-field label .req { color: #c5221f; margin-left: 2px; }
+.form-field input,
+.form-field select,
+.form-field textarea {
+    padding: 8px 10px;
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: var(--fuente);
+    color: var(--gris-texto);
+    background: #fff;
+    transition: border-color 0.1s, box-shadow 0.1s;
+}
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+    outline: none;
+    border-color: var(--azul-rey);
+    box-shadow: 0 0 0 3px rgba(18, 60, 126, 0.12);
+}
+
+.modal-msg {
+    margin: 12px 0 0;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    display: none;
+}
+.modal-msg--error   { background: #fce8e6; color: #c5221f; display: block; }
+.modal-msg--success { background: #e6f4ea; color: #137333; display: block; }
+
+.modal-foot {
+    padding: 14px 24px;
+    border-top: 1px solid #eef0f3;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    background: #fafbfc;
+}
+.btn-ghost, .btn-primary {
+    padding: 9px 18px;
+    border-radius: 6px;
+    font-family: var(--fuente);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: background 0.1s, border-color 0.1s;
+}
+.btn-ghost {
+    background: #fff;
+    color: #555;
+    border-color: #d0d5dd;
+}
+.btn-ghost:hover { background: #f4f6f8; }
+.btn-primary {
+    background: var(--azul-rey);
+    color: #fff;
+}
+.btn-primary:hover { background: #0d3a7a; }
+.btn-primary:disabled { background: #8896b3; cursor: progress; }
+
+@media (max-width: 720px) {
+    .form-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock stylesheets %}
 
 {% block content %}
 <div class="admin-tabla-page">
@@ -12,6 +175,14 @@
             Tipos de actividades o servicios
         </h1>
     </div>
+
+    <div class="tipos-header-actions">
+        <span style="font-size:13px;color:#888">{{ tipos_actividad|length }} tipo(s) registrado(s)</span>
+        <button type="button" class="tipos-btn-nuevo" id="btnAbrirNuevoTipo">
+            <i class="fa fa-plus"></i> Nuevo tipo
+        </button>
+    </div>
+
     <div class="admin-tabla-wrapper">
         <div class="bloqueTabla">
             <table id="tablaTiposActividad">
@@ -55,6 +226,214 @@
         </div>
     </div>
 </div>
+
+<!-- Modal: nuevo tipo de actividad -->
+<div class="modal-overlay" id="modalNuevoTipo" role="dialog" aria-modal="true" aria-labelledby="tituloModalNuevoTipo">
+    <div class="modal-card">
+        <div class="modal-head">
+            <h2 id="tituloModalNuevoTipo">Nuevo tipo de actividad</h2>
+            <button type="button" class="modal-close" id="btnCerrarNuevoTipo" aria-label="Cerrar">×</button>
+        </div>
+        <form id="formNuevoTipo" novalidate>
+            <div class="modal-body">
+                <div class="form-grid">
+
+                    <div class="form-field">
+                        <label for="f_nombre">Nombre <span class="req">*</span></label>
+                        <input type="text" id="f_nombre" name="nombre" maxlength="150" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="f_cups">CUPS <span class="req">*</span></label>
+                        <input type="text" id="f_cups" name="cups" maxlength="10" required>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="f_contrato">Contrato <span class="req">*</span></label>
+                        <select id="f_contrato" name="contrato_id" required>
+                            <option value="">Seleccione...</option>
+                            {% for c in contratos %}
+                            <option value="{{ c.id }}">{{ c.numero }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="f_tipo_servicio_display">Tipo de servicio <span class="req">*</span></label>
+                        <input type="text"
+                               id="f_tipo_servicio_display"
+                               list="listTiposServicio"
+                               placeholder="Escribe para buscar..."
+                               autocomplete="off">
+                        <input type="hidden" id="f_tipo_servicio" name="tipo_servicio_id">
+                        <datalist id="listTiposServicio">
+                            {% for ts in tipos_servicio %}
+                            <option data-id="{{ ts.id }}" value="{{ ts.nombre }} (#{{ ts.id }})"></option>
+                            {% endfor %}
+                        </datalist>
+                        <small id="hintTipoServicio" style="color:#888;font-size:11px">{{ tipos_servicio|length }} opciones disponibles — selecciona una de la lista</small>
+                    </div>
+
+                    <div class="form-field form-field--full">
+                        <label for="f_area">Área de programa <span class="req">*</span></label>
+                        <select id="f_area" name="area_id" required>
+                            <option value="">Seleccione...</option>
+                            {% for a in areas %}
+                            <option value="{{ a.id }}">{{ a.identificador }} — {{ a.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="f_grupo">Grupo</label>
+                        <input type="text" id="f_grupo" name="grupo" maxlength="10">
+                    </div>
+                    <div class="form-field">
+                        <label for="f_responsable">Responsable</label>
+                        <input type="text" id="f_responsable" name="responsable" maxlength="150">
+                    </div>
+
+                    <div class="form-field">
+                        <label for="f_diagnostico">Diagnóstico</label>
+                        <input type="text" id="f_diagnostico" name="diagnostico" maxlength="10">
+                    </div>
+                    <div class="form-field">
+                        <label for="f_finalidad">Finalidad</label>
+                        <input type="text" id="f_finalidad" name="finalidad" maxlength="50">
+                    </div>
+
+                    <div class="form-field">
+                        <label for="f_fuente">Fuente</label>
+                        <input type="text" id="f_fuente" name="fuente" maxlength="50">
+                    </div>
+                    <div class="form-field">
+                        <label for="f_entrega">Entrega</label>
+                        <input type="text" id="f_entrega" name="entrega" maxlength="150">
+                    </div>
+
+                    <div class="form-field form-field--full">
+                        <label for="f_observacion">Observación</label>
+                        <input type="text" id="f_observacion" name="observacion" maxlength="150">
+                    </div>
+
+                </div>
+                <div class="modal-msg" id="modalMsg"></div>
+            </div>
+            <div class="modal-foot">
+                <button type="button" class="btn-ghost" id="btnCancelarNuevoTipo">Cancelar</button>
+                <button type="submit" class="btn-primary" id="btnGuardarNuevoTipo">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock content %}
 
-{% block javascripts %}{% endblock javascripts %}
+{% block javascripts %}
+<script>
+(function () {
+    const overlay  = document.getElementById('modalNuevoTipo');
+    const btnAbrir = document.getElementById('btnAbrirNuevoTipo');
+    const btnCerrar= document.getElementById('btnCerrarNuevoTipo');
+    const btnCancel= document.getElementById('btnCancelarNuevoTipo');
+    const form     = document.getElementById('formNuevoTipo');
+    const msg      = document.getElementById('modalMsg');
+    const btnGuard = document.getElementById('btnGuardarNuevoTipo');
+    const tsDisplay= document.getElementById('f_tipo_servicio_display');
+    const tsHidden = document.getElementById('f_tipo_servicio');
+    const tsHint   = document.getElementById('hintTipoServicio');
+
+    // Mapa value-visible → id, construido desde el datalist
+    const tsMap = {};
+    document.querySelectorAll('#listTiposServicio option').forEach(opt => {
+        tsMap[opt.value] = opt.getAttribute('data-id');
+    });
+
+    function resolverTipoServicio() {
+        const v = tsDisplay.value.trim();
+        if (tsMap[v]) {
+            tsHidden.value = tsMap[v];
+            tsDisplay.style.borderColor = '#137333';
+            tsHint.textContent = '✓ Tipo de servicio seleccionado';
+            tsHint.style.color = '#137333';
+        } else {
+            tsHidden.value = '';
+            if (v.length > 0) {
+                tsDisplay.style.borderColor = '#c5221f';
+                tsHint.textContent = 'Seleccione una opción de la lista desplegable';
+                tsHint.style.color = '#c5221f';
+            } else {
+                tsDisplay.style.borderColor = '';
+                tsHint.textContent = Object.keys(tsMap).length + ' opciones disponibles — selecciona una de la lista';
+                tsHint.style.color = '#888';
+            }
+        }
+    }
+    tsDisplay.addEventListener('input', resolverTipoServicio);
+    tsDisplay.addEventListener('change', resolverTipoServicio);
+
+    function abrir()  { overlay.classList.add('visible'); setTimeout(()=> document.getElementById('f_nombre').focus(), 50); }
+    function cerrar() {
+        overlay.classList.remove('visible');
+        form.reset();
+        tsHidden.value = '';
+        tsDisplay.style.borderColor = '';
+        tsHint.textContent = Object.keys(tsMap).length + ' opciones disponibles — selecciona una de la lista';
+        tsHint.style.color = '#888';
+        msg.className = 'modal-msg';
+        msg.textContent = '';
+        btnGuard.disabled = false;
+        btnGuard.textContent = 'Guardar';
+    }
+
+    btnAbrir.addEventListener('click', abrir);
+    btnCerrar.addEventListener('click', cerrar);
+    btnCancel.addEventListener('click', cerrar);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) cerrar(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && overlay.classList.contains('visible')) cerrar(); });
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        msg.className = 'modal-msg';
+        msg.textContent = '';
+
+        if (tsDisplay.value.trim() && !tsHidden.value) {
+            msg.className = 'modal-msg modal-msg--error';
+            msg.textContent = 'El Tipo de servicio no coincide con ninguna opción válida. Selecciónalo de la lista desplegable.';
+            tsDisplay.focus();
+            return;
+        }
+
+        const data = {};
+        new FormData(form).forEach((v, k) => { data[k] = v; });
+
+        btnGuard.disabled = true;
+        btnGuard.textContent = 'Guardando...';
+
+        try {
+            const resp = await fetch('/crearTipoActividad/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify(data),
+            });
+            const payload = await resp.json().catch(() => ({}));
+            if (!resp.ok || !payload.ok) {
+                msg.className = 'modal-msg modal-msg--error';
+                msg.textContent = payload.error || 'No se pudo crear el tipo de actividad';
+                btnGuard.disabled = false;
+                btnGuard.textContent = 'Guardar';
+                return;
+            }
+            msg.className = 'modal-msg modal-msg--success';
+            msg.textContent = `Tipo "${payload.tipo.nombre}" creado (#${payload.tipo.id}). Recargando listado...`;
+            setTimeout(() => window.location.reload(), 700);
+        } catch (err) {
+            msg.className = 'modal-msg modal-msg--error';
+            msg.textContent = 'Error de red: ' + err.message;
+            btnGuard.disabled = false;
+            btnGuard.textContent = 'Guardar';
+        }
+    });
+})();
+</script>
+{% endblock javascripts %}

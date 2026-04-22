@@ -22,7 +22,8 @@ import os
 
 # ZAGILAD
 from home.models import TipoActividad, Actividad, ParametrosAreaPrograma
-from home.models import Admision, AreaPrograma, Carga
+from home.models import Admision, AreaPrograma, Carga, ContratoMarco
+from zeus_mirror.models import TipoServicio
 from home.modules import peticiones_http, parametros_generales
 from home.modules import generador_excel, utils
 from home.modules import paginacion_actividades
@@ -135,9 +136,73 @@ def listar_actividades_carga(request, num_carga):
 
 @login_required(login_url="/login/")
 def tipos_actividad(request):
-    tipos_actividad = TipoActividad.objects.all()
-    ctx = {"tipos_actividad":tipos_actividad}
-    return render(request,"home/tiposActividad.html",ctx)
+    tipos_actividad = TipoActividad.objects.select_related("contrato", "tipo_servicio", "area").all()
+    contratos = ContratoMarco.objects.order_by("numero")
+    tipos_servicio = TipoServicio.objects.order_by("nombre")
+    areas = AreaPrograma.objects.order_by("nombre")
+    ctx = {
+        "tipos_actividad": tipos_actividad,
+        "contratos": contratos,
+        "tipos_servicio": tipos_servicio,
+        "areas": areas,
+    }
+    return render(request, "home/tiposActividad.html", ctx)
+
+
+@login_required(login_url="/login/")
+def crear_tipo_actividad(request):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "Método no permitido"}, status=405)
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        return JsonResponse({"ok": False, "error": "JSON inválido"}, status=400)
+
+    requeridos = {
+        "nombre": "Nombre",
+        "cups": "CUPS",
+        "contrato_id": "Contrato",
+        "tipo_servicio_id": "Tipo de servicio",
+        "area_id": "Área",
+    }
+    faltantes = [etiqueta for campo, etiqueta in requeridos.items() if not data.get(campo)]
+    if faltantes:
+        return JsonResponse(
+            {"ok": False, "error": f"Campos requeridos: {', '.join(faltantes)}"},
+            status=400,
+        )
+
+    try:
+        contrato = ContratoMarco.objects.get(id=data["contrato_id"])
+        tipo_servicio = TipoServicio.objects.get(id=data["tipo_servicio_id"])
+        area = AreaPrograma.objects.get(id=data["area_id"])
+    except (ContratoMarco.DoesNotExist, TipoServicio.DoesNotExist, AreaPrograma.DoesNotExist):
+        return JsonResponse({"ok": False, "error": "Contrato, tipo de servicio o área no válidos"}, status=400)
+
+    tipo = TipoActividad.objects.create(
+        nombre=data["nombre"].strip(),
+        cups=data["cups"].strip(),
+        grupo=(data.get("grupo") or "").strip() or None,
+        responsable=(data.get("responsable") or "").strip() or None,
+        diagnostico=(data.get("diagnostico") or "").strip() or None,
+        finalidad=(data.get("finalidad") or "").strip() or None,
+        fuente=(data.get("fuente") or "").strip() or None,
+        observacion=(data.get("observacion") or "").strip() or None,
+        entrega=(data.get("entrega") or "").strip() or None,
+        contrato=contrato,
+        tipo_servicio=tipo_servicio,
+        area=area,
+    )
+
+    return JsonResponse({
+        "ok": True,
+        "tipo": {
+            "id": tipo.id,
+            "nombre": tipo.nombre,
+            "cups": tipo.cups,
+        },
+    })
 
 @login_required(login_url="/login/")
 def parametros_area_programa(request):
