@@ -79,6 +79,44 @@ const tablaParametrosPrograma = $('#tablaParametrosPrograma').DataTable({
         { orderable: false, targets: [7] }
     ]
 });
-const tablaActividades = $('#tablaActividades').DataTable(); 
+const tablaContratosMarco = $('#tablaContratosMarco').DataTable({
+    responsive: {
+        details: {
+            display: $.fn.dataTable.Responsive.display.childRow,
+            renderer: $.fn.dataTable.Responsive.renderer.listHiddenNodes(),
+            type: 'inline'
+        }
+    },
+    columnDefs: [
+        // Siempre visibles: Id, Número, Editar
+        { responsivePriority: 1, targets: [0, 1, 7] },
+        // Alta: Contrato subsidiado, Contrato contributivo
+        { responsivePriority: 2, targets: [2, 3] },
+        // Se ocultan primero: Observación, Creado, Actualizado
+        { responsivePriority: 10001, targets: [4, 5, 6] },
+        // Editar no es ordenable
+        { orderable: false, targets: [7] }
+    ]
+});
+
+const tablaMedicos = $('#tablaMedicos').DataTable({
+    responsive: {
+        details: {
+            display: $.fn.dataTable.Responsive.display.childRow,
+            renderer: $.fn.dataTable.Responsive.renderer.listHiddenNodes(),
+            type: 'inline'
+        }
+    },
+    columnDefs: [
+        // Siempre visibles: Id, Documento, Nombre
+        { responsivePriority: 1, targets: [0, 2, 3] },
+        // Alta: Código
+        { responsivePriority: 2, targets: [1] },
+        // Se ocultan primero: Creado, Actualizado
+        { responsivePriority: 10001, targets: [4, 5] }
+    ]
+});
+
+const tablaActividades = $('#tablaActividades').DataTable();
 const tablaActividadesAdmisionar = $('#tablaActividadesAdmisionar').DataTable(); 
 // const tablaActividadesInconsistencias =  $('#tablaActividadesInconsistencias').DataTable();

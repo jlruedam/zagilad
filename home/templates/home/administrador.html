@@ -6,6 +6,7 @@
 
 {% block content %}
     <div class="administrador">
+        {% include 'includes/btn_volver.html' with href='/' label='Volver al inicio' %}
         <div class="myIndex">
             <ul>
                 <li><a href="{% url 'cargar_configuracion_arranque' %}">Cargar configuración de arranque</a></li>
@@ -13,6 +14,8 @@
                 <li><a href="{% url 'tipos_actividad' %}">Tipos de Actividades o Servicios</a></li>
                 <li><a href="{% url 'vista_areas_programa' %}">Áreas / Programas</a></li>
                 <li><a href="{% url 'parametros_area_programa' %}">Parametros Area o Programa</a></li>
+                <li><a href="{% url 'vista_contratos_marco' %}">Contratos Marco</a></li>
+                <li><a href="{% url 'vista_medicos' %}">Médicos</a></li>
             </ul>
             
         </div>

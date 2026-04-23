@@ -3,6 +3,21 @@ const admisionesPruebaEnviadas = document.getElementById('admisionesPruebaEnviad
 
 let hoy = new Date()
 
+/**
+ * Inicializa (o re-inicializa) un DataTable de forma segura.
+ * Evita el warning "Cannot reinitialise DataTable" cuando las consultas
+ * Zeus se ejecutan más de una vez sobre la misma tabla: destruye la
+ * instancia previa y limpia el DOM (necesario porque las columnas se
+ * derivan dinámicamente de cada respuesta y pueden variar).
+ */
+function ensureDataTable(selector, options) {
+    if ($.fn.DataTable.isDataTable(selector)) {
+        $(selector).DataTable().clear().destroy();
+        $(selector).empty();
+    }
+    return $(selector).DataTable(options);
+}
+
 const enviarAdmisionPrueba = async () => {
     let respuesta = "";
     let cantidad =  $('#cantidadAdmisiones').val();
@@ -72,7 +87,7 @@ const codigos_empresa = async () => {
     } 
 
     $('#tablaEmpresa').toggleClass("show");
-    $('#tablaEmpresa').DataTable({
+    ensureDataTable('#tablaEmpresa', {
         data:respuesta,
         columns: encabezados
     }); 
@@ -120,7 +135,7 @@ const consultarMedicos = async () => {
     } 
     
 
-    $('#tablaMedicos').DataTable({
+    ensureDataTable('#tablaMedicos', {
         data:respuesta,
         columns: encabezados
     }); 
@@ -140,7 +155,7 @@ const consultarUsuariosZeus = async () => {
     } 
     
 
-    $('#tablaUsuarioZeus').DataTable({
+    ensureDataTable('#tablaUsuarioZeus', {
         data:respuesta,
         columns: encabezados
     }); 
@@ -158,7 +173,7 @@ const listarTiposServicios = async () => {
         encabezados.push({data:campo});
     } 
 
-    $('#tablaTiposServicios').DataTable({
+    ensureDataTable('#tablaTiposServicios', {
         data:respuesta,
         columns: encabezados
     }); 
@@ -176,7 +191,7 @@ const listarViaIngreso = async () => {
         encabezados.push({data:campo});
     } 
     console.log(encabezados);
-    $('#tablaViaIngreso').DataTable({
+    ensureDataTable('#tablaViaIngreso', {
         data:respuesta.Data,
         columns: encabezados
     }); 
@@ -194,7 +209,7 @@ const listarCausaExterna = async () => {
         encabezados.push({data:campo});
     } 
     console.log(encabezados);
-    $('#tablaCausaExterna').DataTable({
+    ensureDataTable('#tablaCausaExterna', {
         data:respuesta.Data,
         columns: encabezados
     }); 
@@ -213,7 +228,7 @@ const listarUnidadesFuncionales = async () => {
         encabezados.push({data:campo});
     } 
     console.log(encabezados);
-    $('#tablaUnidadFuncional').DataTable({
+    ensureDataTable('#tablaUnidadFuncional', {
         data:respuesta,
         columns: encabezados
     }); 
@@ -232,7 +247,7 @@ const listarCodigosSedes = async () => {
         encabezados.push({data:campo});
     } 
     console.log(encabezados);
-    $('#tablaCodigosSedes').DataTable({
+    ensureDataTable('#tablaCodigosSedes', {
         data:respuesta,
         columns: encabezados
     }); 
@@ -251,7 +266,7 @@ const listarPuntosAtencion = async () => {
         encabezados.push({data:campo});
     } 
     console.log(encabezados);
-    $('#tablaPuntosAtencion').DataTable({
+    ensureDataTable('#tablaPuntosAtencion', {
         data:respuesta,
         columns: encabezados
     }); 
@@ -270,7 +285,7 @@ const listarTiposDiagnosticos = async () => {
         encabezados.push({data:campo});
     } 
     console.log(encabezados);
-    $('#tablaTiposDiagnosticos').DataTable({
+    ensureDataTable('#tablaTiposDiagnosticos', {
         data:respuesta.Data,
         columns: encabezados
     }); 
@@ -289,7 +304,7 @@ const listarFinalidades = async () => {
         encabezados.push({data:campo});
     } 
     console.log(encabezados);
-    $('#tablaFinalidades').DataTable({
+    ensureDataTable('#tablaFinalidades', {
         data:respuesta.Data,
         columns: encabezados
     }); 
@@ -308,7 +323,7 @@ const listarCentrosCosto = async () => {
         encabezados.push({data:campo});
     } 
     console.log(encabezados);
-    $('#tablaCentrosCostos').DataTable({
+    ensureDataTable('#tablaCentrosCostos', {
         data:respuesta,
         columns: encabezados
     }); 
@@ -327,7 +342,7 @@ const listarEstratos = async () => {
         encabezados.push({data:campo});
     } 
     console.log(encabezados);
-    $('#tablaEstratos').DataTable({
+    ensureDataTable('#tablaEstratos', {
         data:respuesta,
         columns: encabezados
     }); 
@@ -346,7 +361,7 @@ const listarContratos = async () => {
         encabezados.push({data:campo});
     } 
     console.log(encabezados);
-    $('#tablaContratos').DataTable({
+    ensureDataTable('#tablaContratos', {
         data:respuesta,
         columns: encabezados
     }); 

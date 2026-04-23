@@ -23,7 +23,7 @@ import os
 # ZAGILAD
 from home.models import TipoActividad, Actividad, ParametrosAreaPrograma
 from home.models import Admision, AreaPrograma, Carga, ContratoMarco, Regional
-from zeus_mirror.models import TipoServicio, UnidadFuncional, PuntoAtencion, CentroCosto, Sede
+from zeus_mirror.models import TipoServicio, UnidadFuncional, PuntoAtencion, CentroCosto, Sede, Contrato, Medico
 from home.modules import peticiones_http, parametros_generales
 from home.modules import generador_excel, utils
 from home.modules import paginacion_actividades
@@ -481,6 +481,133 @@ def editar_parametros_area_programa(request, id_parametros):
             "regional": str(parametros.regional),
         },
     })
+
+
+@login_required(login_url="/login/")
+def vista_contratos_marco(request):
+    contratos_marco = ContratoMarco.objects.select_related(
+        "contrato_subsidiado", "contrato_contributivo"
+    ).order_by("numero")
+    ctx = {
+        "contratos_marco": contratos_marco,
+        "contratos": Contrato.objects.filter(activo=1).order_by("codigo"),
+    }
+    return render(request, "home/contratosMarco.html", ctx)
+
+
+@login_required(login_url="/login/")
+def crear_contrato_marco(request):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "Método no permitido"}, status=405)
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        return JsonResponse({"ok": False, "error": "JSON inválido"}, status=400)
+
+    numero = (data.get("numero") or "").strip()
+    if not numero:
+        return JsonResponse({"ok": False, "error": "Campo requerido: Número"}, status=400)
+
+    if ContratoMarco.objects.filter(numero=numero).exists():
+        return JsonResponse(
+            {"ok": False, "error": f"Ya existe un contrato marco con el número '{numero}'"},
+            status=400,
+        )
+
+    subsidiado = None
+    contributivo = None
+    if data.get("contrato_subsidiado_id"):
+        try:
+            subsidiado = Contrato.objects.get(id=data["contrato_subsidiado_id"])
+        except Contrato.DoesNotExist:
+            return JsonResponse(
+                {"ok": False, "error": f"Contrato subsidiado no válido (id {data['contrato_subsidiado_id']})"},
+                status=400,
+            )
+    if data.get("contrato_contributivo_id"):
+        try:
+            contributivo = Contrato.objects.get(id=data["contrato_contributivo_id"])
+        except Contrato.DoesNotExist:
+            return JsonResponse(
+                {"ok": False, "error": f"Contrato contributivo no válido (id {data['contrato_contributivo_id']})"},
+                status=400,
+            )
+
+    cm = ContratoMarco.objects.create(
+        numero=numero,
+        contrato_subsidiado=subsidiado,
+        contrato_contributivo=contributivo,
+        observacion=(data.get("observacion") or "").strip() or None,
+    )
+
+    return JsonResponse({
+        "ok": True,
+        "contrato_marco": {"id": cm.id, "numero": cm.numero},
+    })
+
+
+@login_required(login_url="/login/")
+def editar_contrato_marco(request, id_contrato_marco):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "Método no permitido"}, status=405)
+
+    try:
+        cm = ContratoMarco.objects.get(id=id_contrato_marco)
+    except ContratoMarco.DoesNotExist:
+        return JsonResponse({"ok": False, "error": "Contrato marco no encontrado"}, status=404)
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        return JsonResponse({"ok": False, "error": "JSON inválido"}, status=400)
+
+    numero = (data.get("numero") or "").strip()
+    if not numero:
+        return JsonResponse({"ok": False, "error": "Campo requerido: Número"}, status=400)
+
+    if numero != cm.numero and ContratoMarco.objects.filter(numero=numero).exclude(id=cm.id).exists():
+        return JsonResponse(
+            {"ok": False, "error": f"Ya existe otro contrato marco con el número '{numero}'"},
+            status=400,
+        )
+
+    subsidiado = None
+    contributivo = None
+    if data.get("contrato_subsidiado_id"):
+        try:
+            subsidiado = Contrato.objects.get(id=data["contrato_subsidiado_id"])
+        except Contrato.DoesNotExist:
+            return JsonResponse(
+                {"ok": False, "error": f"Contrato subsidiado no válido (id {data['contrato_subsidiado_id']})"},
+                status=400,
+            )
+    if data.get("contrato_contributivo_id"):
+        try:
+            contributivo = Contrato.objects.get(id=data["contrato_contributivo_id"])
+        except Contrato.DoesNotExist:
+            return JsonResponse(
+                {"ok": False, "error": f"Contrato contributivo no válido (id {data['contrato_contributivo_id']})"},
+                status=400,
+            )
+
+    cm.numero = numero
+    cm.contrato_subsidiado = subsidiado
+    cm.contrato_contributivo = contributivo
+    cm.observacion = (data.get("observacion") or "").strip() or None
+    cm.save()
+
+    return JsonResponse({
+        "ok": True,
+        "contrato_marco": {"id": cm.id, "numero": cm.numero},
+    })
+
+
+@login_required(login_url="/login/")
+def vista_medicos(request):
+    medicos = Medico.objects.order_by("nombre")
+    ctx = {"medicos": medicos}
+    return render(request, "home/medicos.html", ctx)
 
 
 @login_required(login_url="/login/")

@@ -1,0 +1,23 @@
+{% comment %}
+Botón "Volver" reutilizable.
+
+Uso:
+  {% include 'includes/btn_volver.html' with href='/administrador/' %}
+  {% include 'includes/btn_volver.html' with href='/administrador/' label='Volver al administrador' %}
+  {% include 'includes/btn_volver.html %}   (sin href → history.back())
+
+Parámetros (todos opcionales):
+  - href: URL a la que volver. Si se omite → usa window.history.back().
+  - label: texto del botón (default: "Volver").
+{% endcomment %}
+{% if href %}
+<a href="{{ href }}" class="btn-volver" title="Volver">
+    <i class="fa fa-arrow-left"></i>
+    <span>{{ label|default:"Volver" }}</span>
+</a>
+{% else %}
+<button type="button" class="btn-volver" onclick="history.back()" title="Volver a la página anterior">
+    <i class="fa fa-arrow-left"></i>
+    <span>{{ label|default:"Volver" }}</span>
+</button>
+{% endif %}

@@ -1,10 +1,10 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} Parámetros programa {% endblock %}
+{% block title %} Contratos marco {% endblock %}
 
 {% block stylesheets %}
 <style>
-.pparam-header-actions {
+.cm-header-actions {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -12,7 +12,7 @@
     flex-wrap: wrap;
     margin-bottom: 16px;
 }
-.pparam-btn-nuevo {
+.cm-btn-nuevo {
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -27,10 +27,10 @@
     cursor: pointer;
     transition: background 0.15s, transform 0.1s;
 }
-.pparam-btn-nuevo:hover { background: #0d3a7a; transform: translateY(-1px); }
-.pparam-btn-nuevo:active { transform: translateY(0); }
+.cm-btn-nuevo:hover { background: #0d3a7a; transform: translateY(-1px); }
+.cm-btn-nuevo:active { transform: translateY(0); }
 
-.pparam-btn-editar {
+.cm-btn-editar {
     display: inline-flex;
     justify-content: center;
     align-items: center;
@@ -43,12 +43,11 @@
     cursor: pointer;
     transition: transform 0.12s, box-shadow 0.12s, background 0.12s;
 }
-.pparam-btn-editar:hover { background: #ffe7c4; transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+.cm-btn-editar:hover { background: #ffe7c4; transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
 
 /* ── Modal ── */
 .modal-overlay {
-    position: fixed;
-    inset: 0;
+    position: fixed; inset: 0;
     background: rgba(0, 0, 0, 0.45);
     display: none;
     align-items: flex-start;
@@ -63,7 +62,7 @@
     border-radius: 12px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
     width: 100%;
-    max-width: 880px;
+    max-width: 720px;
     overflow: hidden;
     animation: modalIn 0.18s ease;
 }
@@ -80,8 +79,7 @@
 .modal-head h2 {
     margin: 0;
     font-family: var(--fuente);
-    font-size: 18px;
-    font-weight: 700;
+    font-size: 18px; font-weight: 700;
     color: var(--azul-rey);
 }
 .modal-close {
@@ -104,11 +102,8 @@
     letter-spacing: 0.4px;
 }
 .form-field label .req { color: #c5221f; margin-left: 2px; }
-.form-field input,
-.form-field select {
-    width: 100%;
-    min-width: 0;
-    box-sizing: border-box;
+.form-field input {
+    width: 100%; min-width: 0; box-sizing: border-box;
     padding: 8px 10px;
     border: 1px solid #d0d5dd;
     border-radius: 6px;
@@ -118,9 +113,7 @@
     background: #fff;
     transition: border-color 0.1s, box-shadow 0.1s;
 }
-.form-field select { text-overflow: ellipsis; }
-.form-field input:focus,
-.form-field select:focus {
+.form-field input:focus {
     outline: none;
     border-color: var(--azul-rey);
     box-shadow: 0 0 0 3px rgba(18, 60, 126, 0.12);
@@ -165,56 +158,56 @@
     {% include 'includes/btn_volver.html' with href='/administrador/' label='Volver al administrador' %}
     <div class="admin-tabla-header">
         <h1 class="admin-tabla-titulo">
-            <i class="fa fa-cogs" style="color:var(--naranja);margin-right:8px"></i>
-            Parámetros área / programa
+            <i class="fa fa-file-contract" style="color:var(--naranja);margin-right:8px"></i>
+            Contratos marco
         </h1>
     </div>
 
-    <div class="pparam-header-actions">
-        <span style="font-size:13px;color:#888">{{ areas|length }} parámetro(s) registrado(s)</span>
-        <button type="button" class="pparam-btn-nuevo" id="btnAbrirNuevoParam">
-            <i class="fa fa-plus"></i> Nuevo parámetro
+    <div class="cm-header-actions">
+        <span style="font-size:13px;color:#888">{{ contratos_marco|length }} contrato(s) marco registrado(s)</span>
+        <button type="button" class="cm-btn-nuevo" id="btnAbrirNuevoCm">
+            <i class="fa fa-plus"></i> Nuevo contrato marco
         </button>
     </div>
 
     <div class="admin-tabla-wrapper">
         <div class="bloqueTabla">
-            <table id="tablaParametrosPrograma">
+            <table id="tablaContratosMarco">
                 <thead>
                     <tr>
                         <th>Id</th>
-                        <th>Área</th>
-                        <th>Regional</th>
-                        <th>Unidad funcional</th>
-                        <th>Punto de atención</th>
-                        <th>Centro de costo</th>
-                        <th>Sede</th>
+                        <th>Número</th>
+                        <th>Contrato subsidiado</th>
+                        <th>Contrato contributivo</th>
+                        <th>Observación</th>
+                        <th>Creado</th>
+                        <th>Actualizado</th>
                         <th style="text-align:center">Editar</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for area in areas %}
+                    {% for cm in contratos_marco %}
                     <tr>
-                        <td>{{ area.id }}</td>
-                        <td>{{ area.area_programa }}</td>
-                        <td>{{ area.regional }}</td>
-                        <td>{{ area.unidad_funcional }}</td>
-                        <td>{{ area.punto_atencion }}</td>
-                        <td>{{ area.centro_costo }}</td>
-                        <td>{{ area.sede }}</td>
+                        <td>{{ cm.id }}</td>
+                        <td><strong>{{ cm.numero }}</strong></td>
+                        <td>{% if cm.contrato_subsidiado %}{{ cm.contrato_subsidiado.codigo }} — {{ cm.contrato_subsidiado.empresa }}{% else %}—{% endif %}</td>
+                        <td>{% if cm.contrato_contributivo %}{{ cm.contrato_contributivo.codigo }} — {{ cm.contrato_contributivo.empresa }}{% else %}—{% endif %}</td>
+                        <td>{{ cm.observacion|default:"—" }}</td>
+                        <td>{{ cm.created_at|date:"d/m/Y H:i" }}</td>
+                        <td>{{ cm.updated_at|date:"d/m/Y H:i" }}</td>
                         <td style="text-align:center">
                             <button type="button"
-                                    class="pparam-btn-editar"
-                                    data-id="{{ area.id }}"
-                                    data-area-programa-id="{{ area.area_programa_id|default_if_none:'' }}"
-                                    data-regional-id="{{ area.regional_id|default_if_none:'' }}"
-                                    data-sede-id="{{ area.sede_id|default_if_none:'' }}"
-                                    data-unidad-funcional-id="{{ area.unidad_funcional_id|default_if_none:'' }}"
-                                    data-punto-atencion-id="{{ area.punto_atencion_id|default_if_none:'' }}"
-                                    data-centro-costo-id="{{ area.centro_costo_id|default_if_none:'' }}"
+                                    class="cm-btn-editar"
+                                    data-id="{{ cm.id }}"
+                                    data-numero="{{ cm.numero }}"
+                                    data-subsidiado-id="{{ cm.contrato_subsidiado_id|default_if_none:'' }}"
+                                    data-contributivo-id="{{ cm.contrato_contributivo_id|default_if_none:'' }}"
+                                    data-observacion="{{ cm.observacion|default_if_none:'' }}"
                                     title="Editar">✏️</button>
                         </td>
                     </tr>
+                    {% empty %}
+                    <tr><td colspan="8" style="text-align:center;color:#888;padding:20px">Sin contratos marco registrados</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -222,93 +215,61 @@
     </div>
 </div>
 
-<!-- Modal: nuevo parámetro -->
-<div class="modal-overlay" id="modalNuevoParam" role="dialog" aria-modal="true" aria-labelledby="tituloModalNuevoParam">
+<!-- Modal: crear / editar -->
+<div class="modal-overlay" id="modalCm" role="dialog" aria-modal="true" aria-labelledby="tituloModalCm">
     <div class="modal-card">
         <div class="modal-head">
-            <h2 id="tituloModalNuevoParam">Nuevo parámetro de área / programa</h2>
-            <button type="button" class="modal-close" id="btnCerrarNuevoParam" aria-label="Cerrar">×</button>
+            <h2 id="tituloModalCm">Nuevo contrato marco</h2>
+            <button type="button" class="modal-close" id="btnCerrarCm" aria-label="Cerrar">×</button>
         </div>
-        <form id="formNuevoParam" novalidate>
-            <input type="hidden" id="p_id" value="">
+        <form id="formCm" novalidate>
+            <input type="hidden" id="cm_id" value="">
             <div class="modal-body">
                 <div class="form-grid">
 
-                    <div class="form-field">
-                        <label for="p_area">Área de programa <span class="req">*</span></label>
-                        <select id="p_area" name="area_programa_id" required>
-                            <option value="">Seleccione...</option>
-                            {% for a in areas_programa %}
-                            <option value="{{ a.id }}">{{ a.identificador }} — {{ a.nombre }}</option>
-                            {% endfor %}
-                        </select>
+                    <div class="form-field form-field--full">
+                        <label for="cm_numero">Número <span class="req">*</span></label>
+                        <input type="text" id="cm_numero" name="numero" maxlength="50" required>
+                        <small>Identificador único del contrato marco (máx. 50 caracteres)</small>
                     </div>
 
                     <div class="form-field">
-                        <label for="p_regional">Regional <span class="req">*</span></label>
-                        <select id="p_regional" name="regional_id" required>
-                            <option value="">Seleccione...</option>
-                            {% for r in regionales %}
-                            <option value="{{ r.id }}">{{ r.regional }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="form-field">
-                        <label for="p_sede">Sede <span class="req">*</span></label>
-                        <select id="p_sede" name="sede_id" required>
-                            <option value="">Seleccione...</option>
-                            {% for s in sedes %}
-                            <option value="{{ s.id }}">{{ s.razon_social }} ({{ s.ciudad }})</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="form-field">
-                        <label for="p_uf_display">Unidad funcional <span class="req">*</span></label>
-                        <input type="text" id="p_uf_display" list="listUf"
+                        <label for="cm_sub_display">Contrato subsidiado</label>
+                        <input type="text" id="cm_sub_display" list="listContratosSub"
                                placeholder="Escribe para buscar..." autocomplete="off">
-                        <input type="hidden" id="p_uf" name="unidad_funcional_id">
-                        <datalist id="listUf">
-                            {% for uf in unidades_funcionales %}
-                            <option data-id="{{ uf.id }}" value="{{ uf.codigo }} — {{ uf.descripcion }} (#{{ uf.id }})"></option>
+                        <input type="hidden" id="cm_sub" name="contrato_subsidiado_id">
+                        <datalist id="listContratosSub">
+                            {% for c in contratos %}
+                            <option data-id="{{ c.id }}" value="{{ c.codigo }} — {{ c.empresa }} ({{ c.numero }}) (#{{ c.id }})"></option>
                             {% endfor %}
                         </datalist>
-                        <small id="hintUf">{{ unidades_funcionales|length }} opciones — selecciona de la lista</small>
+                        <small id="hintSub">{{ contratos|length }} opciones — selecciona una o déjalo vacío</small>
                     </div>
 
                     <div class="form-field">
-                        <label for="p_pa_display">Punto de atención <span class="req">*</span></label>
-                        <input type="text" id="p_pa_display" list="listPa"
+                        <label for="cm_con_display">Contrato contributivo</label>
+                        <input type="text" id="cm_con_display" list="listContratosCon"
                                placeholder="Escribe para buscar..." autocomplete="off">
-                        <input type="hidden" id="p_pa" name="punto_atencion_id">
-                        <datalist id="listPa">
-                            {% for pa in puntos_atencion %}
-                            <option data-id="{{ pa.id }}" value="{{ pa.codigo }} — {{ pa.nombre }} (#{{ pa.id }})"></option>
+                        <input type="hidden" id="cm_con" name="contrato_contributivo_id">
+                        <datalist id="listContratosCon">
+                            {% for c in contratos %}
+                            <option data-id="{{ c.id }}" value="{{ c.codigo }} — {{ c.empresa }} ({{ c.numero }}) (#{{ c.id }})"></option>
                             {% endfor %}
                         </datalist>
-                        <small id="hintPa">{{ puntos_atencion|length }} opciones — selecciona de la lista</small>
+                        <small id="hintCon">{{ contratos|length }} opciones — selecciona una o déjalo vacío</small>
                     </div>
 
-                    <div class="form-field">
-                        <label for="p_cc_display">Centro de costo <span class="req">*</span></label>
-                        <input type="text" id="p_cc_display" list="listCc"
-                               placeholder="Escribe para buscar..." autocomplete="off">
-                        <input type="hidden" id="p_cc" name="centro_costo_id">
-                        <datalist id="listCc">
-                            {% for cc in centros_costo %}
-                            <option data-id="{{ cc.id }}" value="{{ cc.codigo }} — {{ cc.nombre }} (#{{ cc.id }})"></option>
-                            {% endfor %}
-                        </datalist>
-                        <small id="hintCc">{{ centros_costo|length }} opciones — selecciona de la lista</small>
+                    <div class="form-field form-field--full">
+                        <label for="cm_observacion">Observación</label>
+                        <input type="text" id="cm_observacion" name="observacion" maxlength="150">
                     </div>
 
                 </div>
                 <div class="modal-msg" id="modalMsg"></div>
             </div>
             <div class="modal-foot">
-                <button type="button" class="btn-ghost" id="btnCancelarNuevoParam">Cancelar</button>
-                <button type="submit" class="btn-primary" id="btnGuardarNuevoParam">Guardar</button>
+                <button type="button" class="btn-ghost" id="btnCancelarCm">Cancelar</button>
+                <button type="submit" class="btn-primary" id="btnGuardarCm">Guardar</button>
             </div>
         </form>
     </div>
@@ -318,24 +279,22 @@
 {% block javascripts %}
 <script>
 (function () {
-    const overlay  = document.getElementById('modalNuevoParam');
-    const titulo   = document.getElementById('tituloModalNuevoParam');
-    const btnAbrir = document.getElementById('btnAbrirNuevoParam');
-    const btnCerrar= document.getElementById('btnCerrarNuevoParam');
-    const btnCancel= document.getElementById('btnCancelarNuevoParam');
-    const form     = document.getElementById('formNuevoParam');
-    const pId      = document.getElementById('p_id');
-    const pArea    = document.getElementById('p_area');
-    const pRegional= document.getElementById('p_regional');
-    const pSede    = document.getElementById('p_sede');
+    const overlay  = document.getElementById('modalCm');
+    const titulo   = document.getElementById('tituloModalCm');
+    const btnAbrir = document.getElementById('btnAbrirNuevoCm');
+    const btnCerrar= document.getElementById('btnCerrarCm');
+    const btnCancel= document.getElementById('btnCancelarCm');
+    const form     = document.getElementById('formCm');
+    const cmId     = document.getElementById('cm_id');
+    const cmNumero = document.getElementById('cm_numero');
+    const cmObs    = document.getElementById('cm_observacion');
     const msg      = document.getElementById('modalMsg');
-    const btnGuard = document.getElementById('btnGuardarNuevoParam');
+    const btnGuard = document.getElementById('btnGuardarCm');
 
-    /* Wiring de los 3 autocompletes: display → hidden via data-id del datalist */
+    /* Autocompletes opcionales — si se escribe algo debe resolver a un id del datalist */
     const autoFields = [
-        { display: 'p_uf_display', hidden: 'p_uf', list: 'listUf', hint: 'hintUf', label: 'Unidad funcional' },
-        { display: 'p_pa_display', hidden: 'p_pa', list: 'listPa', hint: 'hintPa', label: 'Punto de atención' },
-        { display: 'p_cc_display', hidden: 'p_cc', list: 'listCc', hint: 'hintCc', label: 'Centro de costo' },
+        { display: 'cm_sub_display', hidden: 'cm_sub', list: 'listContratosSub', hint: 'hintSub', label: 'Contrato subsidiado' },
+        { display: 'cm_con_display', hidden: 'cm_con', list: 'listContratosCon', hint: 'hintCon', label: 'Contrato contributivo' },
     ].map(cfg => {
         const map = {};
         document.querySelectorAll('#' + cfg.list + ' option').forEach(opt => {
@@ -351,6 +310,13 @@
 
     function resolverAuto(cfg) {
         const v = cfg.displayEl.value.trim();
+        if (v === '') {
+            cfg.hiddenEl.value = '';
+            cfg.displayEl.style.borderColor = '';
+            cfg.hintEl.textContent = cfg.defaultHint;
+            cfg.hintEl.style.color = '#888';
+            return;
+        }
         if (cfg.map[v]) {
             cfg.hiddenEl.value = cfg.map[v];
             cfg.displayEl.style.borderColor = '#137333';
@@ -358,15 +324,9 @@
             cfg.hintEl.style.color = '#137333';
         } else {
             cfg.hiddenEl.value = '';
-            if (v.length > 0) {
-                cfg.displayEl.style.borderColor = '#c5221f';
-                cfg.hintEl.textContent = 'Selecciona una opción de la lista';
-                cfg.hintEl.style.color = '#c5221f';
-            } else {
-                cfg.displayEl.style.borderColor = '';
-                cfg.hintEl.textContent = cfg.defaultHint;
-                cfg.hintEl.style.color = '#888';
-            }
+            cfg.displayEl.style.borderColor = '#c5221f';
+            cfg.hintEl.textContent = 'Selecciona una opción de la lista';
+            cfg.hintEl.style.color = '#c5221f';
         }
     }
     autoFields.forEach(cfg => {
@@ -391,37 +351,32 @@
     }
 
     function abrirCrear() {
-        titulo.textContent = 'Nuevo parámetro de área / programa';
-        pId.value = '';
+        titulo.textContent = 'Nuevo contrato marco';
+        cmId.value = '';
         form.reset();
         limpiarAutos();
         msg.className = 'modal-msg'; msg.textContent = '';
         overlay.classList.add('visible');
-        setTimeout(() => pArea.focus(), 50);
+        setTimeout(() => cmNumero.focus(), 50);
     }
 
     function abrirEditar(d) {
-        titulo.textContent = 'Editar parámetro #' + d.id;
-        pId.value = d.id;
-        pArea.value     = d.areaProgramaId     || '';
-        pRegional.value = d.regionalId         || '';
-        pSede.value     = d.sedeId             || '';
-
-        // Pre-cargar los 3 autocompletes con el texto visible del datalist
-        document.getElementById('p_uf_display').value = displayFromId('listUf', d.unidadFuncionalId);
-        document.getElementById('p_pa_display').value = displayFromId('listPa', d.puntoAtencionId);
-        document.getElementById('p_cc_display').value = displayFromId('listCc', d.centroCostoId);
+        titulo.textContent = 'Editar contrato marco #' + d.id;
+        cmId.value = d.id;
+        cmNumero.value = d.numero || '';
+        cmObs.value    = d.observacion || '';
+        document.getElementById('cm_sub_display').value = displayFromId('listContratosSub', d.subsidiadoId);
+        document.getElementById('cm_con_display').value = displayFromId('listContratosCon', d.contributivoId);
         autoFields.forEach(resolverAuto);
-
         msg.className = 'modal-msg'; msg.textContent = '';
         overlay.classList.add('visible');
-        setTimeout(() => pArea.focus(), 50);
+        setTimeout(() => cmNumero.focus(), 50);
     }
 
     function cerrar() {
         overlay.classList.remove('visible');
         form.reset();
-        pId.value = '';
+        cmId.value = '';
         limpiarAutos();
         msg.className = 'modal-msg';
         msg.textContent = '';
@@ -437,16 +392,14 @@
 
     // Delegación de eventos: DataTables recrea las filas al ordenar/filtrar.
     document.addEventListener('click', (e) => {
-        const btn = e.target.closest('.pparam-btn-editar');
+        const btn = e.target.closest('.cm-btn-editar');
         if (!btn) return;
         abrirEditar({
-            id:                 btn.dataset.id,
-            areaProgramaId:     btn.dataset.areaProgramaId,
-            regionalId:         btn.dataset.regionalId,
-            sedeId:             btn.dataset.sedeId,
-            unidadFuncionalId:  btn.dataset.unidadFuncionalId,
-            puntoAtencionId:    btn.dataset.puntoAtencionId,
-            centroCostoId:      btn.dataset.centroCostoId,
+            id:             btn.dataset.id,
+            numero:         btn.dataset.numero,
+            subsidiadoId:   btn.dataset.subsidiadoId,
+            contributivoId: btn.dataset.contributivoId,
+            observacion:    btn.dataset.observacion,
         });
     });
 
@@ -455,7 +408,7 @@
         msg.className = 'modal-msg';
         msg.textContent = '';
 
-        /* Pre-validación client-side de los autocompletes */
+        /* Validación: si el display tiene texto, el hidden debe estar resuelto */
         const autoInvalidos = autoFields.filter(cfg => cfg.displayEl.value.trim() && !cfg.hiddenEl.value);
         if (autoInvalidos.length) {
             msg.className = 'modal-msg modal-msg--error';
@@ -468,8 +421,8 @@
         const data = {};
         new FormData(form).forEach((v, k) => { data[k] = v; });
 
-        const esEdicion = !!pId.value;
-        const url = esEdicion ? `/editarParametrosAreaPrograma/${pId.value}/` : '/crearParametrosAreaPrograma/';
+        const esEdicion = !!cmId.value;
+        const url = esEdicion ? `/editarContratoMarco/${cmId.value}/` : '/crearContratoMarco/';
 
         btnGuard.disabled = true;
         btnGuard.textContent = esEdicion ? 'Actualizando...' : 'Guardando...';
@@ -486,15 +439,15 @@
             const payload = await resp.json().catch(() => ({}));
             if (!resp.ok || !payload.ok) {
                 msg.className = 'modal-msg modal-msg--error';
-                msg.textContent = payload.error || (esEdicion ? 'No se pudo actualizar el parámetro' : 'No se pudo crear el parámetro');
+                msg.textContent = payload.error || (esEdicion ? 'No se pudo actualizar el contrato marco' : 'No se pudo crear el contrato marco');
                 btnGuard.disabled = false;
                 btnGuard.textContent = 'Guardar';
                 return;
             }
             msg.className = 'modal-msg modal-msg--success';
             msg.textContent = esEdicion
-                ? `Parámetro #${payload.parametros.id} actualizado. Recargando listado...`
-                : `Parámetro creado (#${payload.parametros.id}). Recargando listado...`;
+                ? `Contrato marco #${payload.contrato_marco.id} actualizado. Recargando listado...`
+                : `Contrato marco "${payload.contrato_marco.numero}" creado (#${payload.contrato_marco.id}). Recargando listado...`;
             setTimeout(() => window.location.reload(), 700);
         } catch (err) {
             msg.className = 'modal-msg modal-msg--error';

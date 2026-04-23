@@ -89,3 +89,29 @@
     color: var(--blanco);
     border-color: var(--azul-rey);
 }
+
+/* ── Botón Volver (navegación entre vistas) ── */
+.btn-volver {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    margin-bottom: 12px;
+    background: #fff;
+    color: var(--azul-rey);
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    font-family: var(--fuente);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s, transform 0.1s;
+}
+.btn-volver:hover {
+    background: #f4f6f8;
+    border-color: var(--azul-rey);
+    transform: translateX(-2px);
+}
+.btn-volver:active { transform: translateX(0); }
+.btn-volver i { font-size: 12px; }
