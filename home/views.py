@@ -204,6 +204,67 @@ def crear_tipo_actividad(request):
         },
     })
 
+
+@login_required(login_url="/login/")
+def editar_tipo_actividad(request, id_tipo):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "Método no permitido"}, status=405)
+
+    try:
+        tipo = TipoActividad.objects.get(id=id_tipo)
+    except TipoActividad.DoesNotExist:
+        return JsonResponse({"ok": False, "error": "Tipo de actividad no encontrado"}, status=404)
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        return JsonResponse({"ok": False, "error": "JSON inválido"}, status=400)
+
+    requeridos = {
+        "nombre": "Nombre",
+        "cups": "CUPS",
+        "contrato_id": "Contrato",
+        "tipo_servicio_id": "Tipo de servicio",
+        "area_id": "Área",
+    }
+    faltantes = [etiqueta for campo, etiqueta in requeridos.items() if not data.get(campo)]
+    if faltantes:
+        return JsonResponse(
+            {"ok": False, "error": f"Campos requeridos: {', '.join(faltantes)}"},
+            status=400,
+        )
+
+    try:
+        contrato = ContratoMarco.objects.get(id=data["contrato_id"])
+        tipo_servicio = TipoServicio.objects.get(id=data["tipo_servicio_id"])
+        area = AreaPrograma.objects.get(id=data["area_id"])
+    except (ContratoMarco.DoesNotExist, TipoServicio.DoesNotExist, AreaPrograma.DoesNotExist):
+        return JsonResponse({"ok": False, "error": "Contrato, tipo de servicio o área no válidos"}, status=400)
+
+    tipo.nombre = data["nombre"].strip()
+    tipo.cups = data["cups"].strip()
+    tipo.grupo = (data.get("grupo") or "").strip() or None
+    tipo.responsable = (data.get("responsable") or "").strip() or None
+    tipo.diagnostico = (data.get("diagnostico") or "").strip() or None
+    tipo.finalidad = (data.get("finalidad") or "").strip() or None
+    tipo.fuente = (data.get("fuente") or "").strip() or None
+    tipo.observacion = (data.get("observacion") or "").strip() or None
+    tipo.entrega = (data.get("entrega") or "").strip() or None
+    tipo.contrato = contrato
+    tipo.tipo_servicio = tipo_servicio
+    tipo.area = area
+    tipo.save()
+
+    return JsonResponse({
+        "ok": True,
+        "tipo": {
+            "id": tipo.id,
+            "nombre": tipo.nombre,
+            "cups": tipo.cups,
+        },
+    })
+
+
 @login_required(login_url="/login/")
 def vista_areas_programa(request):
     areas = AreaPrograma.objects.order_by("identificador")
@@ -361,6 +422,66 @@ def crear_parametros_area_programa(request):
             "regional": str(parametros.regional),
         },
     })
+
+
+@login_required(login_url="/login/")
+def editar_parametros_area_programa(request, id_parametros):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "Método no permitido"}, status=405)
+
+    try:
+        parametros = ParametrosAreaPrograma.objects.get(id=id_parametros)
+    except ParametrosAreaPrograma.DoesNotExist:
+        return JsonResponse({"ok": False, "error": "Parámetro no encontrado"}, status=404)
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        return JsonResponse({"ok": False, "error": "JSON inválido"}, status=400)
+
+    requeridos = {
+        "area_programa_id": ("Área de programa", AreaPrograma),
+        "regional_id": ("Regional", Regional),
+        "unidad_funcional_id": ("Unidad funcional", UnidadFuncional),
+        "punto_atencion_id": ("Punto de atención", PuntoAtencion),
+        "centro_costo_id": ("Centro de costo", CentroCosto),
+        "sede_id": ("Sede", Sede),
+    }
+
+    faltantes = [label for campo, (label, _) in requeridos.items() if not data.get(campo)]
+    if faltantes:
+        return JsonResponse(
+            {"ok": False, "error": f"Campos requeridos: {', '.join(faltantes)}"},
+            status=400,
+        )
+
+    resueltos = {}
+    for campo, (label, Modelo) in requeridos.items():
+        try:
+            resueltos[campo.replace("_id", "")] = Modelo.objects.get(id=data[campo])
+        except Modelo.DoesNotExist:
+            return JsonResponse(
+                {"ok": False, "error": f"{label} no válido (id {data[campo]})"},
+                status=400,
+            )
+
+    parametros.area_programa = resueltos["area_programa"]
+    parametros.regional = resueltos["regional"]
+    parametros.unidad_funcional = resueltos["unidad_funcional"]
+    parametros.punto_atencion = resueltos["punto_atencion"]
+    parametros.centro_costo = resueltos["centro_costo"]
+    parametros.sede = resueltos["sede"]
+    parametros.save()
+
+    return JsonResponse({
+        "ok": True,
+        "parametros": {
+            "id": parametros.id,
+            "area": str(parametros.area_programa),
+            "regional": str(parametros.regional),
+        },
+    })
+
 
 @login_required(login_url="/login/")
 def informe_cargas(request):

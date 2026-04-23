@@ -30,6 +30,21 @@
 .tipos-btn-nuevo:hover { background: #0d3a7a; transform: translateY(-1px); }
 .tipos-btn-nuevo:active { transform: translateY(0); }
 
+.tipos-btn-editar {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    font-size: 15px;
+    background: #fff4e5;
+    color: #b06a00;
+    border: 1px solid #f5d0a0;
+    cursor: pointer;
+    transition: transform 0.12s, box-shadow 0.12s, background 0.12s;
+}
+.tipos-btn-editar:hover { background: #ffe7c4; transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+
 /* ── Modal ── */
 .modal-overlay {
     position: fixed;
@@ -205,6 +220,7 @@
                         <th>Contrato</th>
                         <th>Tipo servicio</th>
                         <th>Área</th>
+                        <th style="text-align:center">Editar</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -223,6 +239,24 @@
                         <td>{{ tipo.contrato }}</td>
                         <td>{{ tipo.tipo_servicio }}</td>
                         <td>{{ tipo.area }}</td>
+                        <td style="text-align:center">
+                            <button type="button"
+                                    class="tipos-btn-editar"
+                                    data-id="{{ tipo.id }}"
+                                    data-grupo="{{ tipo.grupo|default_if_none:'' }}"
+                                    data-nombre="{{ tipo.nombre|default_if_none:'' }}"
+                                    data-cups="{{ tipo.cups|default_if_none:'' }}"
+                                    data-responsable="{{ tipo.responsable|default_if_none:'' }}"
+                                    data-diagnostico="{{ tipo.diagnostico|default_if_none:'' }}"
+                                    data-finalidad="{{ tipo.finalidad|default_if_none:'' }}"
+                                    data-fuente="{{ tipo.fuente|default_if_none:'' }}"
+                                    data-observacion="{{ tipo.observacion|default_if_none:'' }}"
+                                    data-entrega="{{ tipo.entrega|default_if_none:'' }}"
+                                    data-contrato-id="{{ tipo.contrato_id|default_if_none:'' }}"
+                                    data-tipo-servicio-id="{{ tipo.tipo_servicio_id|default_if_none:'' }}"
+                                    data-area-id="{{ tipo.area_id|default_if_none:'' }}"
+                                    title="Editar">✏️</button>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -239,6 +273,7 @@
             <button type="button" class="modal-close" id="btnCerrarNuevoTipo" aria-label="Cerrar">×</button>
         </div>
         <form id="formNuevoTipo" novalidate>
+            <input type="hidden" id="f_id" value="">
             <div class="modal-body">
                 <div class="form-grid">
 
@@ -334,10 +369,12 @@
 <script>
 (function () {
     const overlay  = document.getElementById('modalNuevoTipo');
+    const titulo   = document.getElementById('tituloModalNuevoTipo');
     const btnAbrir = document.getElementById('btnAbrirNuevoTipo');
     const btnCerrar= document.getElementById('btnCerrarNuevoTipo');
     const btnCancel= document.getElementById('btnCancelarNuevoTipo');
     const form     = document.getElementById('formNuevoTipo');
+    const fId      = document.getElementById('f_id');
     const msg      = document.getElementById('modalMsg');
     const btnGuard = document.getElementById('btnGuardarNuevoTipo');
     const tsDisplay= document.getElementById('f_tipo_servicio_display');
@@ -373,10 +410,49 @@
     tsDisplay.addEventListener('input', resolverTipoServicio);
     tsDisplay.addEventListener('change', resolverTipoServicio);
 
-    function abrir()  { overlay.classList.add('visible'); setTimeout(()=> document.getElementById('f_nombre').focus(), 50); }
+    function tsDisplayFromId(id) {
+        if (!id) return '';
+        const opt = document.querySelector('#listTiposServicio option[data-id="' + id + '"]');
+        return opt ? opt.value : '';
+    }
+
+    function abrirCrear() {
+        titulo.textContent = 'Nuevo tipo de actividad';
+        fId.value = '';
+        form.reset();
+        tsHidden.value = '';
+        tsDisplay.value = '';
+        resolverTipoServicio();
+        msg.className = 'modal-msg'; msg.textContent = '';
+        overlay.classList.add('visible');
+        setTimeout(() => document.getElementById('f_nombre').focus(), 50);
+    }
+
+    function abrirEditar(d) {
+        titulo.textContent = 'Editar tipo de actividad #' + d.id;
+        fId.value = d.id;
+        document.getElementById('f_nombre').value       = d.nombre       || '';
+        document.getElementById('f_cups').value         = d.cups         || '';
+        document.getElementById('f_grupo').value        = d.grupo        || '';
+        document.getElementById('f_responsable').value  = d.responsable  || '';
+        document.getElementById('f_diagnostico').value  = d.diagnostico  || '';
+        document.getElementById('f_finalidad').value    = d.finalidad    || '';
+        document.getElementById('f_fuente').value       = d.fuente       || '';
+        document.getElementById('f_entrega').value      = d.entrega      || '';
+        document.getElementById('f_observacion').value  = d.observacion  || '';
+        document.getElementById('f_contrato').value     = d.contratoId   || '';
+        document.getElementById('f_area').value         = d.areaId       || '';
+        tsDisplay.value = tsDisplayFromId(d.tipoServicioId);
+        resolverTipoServicio();
+        msg.className = 'modal-msg'; msg.textContent = '';
+        overlay.classList.add('visible');
+        setTimeout(() => document.getElementById('f_nombre').focus(), 50);
+    }
+
     function cerrar() {
         overlay.classList.remove('visible');
         form.reset();
+        fId.value = '';
         tsHidden.value = '';
         tsDisplay.style.borderColor = '';
         tsHint.textContent = Object.keys(tsMap).length + ' opciones disponibles — selecciona una de la lista';
@@ -387,7 +463,29 @@
         btnGuard.textContent = 'Guardar';
     }
 
-    btnAbrir.addEventListener('click', abrir);
+    btnAbrir.addEventListener('click', abrirCrear);
+
+    // Delegación de eventos: DataTables recrea las filas al ordenar/filtrar,
+    // por lo que no podemos attachar listeners directamente a cada botón.
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.tipos-btn-editar');
+        if (!btn) return;
+        abrirEditar({
+            id:             btn.dataset.id,
+            grupo:          btn.dataset.grupo,
+            nombre:         btn.dataset.nombre,
+            cups:           btn.dataset.cups,
+            responsable:    btn.dataset.responsable,
+            diagnostico:    btn.dataset.diagnostico,
+            finalidad:      btn.dataset.finalidad,
+            fuente:         btn.dataset.fuente,
+            observacion:    btn.dataset.observacion,
+            entrega:        btn.dataset.entrega,
+            contratoId:     btn.dataset.contratoId,
+            tipoServicioId: btn.dataset.tipoServicioId,
+            areaId:         btn.dataset.areaId,
+        });
+    });
     btnCerrar.addEventListener('click', cerrar);
     btnCancel.addEventListener('click', cerrar);
     overlay.addEventListener('click', (e) => { if (e.target === overlay) cerrar(); });
@@ -408,11 +506,14 @@
         const data = {};
         new FormData(form).forEach((v, k) => { data[k] = v; });
 
+        const esEdicion = !!fId.value;
+        const url = esEdicion ? `/editarTipoActividad/${fId.value}/` : '/crearTipoActividad/';
+
         btnGuard.disabled = true;
-        btnGuard.textContent = 'Guardando...';
+        btnGuard.textContent = esEdicion ? 'Actualizando...' : 'Guardando...';
 
         try {
-            const resp = await fetch('/crearTipoActividad/', {
+            const resp = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -423,13 +524,15 @@
             const payload = await resp.json().catch(() => ({}));
             if (!resp.ok || !payload.ok) {
                 msg.className = 'modal-msg modal-msg--error';
-                msg.textContent = payload.error || 'No se pudo crear el tipo de actividad';
+                msg.textContent = payload.error || (esEdicion ? 'No se pudo actualizar' : 'No se pudo crear el tipo de actividad');
                 btnGuard.disabled = false;
                 btnGuard.textContent = 'Guardar';
                 return;
             }
             msg.className = 'modal-msg modal-msg--success';
-            msg.textContent = `Tipo "${payload.tipo.nombre}" creado (#${payload.tipo.id}). Recargando listado...`;
+            msg.textContent = esEdicion
+                ? `Tipo #${payload.tipo.id} actualizado. Recargando listado...`
+                : `Tipo "${payload.tipo.nombre}" creado (#${payload.tipo.id}). Recargando listado...`;
             setTimeout(() => window.location.reload(), 700);
         } catch (err) {
             msg.className = 'modal-msg modal-msg--error';

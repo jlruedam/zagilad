@@ -30,6 +30,21 @@
 .pparam-btn-nuevo:hover { background: #0d3a7a; transform: translateY(-1px); }
 .pparam-btn-nuevo:active { transform: translateY(0); }
 
+.pparam-btn-editar {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    font-size: 15px;
+    background: #fff4e5;
+    color: #b06a00;
+    border: 1px solid #f5d0a0;
+    cursor: pointer;
+    transition: transform 0.12s, box-shadow 0.12s, background 0.12s;
+}
+.pparam-btn-editar:hover { background: #ffe7c4; transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+
 /* ── Modal ── */
 .modal-overlay {
     position: fixed;
@@ -173,6 +188,7 @@
                         <th>Punto de atención</th>
                         <th>Centro de costo</th>
                         <th>Sede</th>
+                        <th style="text-align:center">Editar</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -185,6 +201,18 @@
                         <td>{{ area.punto_atencion }}</td>
                         <td>{{ area.centro_costo }}</td>
                         <td>{{ area.sede }}</td>
+                        <td style="text-align:center">
+                            <button type="button"
+                                    class="pparam-btn-editar"
+                                    data-id="{{ area.id }}"
+                                    data-area-programa-id="{{ area.area_programa_id|default_if_none:'' }}"
+                                    data-regional-id="{{ area.regional_id|default_if_none:'' }}"
+                                    data-sede-id="{{ area.sede_id|default_if_none:'' }}"
+                                    data-unidad-funcional-id="{{ area.unidad_funcional_id|default_if_none:'' }}"
+                                    data-punto-atencion-id="{{ area.punto_atencion_id|default_if_none:'' }}"
+                                    data-centro-costo-id="{{ area.centro_costo_id|default_if_none:'' }}"
+                                    title="Editar">✏️</button>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -201,6 +229,7 @@
             <button type="button" class="modal-close" id="btnCerrarNuevoParam" aria-label="Cerrar">×</button>
         </div>
         <form id="formNuevoParam" novalidate>
+            <input type="hidden" id="p_id" value="">
             <div class="modal-body">
                 <div class="form-grid">
 
@@ -289,10 +318,15 @@
 <script>
 (function () {
     const overlay  = document.getElementById('modalNuevoParam');
+    const titulo   = document.getElementById('tituloModalNuevoParam');
     const btnAbrir = document.getElementById('btnAbrirNuevoParam');
     const btnCerrar= document.getElementById('btnCerrarNuevoParam');
     const btnCancel= document.getElementById('btnCancelarNuevoParam');
     const form     = document.getElementById('formNuevoParam');
+    const pId      = document.getElementById('p_id');
+    const pArea    = document.getElementById('p_area');
+    const pRegional= document.getElementById('p_regional');
+    const pSede    = document.getElementById('p_sede');
     const msg      = document.getElementById('modalMsg');
     const btnGuard = document.getElementById('btnGuardarNuevoParam');
 
@@ -339,27 +373,81 @@
         cfg.displayEl.addEventListener('change', () => resolverAuto(cfg));
     });
 
-    function abrir()  { overlay.classList.add('visible'); setTimeout(()=> document.getElementById('p_area').focus(), 50); }
-    function cerrar() {
-        overlay.classList.remove('visible');
-        form.reset();
+    function displayFromId(listId, id) {
+        if (!id) return '';
+        const opt = document.querySelector('#' + listId + ' option[data-id="' + id + '"]');
+        return opt ? opt.value : '';
+    }
+
+    function limpiarAutos() {
         autoFields.forEach(cfg => {
             cfg.hiddenEl.value = '';
+            cfg.displayEl.value = '';
             cfg.displayEl.style.borderColor = '';
             cfg.hintEl.textContent = cfg.defaultHint;
             cfg.hintEl.style.color = '#888';
         });
+    }
+
+    function abrirCrear() {
+        titulo.textContent = 'Nuevo parámetro de área / programa';
+        pId.value = '';
+        form.reset();
+        limpiarAutos();
+        msg.className = 'modal-msg'; msg.textContent = '';
+        overlay.classList.add('visible');
+        setTimeout(() => pArea.focus(), 50);
+    }
+
+    function abrirEditar(d) {
+        titulo.textContent = 'Editar parámetro #' + d.id;
+        pId.value = d.id;
+        pArea.value     = d.areaProgramaId     || '';
+        pRegional.value = d.regionalId         || '';
+        pSede.value     = d.sedeId             || '';
+
+        // Pre-cargar los 3 autocompletes con el texto visible del datalist
+        document.getElementById('p_uf_display').value = displayFromId('listUf', d.unidadFuncionalId);
+        document.getElementById('p_pa_display').value = displayFromId('listPa', d.puntoAtencionId);
+        document.getElementById('p_cc_display').value = displayFromId('listCc', d.centroCostoId);
+        autoFields.forEach(resolverAuto);
+
+        msg.className = 'modal-msg'; msg.textContent = '';
+        overlay.classList.add('visible');
+        setTimeout(() => pArea.focus(), 50);
+    }
+
+    function cerrar() {
+        overlay.classList.remove('visible');
+        form.reset();
+        pId.value = '';
+        limpiarAutos();
         msg.className = 'modal-msg';
         msg.textContent = '';
         btnGuard.disabled = false;
         btnGuard.textContent = 'Guardar';
     }
 
-    btnAbrir.addEventListener('click', abrir);
+    btnAbrir.addEventListener('click', abrirCrear);
     btnCerrar.addEventListener('click', cerrar);
     btnCancel.addEventListener('click', cerrar);
     overlay.addEventListener('click', (e) => { if (e.target === overlay) cerrar(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && overlay.classList.contains('visible')) cerrar(); });
+
+    // Delegación de eventos: DataTables recrea las filas al ordenar/filtrar.
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.pparam-btn-editar');
+        if (!btn) return;
+        abrirEditar({
+            id:                 btn.dataset.id,
+            areaProgramaId:     btn.dataset.areaProgramaId,
+            regionalId:         btn.dataset.regionalId,
+            sedeId:             btn.dataset.sedeId,
+            unidadFuncionalId:  btn.dataset.unidadFuncionalId,
+            puntoAtencionId:    btn.dataset.puntoAtencionId,
+            centroCostoId:      btn.dataset.centroCostoId,
+        });
+    });
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -379,11 +467,14 @@
         const data = {};
         new FormData(form).forEach((v, k) => { data[k] = v; });
 
+        const esEdicion = !!pId.value;
+        const url = esEdicion ? `/editarParametrosAreaPrograma/${pId.value}/` : '/crearParametrosAreaPrograma/';
+
         btnGuard.disabled = true;
-        btnGuard.textContent = 'Guardando...';
+        btnGuard.textContent = esEdicion ? 'Actualizando...' : 'Guardando...';
 
         try {
-            const resp = await fetch('/crearParametrosAreaPrograma/', {
+            const resp = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -394,13 +485,15 @@
             const payload = await resp.json().catch(() => ({}));
             if (!resp.ok || !payload.ok) {
                 msg.className = 'modal-msg modal-msg--error';
-                msg.textContent = payload.error || 'No se pudo crear el parámetro';
+                msg.textContent = payload.error || (esEdicion ? 'No se pudo actualizar el parámetro' : 'No se pudo crear el parámetro');
                 btnGuard.disabled = false;
                 btnGuard.textContent = 'Guardar';
                 return;
             }
             msg.className = 'modal-msg modal-msg--success';
-            msg.textContent = `Parámetro creado (#${payload.parametros.id}). Recargando listado...`;
+            msg.textContent = esEdicion
+                ? `Parámetro #${payload.parametros.id} actualizado. Recargando listado...`
+                : `Parámetro creado (#${payload.parametros.id}). Recargando listado...`;
             setTimeout(() => window.location.reload(), 700);
         } catch (err) {
             msg.className = 'modal-msg modal-msg--error';

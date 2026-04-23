@@ -69,12 +69,14 @@ const tablaParametrosPrograma = $('#tablaParametrosPrograma').DataTable({
         }
     },
     columnDefs: [
-        // Siempre visibles: Id, Área, Regional
-        { responsivePriority: 1, targets: [0, 1, 2] },
+        // Siempre visibles: Id, Área, Regional, Editar
+        { responsivePriority: 1, targets: [0, 1, 2, 7] },
         // Alta: Unidad funcional, Punto atención
         { responsivePriority: 2, targets: [3, 4] },
         // Se ocultan primero: Centro costo, Sede
-        { responsivePriority: 10001, targets: [5, 6] }
+        { responsivePriority: 10001, targets: [5, 6] },
+        // Editar no es ordenable
+        { orderable: false, targets: [7] }
     ]
 });
 const tablaActividades = $('#tablaActividades').DataTable(); 
