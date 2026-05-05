@@ -387,11 +387,29 @@ def procesar_cargue_actividades(id_carga, datos, num_lote, cantidad_actividades,
             documentos_a_consultar.add(actividad.documento_paciente)
 
         # Consulta batch: una sola llamada a OPR_SALUD para todos los documentos válidos
-        try:
-            tipo_usuario_cache = utils.obtener_tipo_usuario_batch(list(documentos_a_consultar))
-        except Exception as e:
-            logger.error("Error en batch obtener_tipo_usuario: %s", e)
-            tipo_usuario_cache = {}
+        batch_error = None
+        tipo_usuario_cache = {}
+        if documentos_a_consultar:
+            try:
+                tipo_usuario_cache = utils.obtener_tipo_usuario_batch(list(documentos_a_consultar))
+            except Exception as e:
+                batch_error = e
+                logger.exception("Error en batch obtener_tipo_usuario para carga %s", id_carga)
+
+        # Diagnóstico: si había documentos por consultar pero el cache quedó vacío,
+        # la fuente OPR_SALUD está caída o sin datos — mensaje único para todas.
+        fuente_caida = bool(documentos_a_consultar) and not tipo_usuario_cache
+        if fuente_caida:
+            if batch_error is not None:
+                mensaje_fuente = (
+                    f"⚠️Error consultando OPR_SALUD: {type(batch_error).__name__}: {batch_error}"
+                )
+            else:
+                mensaje_fuente = (
+                    "⚠️Fuente OPR_SALUD sin datos: la tabla de afiliados está vacía o no respondió. "
+                    "Contactar al equipo de datos."
+                )
+            logger.error("Carga %s: %s", id_carga, mensaje_fuente)
 
         # 2ª pasada: asignar tipo_usuario a las actividades válidas
         for actividad in actividades_crear:
@@ -401,9 +419,12 @@ def procesar_cargue_actividades(id_carga, datos, num_lote, cantidad_actividades,
             tipo_usuario = tipo_usuario_cache.get(str(actividad.documento_paciente))
             if tipo_usuario:
                 actividad.tipo_usuario = tipo_usuario
+            elif fuente_caida:
+                actividad.inconsistencias = mensaje_fuente[:500]
             else:
                 actividad.inconsistencias = (
-                    "⚠️Error el consultar el Tipo de Usuario: documento no encontrado en OPR_SALUD"
+                    f"⚠️Tipo de Usuario: documento {actividad.documento_paciente} "
+                    f"no encontrado en OPR_SALUD"
                 )[:500]
 
         if actividades_crear:
@@ -488,12 +509,28 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
         .distinct()
     )
     tipo_usuario_preload = {}
+    tipo_usuario_preload_error = None
     if docs_sin_tipo_usuario:
         try:
             tipo_usuario_preload = utils.obtener_tipo_usuario_batch(docs_sin_tipo_usuario)
             logger.info("tipo_usuario pre-cargados: %s documentos", len(tipo_usuario_preload))
         except Exception as e:
-            logger.error("Error en batch tipo_usuario pre-carga admision: %s", e)
+            tipo_usuario_preload_error = e
+            logger.exception("Error en batch tipo_usuario pre-carga admision %s", carga.id)
+
+    # Si el preload trajo 0 docs habiendo pedido varios → fuente caída/vacía
+    fuente_tipo_usuario_caida = bool(docs_sin_tipo_usuario) and not tipo_usuario_preload
+    if fuente_tipo_usuario_caida:
+        if tipo_usuario_preload_error is not None:
+            logger.error(
+                "Carga %s: OPR_SALUD inaccesible para tipo_usuario (%s: %s)",
+                carga.id, type(tipo_usuario_preload_error).__name__, tipo_usuario_preload_error,
+            )
+        else:
+            logger.error(
+                "Carga %s: OPR_SALUD devolvió 0 afiliados para %s documentos — fuente vacía",
+                carga.id, len(docs_sin_tipo_usuario),
+            )
 
     # ── Caches de fallback (evitan queries individuales dentro del loop) ──
     tipos_actividad_cache = {
@@ -587,15 +624,36 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
                     if tipo_usuario:
                         actividad.tipo_usuario = tipo_usuario
                         update_fields.add("tipo_usuario")
+                    elif fuente_tipo_usuario_caida:
+                        update_fields.add("inconsistencias")
+                        if tipo_usuario_preload_error is not None:
+                            actividad.inconsistencias = (
+                                f"⚠️OPR_SALUD inaccesible: "
+                                f"{type(tipo_usuario_preload_error).__name__}: {tipo_usuario_preload_error}"
+                            )[:500]
+                        else:
+                            actividad.inconsistencias = (
+                                "⚠️Fuente OPR_SALUD sin datos: tabla de afiliados vacía. "
+                                "Contactar al equipo de datos."
+                            )[:500]
                     else:
                         try:
                             tipo_usuario_df = utils.obtener_tipo_usuario(actividad.documento_paciente)
                             actividad.tipo_usuario = tipo_usuario_df.loc[0][0]
                             tipo_usuario = actividad.tipo_usuario
                             update_fields.add("tipo_usuario")
+                        except (KeyError, IndexError):
+                            update_fields.add("inconsistencias")
+                            actividad.inconsistencias = (
+                                f"⚠️Tipo de Usuario: documento {actividad.documento_paciente} "
+                                f"no encontrado en OPR_SALUD"
+                            )[:500]
                         except Exception as e:
                             update_fields.add("inconsistencias")
-                            actividad.inconsistencias = ("⚠️Error el consultar el Tipo de Usuario:" + str(e))[:500]
+                            actividad.inconsistencias = (
+                                f"⚠️Error consultando Tipo de Usuario para {actividad.documento_paciente}: "
+                                f"{type(e).__name__}: {e}"
+                            )[:500]
 
                 admision_actividad = admision.crear_admision(
                     autoid=auto_id,
