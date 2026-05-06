@@ -23,6 +23,7 @@ from home.modules import notificaciones_email
 from home.modules import parametros_generales
 from home.modules import admision
 from home.modules import utils
+from home.modules import tipo_usuario as tipo_usuario_service
 
 logger = get_task_logger(__name__)
 
@@ -220,8 +221,17 @@ def procesar_actividad(carga, valores):
         # Obtener tipo de Usuario
         
         try:
-            tipo_usuario = utils.obtener_tipo_usuario(actividad.documento_paciente)            
-            actividad.tipo_usuario = tipo_usuario.loc[0][0]
+            tipo_usuario_codigo = tipo_usuario_service.obtener_tipo_usuario(
+                actividad.documento_paciente,
+                actividad.tipo_documento,
+            )
+            if tipo_usuario_codigo:
+                actividad.tipo_usuario = tipo_usuario_codigo
+            else:
+                actividad.inconsistencias = (
+                    f"⚠️Tipo de Usuario: documento {actividad.documento_paciente} "
+                    f"no encontrado en OPR_SALUD ni en API MUTUAL"
+                )[:500]
         except Exception as e:
             error = e
             actividad.inconsistencias = ("⚠️Error el consultar el Tipo de Usuario:" + str(error))[:500]
@@ -367,8 +377,8 @@ def procesar_cargue_actividades(id_carga, datos, num_lote, cantidad_actividades,
         )
         claves_lote = set()
 
-        # 1ª pasada: validar duplicados y recopilar documentos que necesitan tipo_usuario
-        documentos_a_consultar = set()
+        # 1ª pasada: validar duplicados y recopilar (doc, tipo_doc) que necesitan tipo_usuario
+        docs_tipos_a_consultar = set()
         for actividad in actividades_crear:
             if actividad.inconsistencias:
                 continue
@@ -384,29 +394,33 @@ def procesar_cargue_actividades(id_carga, datos, num_lote, cantidad_actividades,
                 continue
 
             claves_lote.add(clave_actividad)
-            documentos_a_consultar.add(actividad.documento_paciente)
+            tipo_doc_norm = (actividad.tipo_documento or "CC").strip().upper() or "CC"
+            docs_tipos_a_consultar.add((str(actividad.documento_paciente), tipo_doc_norm))
 
-        # Consulta batch: una sola llamada a OPR_SALUD para todos los documentos válidos
+        # Consulta batch: SQL primero, fallback API MUTUAL para los no resueltos
         batch_error = None
         tipo_usuario_cache = {}
-        if documentos_a_consultar:
+        if docs_tipos_a_consultar:
             try:
-                tipo_usuario_cache = utils.obtener_tipo_usuario_batch(list(documentos_a_consultar))
+                tipo_usuario_cache = tipo_usuario_service.obtener_tipo_usuario_batch(
+                    list(docs_tipos_a_consultar)
+                )
             except Exception as e:
                 batch_error = e
-                logger.exception("Error en batch obtener_tipo_usuario para carga %s", id_carga)
+                logger.exception("Error en batch tipo_usuario para carga %s", id_carga)
 
         # Diagnóstico: si había documentos por consultar pero el cache quedó vacío,
-        # la fuente OPR_SALUD está caída o sin datos — mensaje único para todas.
-        fuente_caida = bool(documentos_a_consultar) and not tipo_usuario_cache
+        # ambas fuentes (SQL + API) fallaron — mensaje único para todas.
+        fuente_caida = bool(docs_tipos_a_consultar) and not tipo_usuario_cache
         if fuente_caida:
             if batch_error is not None:
                 mensaje_fuente = (
-                    f"⚠️Error consultando OPR_SALUD: {type(batch_error).__name__}: {batch_error}"
+                    f"⚠️Error consultando tipo_usuario (SQL+API): "
+                    f"{type(batch_error).__name__}: {batch_error}"
                 )
             else:
                 mensaje_fuente = (
-                    "⚠️Fuente OPR_SALUD sin datos: la tabla de afiliados está vacía o no respondió. "
+                    "⚠️Tipo de Usuario no resuelto por OPR_SALUD ni por API MUTUAL. "
                     "Contactar al equipo de datos."
                 )
             logger.error("Carga %s: %s", id_carga, mensaje_fuente)
@@ -416,7 +430,10 @@ def procesar_cargue_actividades(id_carga, datos, num_lote, cantidad_actividades,
             if actividad.inconsistencias:
                 continue
 
-            tipo_usuario = tipo_usuario_cache.get(str(actividad.documento_paciente))
+            tipo_doc_norm = (actividad.tipo_documento or "CC").strip().upper() or "CC"
+            tipo_usuario = tipo_usuario_cache.get(
+                (str(actividad.documento_paciente), tipo_doc_norm)
+            )
             if tipo_usuario:
                 actividad.tipo_usuario = tipo_usuario
             elif fuente_caida:
@@ -424,7 +441,7 @@ def procesar_cargue_actividades(id_carga, datos, num_lote, cantidad_actividades,
             else:
                 actividad.inconsistencias = (
                     f"⚠️Tipo de Usuario: documento {actividad.documento_paciente} "
-                    f"no encontrado en OPR_SALUD"
+                    f"no encontrado en OPR_SALUD ni en API MUTUAL"
                 )[:500]
 
         if actividades_crear:
@@ -501,35 +518,37 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
     total_actividades = actividades_carga.count()
     logger.info("Iniciando admision de carga %s con %s actividades", carga.id, total_actividades)
 
-    # ── Pre-cargar tipo_usuario batch (evita N queries individuales a OPR_SALUD) ──
-    docs_sin_tipo_usuario = list(
+    # ── Pre-cargar tipo_usuario batch (SQL→API fallback, evita N queries en el loop) ──
+    docs_tipos_sin_tipo_usuario = list(
         actividades_carga
         .filter(tipo_usuario__isnull=True)
-        .values_list("documento_paciente", flat=True)
+        .values_list("documento_paciente", "tipo_documento")
         .distinct()
     )
     tipo_usuario_preload = {}
     tipo_usuario_preload_error = None
-    if docs_sin_tipo_usuario:
+    if docs_tipos_sin_tipo_usuario:
         try:
-            tipo_usuario_preload = utils.obtener_tipo_usuario_batch(docs_sin_tipo_usuario)
+            tipo_usuario_preload = tipo_usuario_service.obtener_tipo_usuario_batch(
+                docs_tipos_sin_tipo_usuario
+            )
             logger.info("tipo_usuario pre-cargados: %s documentos", len(tipo_usuario_preload))
         except Exception as e:
             tipo_usuario_preload_error = e
             logger.exception("Error en batch tipo_usuario pre-carga admision %s", carga.id)
 
-    # Si el preload trajo 0 docs habiendo pedido varios → fuente caída/vacía
-    fuente_tipo_usuario_caida = bool(docs_sin_tipo_usuario) and not tipo_usuario_preload
+    # Si el preload trajo 0 docs habiendo pedido varios → ambas fuentes caídas
+    fuente_tipo_usuario_caida = bool(docs_tipos_sin_tipo_usuario) and not tipo_usuario_preload
     if fuente_tipo_usuario_caida:
         if tipo_usuario_preload_error is not None:
             logger.error(
-                "Carga %s: OPR_SALUD inaccesible para tipo_usuario (%s: %s)",
+                "Carga %s: tipo_usuario inaccesible (SQL+API) (%s: %s)",
                 carga.id, type(tipo_usuario_preload_error).__name__, tipo_usuario_preload_error,
             )
         else:
             logger.error(
-                "Carga %s: OPR_SALUD devolvió 0 afiliados para %s documentos — fuente vacía",
-                carga.id, len(docs_sin_tipo_usuario),
+                "Carga %s: SQL+API devolvieron 0 afiliados para %s documentos",
+                carga.id, len(docs_tipos_sin_tipo_usuario),
             )
 
     # ── Caches de fallback (evitan queries individuales dentro del loop) ──
@@ -617,10 +636,13 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
                 if not regimen:
                     raise Exception("No tiene regimen relacionado")
 
-                # ── tipo_usuario: pre-cargado o fallback individual ──
+                # ── tipo_usuario: pre-cargado o fallback individual (SQL→API) ──
                 tipo_usuario = actividad.tipo_usuario
                 if not tipo_usuario:
-                    tipo_usuario = tipo_usuario_preload.get(str(actividad.documento_paciente))
+                    tipo_doc_norm = (actividad.tipo_documento or "CC").strip().upper() or "CC"
+                    tipo_usuario = tipo_usuario_preload.get(
+                        (str(actividad.documento_paciente), tipo_doc_norm)
+                    )
                     if tipo_usuario:
                         actividad.tipo_usuario = tipo_usuario
                         update_fields.add("tipo_usuario")
@@ -628,32 +650,56 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
                         update_fields.add("inconsistencias")
                         if tipo_usuario_preload_error is not None:
                             actividad.inconsistencias = (
-                                f"⚠️OPR_SALUD inaccesible: "
+                                f"⚠️Tipo de Usuario inaccesible (SQL+API): "
                                 f"{type(tipo_usuario_preload_error).__name__}: {tipo_usuario_preload_error}"
                             )[:500]
                         else:
                             actividad.inconsistencias = (
-                                "⚠️Fuente OPR_SALUD sin datos: tabla de afiliados vacía. "
+                                "⚠️Tipo de Usuario sin datos en OPR_SALUD ni en API MUTUAL. "
                                 "Contactar al equipo de datos."
                             )[:500]
                     else:
                         try:
-                            tipo_usuario_df = utils.obtener_tipo_usuario(actividad.documento_paciente)
-                            actividad.tipo_usuario = tipo_usuario_df.loc[0][0]
-                            tipo_usuario = actividad.tipo_usuario
-                            update_fields.add("tipo_usuario")
-                        except (KeyError, IndexError):
-                            update_fields.add("inconsistencias")
-                            actividad.inconsistencias = (
-                                f"⚠️Tipo de Usuario: documento {actividad.documento_paciente} "
-                                f"no encontrado en OPR_SALUD"
-                            )[:500]
+                            siesa = tipo_usuario_service.obtener_tipo_usuario(
+                                actividad.documento_paciente,
+                                actividad.tipo_documento,
+                            )
+                            if siesa:
+                                actividad.tipo_usuario = siesa
+                                tipo_usuario = siesa
+                                update_fields.add("tipo_usuario")
+                            else:
+                                update_fields.add("inconsistencias")
+                                actividad.inconsistencias = (
+                                    f"⚠️Tipo de Usuario: documento {actividad.documento_paciente} "
+                                    f"no encontrado en OPR_SALUD ni en API MUTUAL"
+                                )[:500]
                         except Exception as e:
                             update_fields.add("inconsistencias")
                             actividad.inconsistencias = (
                                 f"⚠️Error consultando Tipo de Usuario para {actividad.documento_paciente}: "
                                 f"{type(e).__name__}: {e}"
                             )[:500]
+
+                # ── Reconciliar tipo_usuario contra el regimen de Zeus ──
+                # Zeus es la fuente de verdad para la admisión. Si OPR_SALUD/API
+                # dijeron un regimen distinto al que Zeus tiene, el tipo_usuario
+                # quedó mal homologado. Reglas SIESA absolutas:
+                #   Subsidiado → SIEMPRE 04 (cualquier tipo_afiliado).
+                #   Contributivo → 01/02/03 (no 04).
+                if regimen == "Subsidiado" and tipo_usuario != "04":
+                    logger.info(
+                        "Reconciliando tipo_usuario actividad %s: Zeus=%r → forzando '04' (era %r de OPR_SALUD/API)",
+                        actividad.id, regimen, tipo_usuario,
+                    )
+                    actividad.tipo_usuario = "04"
+                    tipo_usuario = "04"
+                    update_fields.add("tipo_usuario")
+                elif regimen == "Contributivo" and tipo_usuario == "04":
+                    raise Exception(
+                        f"Régimen inconsistente: Zeus dice Contributivo pero tipo_usuario es '04' "
+                        f"(Subsidiado) según OPR_SALUD/API. Revisar afiliado {actividad.documento_paciente}."
+                    )
 
                 admision_actividad = admision.crear_admision(
                     autoid=auto_id,
@@ -690,6 +736,18 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
                         actividad.admision = nueva_admision
                         actividad.inconsistencias = None
                         update_fields.update({"admision", "inconsistencias"})
+                    else:
+                        # Zeus respondió OK pero sin datos_guardados ni datos_error.
+                        # Hacer visible este path silencioso para diagnosticar.
+                        logger.warning(
+                            "Admision actividad %s: Zeus devolvió respuesta vacía "
+                            "(tipo_usuario=%r, regimen=%r). Respuesta cruda: %r",
+                            actividad.id, tipo_usuario, regimen, respuesta_admision,
+                        )
+                        raise Exception(
+                            f"Zeus respondió sin datos_guardados ni datos_error "
+                            f"(tipo_usuario={tipo_usuario!r}, regimen={regimen!r})"
+                        )
                 except Exception as e:
                     logger.exception("Error al enviar admision de actividad %s", actividad.id)
                     actividad.inconsistencias = ("⚠️Error al enviar admisión: " + str(e))[:500]
