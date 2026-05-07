@@ -6,11 +6,12 @@ Devuelve los valores crudos del Bundle FHIR (affiliateType + healthModality)
 y los homologa al código SIESA usando la misma tabla que el path SQL.
 
 Token cacheado en memoria del proceso. Renovación automática en 401.
+Reintentos con backoff exponencial en 5xx (transient/saturación de MUTUAL).
 """
 
 import logging
-import time
 import threading
+import time
 
 import requests
 from decouple import config
@@ -35,10 +36,28 @@ _RATE_LIMIT_SLEEP_SEC = 0.15  # cortesía hacia el servicio
 _REQUEST_TIMEOUT_SEC = 60
 _TOKEN_TIMEOUT_SEC = 30
 
-# Token cacheado por proceso. Si Celery corre múltiples workers, cada uno
+_MAX_INTENTOS_5XX = 3       # 1 inicial + 2 reintentos
+_BACKOFF_BASE_SEC = 1.0     # 1s, 2s, 4s entre reintentos
+_BODY_LOG_MAX_CHARS = 2000  # cuánto del body se incluye en logs/excepciones
+
+# Token cacheado por proceso. Si Django Q corre múltiples workers, cada uno
 # obtendrá su propio token — aceptable, son baratos.
 _token_lock = threading.Lock()
 _cached_token: str | None = None
+
+
+class _TokenInvalido(Exception):
+    """401 — token expirado o rechazado por el servidor."""
+
+
+class _ErrorTransientServidor(Exception):
+    """5xx — encapsula la respuesta completa para logging detallado."""
+
+    def __init__(self, status_code: int, body_text: str, body_json):
+        self.status_code = status_code
+        self.body_text = body_text
+        self.body_json = body_json
+        super().__init__(f"HTTP {status_code}")
 
 
 def _credenciales_disponibles() -> bool:
@@ -94,6 +113,27 @@ def _parsear_respuesta(payload: dict) -> tuple[str, str]:
     return reg_code, aff_code
 
 
+def _resumir_operation_outcome(body_json) -> str:
+    """Extrae issue.diagnostics / details.text si la respuesta es OperationOutcome FHIR."""
+    if not body_json:
+        return ""
+    try:
+        for entry in body_json.get("entry") or []:
+            res = entry.get("resource") or {}
+            if res.get("resourceType") == "OperationOutcome":
+                msgs = []
+                for issue in res.get("issue") or []:
+                    sev = issue.get("severity", "?")
+                    code = issue.get("code", "?")
+                    diag = issue.get("diagnostics") or (issue.get("details") or {}).get("text") or ""
+                    msgs.append(f"[{sev}/{code}] {diag}".strip())
+                if msgs:
+                    return " | ".join(msgs)
+    except Exception:
+        pass
+    return ""
+
+
 def _validar_derechos(token: str, tipo_documento: str, documento: str) -> dict:
     body = {
         "resourceType": "Parameters",
@@ -114,27 +154,71 @@ def _validar_derechos(token: str, tipo_documento: str, documento: str) -> dict:
         timeout=_REQUEST_TIMEOUT_SEC,
     )
     if r.status_code == 401:
-        raise PermissionError("Token expirado / inválido")
+        raise _TokenInvalido()
     if r.status_code >= 500:
-        raise RuntimeError(f"HTTP {r.status_code}: {r.text[:200]}")
+        try:
+            body_json = r.json()
+        except ValueError:
+            body_json = None
+        raise _ErrorTransientServidor(r.status_code, r.text, body_json)
     try:
         return r.json()
     except ValueError:
         return {}
 
 
+def _consultar_con_retry(documento: str, tipo_documento: str) -> dict:
+    """
+    Política de reintentos para una consulta a validateRights/:
+      - 401 → refresh de token + retry una vez (sin contar contra el límite)
+      - 5xx → backoff 1s/2s/4s, máx _MAX_INTENTOS_5XX intentos. Tras el primer
+        5xx se fuerza refresh del token (cubre el caso "token cerca de expirar
+        que MUTUAL devuelve como 500 en vez de 401").
+    """
+    token = _obtener_token()
+    ultimo: _ErrorTransientServidor | None = None
+
+    for intento in range(1, _MAX_INTENTOS_5XX + 1):
+        try:
+            try:
+                return _validar_derechos(token, tipo_documento, documento)
+            except _TokenInvalido:
+                token = _obtener_token(forzar=True)
+                return _validar_derechos(token, tipo_documento, documento)
+        except _ErrorTransientServidor as e:
+            ultimo = e
+            if intento == 1:
+                # primer 5xx → refrescar token por las dudas (token-near-expiry)
+                token = _obtener_token(forzar=True)
+            if intento < _MAX_INTENTOS_5XX:
+                espera = _BACKOFF_BASE_SEC * (2 ** (intento - 1))
+                logger.info(
+                    "API MUTUAL %s|%s: HTTP %s intento %s/%s, reintentando en %.1fs",
+                    tipo_documento, documento, e.status_code, intento, _MAX_INTENTOS_5XX, espera,
+                )
+                time.sleep(espera)
+                continue
+            # último intento agotado → re-raise con detalle del OperationOutcome
+            diag = _resumir_operation_outcome(e.body_json)
+            cuerpo = (e.body_text or "")[:_BODY_LOG_MAX_CHARS]
+            mensaje = f"HTTP {e.status_code} tras {_MAX_INTENTOS_5XX} intentos"
+            if diag:
+                mensaje += f" | {diag}"
+            if cuerpo:
+                mensaje += f" | body: {cuerpo}"
+            raise RuntimeError(mensaje) from e
+
+    # rama defensiva — no debería alcanzarse
+    raise RuntimeError(f"Sin respuesta tras {_MAX_INTENTOS_5XX} intentos") from ultimo
+
+
 def obtener(documento: str, tipo_documento: str = "CC") -> str:
     """
     Consulta un solo documento por API. Devuelve código SIESA o `''`.
-    Levanta excepción si las credenciales no están configuradas o si la
-    autenticación falla.
+    Levanta excepción si las credenciales no están configuradas, si la
+    autenticación falla o si MUTUAL devuelve 5xx tras todos los reintentos.
     """
-    token = _obtener_token()
-    try:
-        payload = _validar_derechos(token, tipo_documento, documento)
-    except PermissionError:
-        token = _obtener_token(forzar=True)
-        payload = _validar_derechos(token, tipo_documento, documento)
+    payload = _consultar_con_retry(str(documento), tipo_documento)
     regimen, affiliate = _parsear_respuesta(payload)
     return homologar_siesa(regimen, affiliate)
 
@@ -145,7 +229,8 @@ def obtener_batch(docs_tipos: list) -> dict:
     Devuelve `{(str(doc), tipo_doc): codigo_siesa}` solo para los resueltos.
 
     Si la autenticación falla → levanta excepción (no se intentan los demás).
-    Errores por documento individual se loguean y se omiten del resultado.
+    Errores por documento individual (incluyendo 5xx tras reintentos) se
+    loguean y se omiten del resultado.
     """
     resultado: dict = {}
     if not docs_tipos:
@@ -157,17 +242,14 @@ def obtener_batch(docs_tipos: list) -> dict:
             "MUTUAL_KEYCLOAK_PASS en .env"
         )
 
-    token = _obtener_token()
+    # Fail-fast: si no podemos obtener token, no iteramos.
+    _obtener_token()
 
     for i, (documento, tipo_documento) in enumerate(docs_tipos):
         documento_str = str(documento)
         tipo_doc_str = (tipo_documento or "CC").strip().upper() or "CC"
         try:
-            try:
-                payload = _validar_derechos(token, tipo_doc_str, documento_str)
-            except PermissionError:
-                token = _obtener_token(forzar=True)
-                payload = _validar_derechos(token, tipo_doc_str, documento_str)
+            payload = _consultar_con_retry(documento_str, tipo_doc_str)
             regimen, affiliate = _parsear_respuesta(payload)
             siesa = homologar_siesa(regimen, affiliate)
             if siesa:
