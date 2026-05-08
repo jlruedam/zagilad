@@ -14,7 +14,6 @@ from __future__ import absolute_import, unicode_literals
 
 from pathlib import Path
 
-from celery import Celery
 from django.conf import settings
 
 # from unipath import Path
@@ -190,6 +189,13 @@ Q_CLUSTER = {
     'save_limit': 250,  # Limita cuántas tareas guardar
     'orm': 'default',  # Usa el ORM de Django para la persistencia
 }
+
+# Lote dinámico para tareas de admisionado: apunta a generar
+# ~ADMISIONADO_TARGET_TASKS tareas por carga, saturando los workers
+# del Q_CLUSTER en cargas grandes y manteniendo granularidad útil en chicas.
+ADMISIONADO_TARGET_TASKS = Q_CLUSTER['workers']
+ADMISIONADO_LOTE_MIN = 500
+ADMISIONADO_LOTE_MAX = 2500
 
 
 # Configuración de logging

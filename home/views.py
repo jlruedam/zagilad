@@ -921,25 +921,60 @@ def consultar_admisiones_prueba(request):
 
 @login_required(login_url="/login/")
 def admisionar_actividades_carga(request, id_carga):
-    try:
-        token = peticiones_http.obtener_token()
-    except Exception as e:
-        print(e)
-        return HttpResponseBadRequest("No se pudo obtener el token de acceso", e)
-    carga = Carga.objects.get(id = int(id_carga))
+    carga = Carga.objects.get(id=int(id_carga))
+
+    ids_pendientes = list(
+        Actividad.objects
+        .filter(carga=carga, admision__isnull=True, admisionada_otra_carga=False)
+        .order_by("id")
+        .values_list("id", flat=True)
+    )
+    total = len(ids_pendientes)
+
+    if total == 0:
+        logger.info("Carga %s no tiene actividades pendientes de admisionar", carga.id)
+        return redirect('/informeCargas/')
+
+    lote_size = max(
+        settings.ADMISIONADO_LOTE_MIN,
+        min(
+            settings.ADMISIONADO_LOTE_MAX,
+            -(-total // settings.ADMISIONADO_TARGET_TASKS),
+        ),
+    )
+    num_lotes = -(-total // lote_size)
+
     carga.estado = "admisionando"
-    carga.save()
-    # task.tarea_admisionar_actividades_carga.delay(token, id_carga)
-    async_task('home.modules.task.tarea_admisionar_actividades_carga', token, id_carga)
-    
-    return redirect(f'/informeCargas/')
+    carga.save(update_fields=["estado", "updated_at"])
+
+    logger.info(
+        "Admisionando carga %s: %s actividades, %s lotes de hasta %s",
+        carga.id, total, num_lotes, lote_size,
+    )
+
+    for i in range(num_lotes):
+        ids_lote = ids_pendientes[i * lote_size:(i + 1) * lote_size]
+        async_task(
+            'home.modules.task.tarea_admisionar_actividades_carga',
+            carga.id,
+            ids_lote,
+            i,
+            task_name=f'admision_carga_{carga.id}_lote_{i}',
+            group=f'admision_carga_{carga.id}',
+        )
+
+    return redirect('/informeCargas/')
 
 @login_required(login_url="/login/")
 def admisionar_actividad_individual(request, id_actividad, pagina):
-    token = peticiones_http.obtener_token()
-    actividad = Actividad.objects.get(id = id_actividad)
-    # task.tarea_admisionar_actividades_carga.delay(token, actividad.carga.id, id_actividad)
-    async_task('home.modules.task.tarea_admisionar_actividades_carga', token, actividad.carga.id, id_actividad)
+    actividad = Actividad.objects.get(id=id_actividad)
+    async_task(
+        'home.modules.task.tarea_admisionar_actividades_carga',
+        actividad.carga.id,
+        [id_actividad],
+        0,
+        task_name=f'admision_actividad_{id_actividad}',
+    )
     return redirect(f'/verCarga/{actividad.carga.id}/{pagina}')
 
 @login_required(login_url="/login/")

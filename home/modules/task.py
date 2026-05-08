@@ -1,15 +1,15 @@
 from __future__ import absolute_import
 # PYTHON
 import ast,time
+import collections
 import json
+import logging
 import os
 
-# CELERY
-from celery import shared_task
-# from celery.decorators import task
-from celery.utils.log import get_task_logger
+# DJANGO Q
 from django_q.models import Task
 from django_q.models import OrmQ
+from django.db import transaction
 from django.db.models.functions import Replace
 from django.db.models import Value
 
@@ -25,7 +25,7 @@ from home.modules import admision
 from home.modules import utils
 from home.modules import tipo_usuario as tipo_usuario_service
 
-logger = get_task_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def _valor_limpio(valor):
@@ -80,6 +80,43 @@ def _clave_actividad_desde_bd(fila):
         _valor_clave(fila[10]),
         fila[11],
     )
+
+
+def _categorizar_inconsistencia(texto):
+    """
+    Mapea el texto final de Actividad.inconsistencias a una categoría corta
+    para el resumen del lote. Si el texto no matchea ningún patrón conocido
+    cae en 'otros' — sirve como detector de mensajes nuevos.
+    """
+    if not texto:
+        return "otros"
+    t = texto.lower()
+
+    if "no se obtuvieron datos del paciente" in t:
+        return "sin_paciente"
+    if "ya fue admisionada" in t:
+        return "duplicada"
+    if "tipo de actividad" in t and "no encontrado" in t:
+        return "tipo_actividad_no_encontrado"
+    if "regional" in t and "no encontrada" in t:
+        return "regional_no_encontrada"
+    if "médico" in t and "no encontrado" in t:
+        return "medico_no_encontrado"
+    if "parámetros" in t and ("no configurados" in t or "área/programa" in t):
+        return "parametros_no_configurados"
+    if "régimen inconsistente" in t:
+        return "regimen_inconsistente"
+    if "no tiene regimen relacionado" in t:
+        return "sin_regimen"
+    if "tipo de usuario" in t and "obligatorio" in t:
+        return "zeus_rechazo_tipo_usuario"
+    if "tipo de usuario" in t:
+        return "sin_tipo_usuario"
+    if "error al enviar admisión" in t:
+        return "rechazo_zeus_otro"
+    if "error al crear la admisión" in t:
+        return "error_creacion_admision"
+    return "otros"
 
 
 def _validar_tipo_actividad_cached(nombre_actividad, tipos_actividad):
@@ -479,7 +516,7 @@ def procesar_cargue_actividades(id_carga, datos, num_lote, cantidad_actividades,
             
     return True
 
-def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
+def tarea_admisionar_actividades_carga(id_carga, ids_actividades, num_lote=0):
     relaciones_admision = [
         "tipo_actividad",
         "tipo_actividad__contrato",
@@ -498,25 +535,30 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
         "medico",
         "finalidad",
     ]
+
+    try:
+        token = peticiones_http.obtener_token()
+    except Exception as e:
+        logger.exception(
+            "Carga %s lote %s: no se pudo obtener token ZEUS",
+            id_carga, num_lote,
+        )
+        return f"ERROR_TOKEN_LOTE_{num_lote}: {type(e).__name__}: {e}"
+
     carga = Carga.objects.select_related("usuario").get(id=int(id_carga))
 
     actividades_carga = (
         Actividad.objects
-        .filter(carga=carga, admision__isnull=True)
+        .filter(id__in=ids_actividades, admision__isnull=True, admisionada_otra_carga=False)
         .select_related(*relaciones_admision)
         .order_by("id")
     )
 
-    if id_actividad:
-        actividades_carga = (
-            Actividad.objects
-            .filter(carga=carga, id=id_actividad, admisionada_otra_carga=False, admision__isnull=True)
-            .select_related(*relaciones_admision)
-            .order_by("id")
-        )
-
     total_actividades = actividades_carga.count()
-    logger.info("Iniciando admision de carga %s con %s actividades", carga.id, total_actividades)
+    logger.info(
+        "Admision carga %s lote %s: iniciando con %s actividades",
+        carga.id, num_lote, total_actividades,
+    )
 
     # ── Pre-cargar tipo_usuario batch (SQL→API fallback, evita N queries en el loop) ──
     docs_tipos_sin_tipo_usuario = list(
@@ -570,6 +612,9 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
 
     # ── Cache de datos de afiliado ZEUS (evita GET duplicados por mismo paciente) ──
     afiliado_cache = {}
+
+    # ── Contador de resultados del lote (resumen al cierre) ──
+    contadores = collections.Counter()
 
     for posicion, actividad in enumerate(actividades_carga.iterator(chunk_size=500), start=1):
         update_fields = {"updated_at"}
@@ -764,26 +809,61 @@ def tarea_admisionar_actividades_carga(token, id_carga, id_actividad = 0):
             update_fields.add("inconsistencias")
 
         actividad.save(update_fields=list(update_fields))
-        if posicion % 500 == 0:
-            carga.actualizar_info_actividades()
-            carga.save(update_fields=[
-                "cantidad_actividades",
-                "cantidad_actividades_ok",
-                "cantidad_actividades_inconsistencias",
-                "cantidad_actividades_admisionadas",
-                "updated_at",
-            ])
-            logger.info("Admision carga %s: %s/%s actividades procesadas", carga.id, posicion, total_actividades)
 
-    carga.estado = "procesada"
+        # Categorizar resultado de esta actividad para el resumen del lote
+        if "admision" in update_fields:
+            contadores["admisionadas"] += 1
+        else:
+            contadores[_categorizar_inconsistencia(actividad.inconsistencias)] += 1
+
+    # Actualización del contador al cierre del lote (1 save por tarea)
     carga.actualizar_info_actividades()
-    carga.save()
+    carga.save(update_fields=[
+        "cantidad_actividades",
+        "cantidad_actividades_ok",
+        "cantidad_actividades_inconsistencias",
+        "cantidad_actividades_admisionadas",
+        "updated_at",
+    ])
+    # Resumen del lote ordenado por frecuencia (admisionadas primero por convención)
+    resumen_partes = [f"admisionadas={contadores.get('admisionadas', 0)}"]
+    resumen_partes += [
+        f"{categoria}={cantidad}"
+        for categoria, cantidad in sorted(
+            ((k, v) for k, v in contadores.items() if k != "admisionadas"),
+            key=lambda kv: -kv[1],
+        )
+    ]
+    logger.info(
+        "Admision carga %s lote %s: %s/%s procesadas | %s",
+        carga.id, num_lote, total_actividades, total_actividades,
+        " ".join(resumen_partes),
+    )
 
-    if carga.usuario and carga.usuario.email and total_actividades > 1:
+    # Transición a 'procesada' solo cuando ya no quedan actividades pendientes.
+    # select_for_update evita que dos lotes finalizando en simultáneo dupliquen
+    # la transición de estado o el envío del email.
+    es_ultimo_lote = False
+    with transaction.atomic():
+        carga_locked = Carga.objects.select_for_update().get(id=int(id_carga))
+        pendientes = Actividad.objects.filter(
+            carga=carga_locked,
+            admision__isnull=True,
+            inconsistencias__isnull=True,
+            admisionada_otra_carga=False,
+        ).count()
+
+        if pendientes == 0 and carga_locked.estado != "procesada":
+            carga_locked.estado = "procesada"
+            carga_locked.actualizar_info_actividades()
+            carga_locked.save()
+            es_ultimo_lote = True
+
+    if es_ultimo_lote and carga.usuario and carga.usuario.email:
         logger.info("Enviar notificacion de admision a: %s", carga.usuario.email)
         notificaciones_email.notificar_carga_admisionada(carga, [carga.usuario.email])
 
-    return f"CARGA PROCESADA"
+    return f"LOTE_{num_lote}_OK ({total_actividades} actividades)"
 
 def tarea_grabar_admisiones_prueba(inicio, fin):
     print("INICIA TAREA DE ADMISIONES DE PRUEBA")
