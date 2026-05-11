@@ -179,15 +179,19 @@ PASSWORD_API_ZEUS = config('PASSWORD_API_ZEUS')
 
 Q_CLUSTER = {
     'name': config('NAME_CLUSTER'),
-    'workers': 30,  # Número de trabajadores
-    'recycle': 500,  # Reciclaje de trabajadores tras un número de tareas
-    'timeout': 72000,  # Tiempo máximo de ejecución de tareas
-    'retry':72200,  # Retraso antes de reintentar una tarea fallida
-    'bulk': 10,  # Número de tareas a procesar en paralelo
-    # 'queue_limit': 5,  # Límite de tareas en la cola
-    # 'cpu_affinity': 1,  # Número de CPUs que usarán los trabajadores
-    'save_limit': 250,  # Limita cuántas tareas guardar
-    'orm': 'default',  # Usa el ORM de Django para la persistencia
+    # 8 workers reducido desde 30: el SQL Server interno de ZEUS no banca
+    # 30 INSERTs concurrentes sobre ingresos/ingresos_servicios y se ven
+    # >20% de deadlocks. Con 8 la contención cae fuerte y cargue local
+    # sigue siendo lo bastante paralelo (es CPU/IO local, no remoto).
+    'workers': 8,
+    'recycle': 500,
+    'timeout': 72000,
+    'retry':72200,
+    'bulk': 10,
+    # 'queue_limit': 5,
+    # 'cpu_affinity': 1,
+    'save_limit': 250,
+    'orm': 'default',
 }
 
 # Lote dinámico para tareas de admisionado: apunta a generar
@@ -196,6 +200,9 @@ Q_CLUSTER = {
 ADMISIONADO_TARGET_TASKS = Q_CLUSTER['workers']
 ADMISIONADO_LOTE_MIN = 500
 ADMISIONADO_LOTE_MAX = 2500
+# Reintentos para deadlocks de SQL Server al llamar a ZEUS — son transitorios
+# y la propia respuesta los marca como retry-friendly ("Rerun the transaction").
+ADMISIONADO_MAX_RETRIES = 3
 
 
 # Configuración de logging

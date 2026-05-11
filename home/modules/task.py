@@ -5,10 +5,12 @@ import collections
 import json
 import logging
 import os
+import random
 
 # DJANGO Q
 from django_q.models import Task
 from django_q.models import OrmQ
+from django.conf import settings
 from django.db import transaction
 from django.db.models.functions import Replace
 from django.db.models import Value
@@ -82,6 +84,32 @@ def _clave_actividad_desde_bd(fila):
     )
 
 
+def _es_deadlock(error_response):
+    """
+    Detecta el patrón canónico de deadlock de SQL Server en una respuesta
+    de ZEUS. ZEUS puede devolverlo como str o list[str]; lo tratamos como
+    texto plano. SQL Server siempre incluye 'deadlocked' y 'victim' en la
+    misma frase y el mensaje es retry-friendly por diseño.
+    """
+    if not error_response:
+        return False
+    text = str(error_response).lower()
+    return "deadlocked" in text and "victim" in text
+
+
+def _es_pk_violation(error_response):
+    """
+    Detecta violación de PRIMARY KEY en respuesta de ZEUS. Suele venir como:
+    "Violation of PRIMARY KEY constraint 'PK_xxx'. Cannot insert duplicate key".
+    Indica que ZEUS ya tiene la fila — no es retry-friendly, requiere
+    reconciliación manual.
+    """
+    if not error_response:
+        return False
+    text = str(error_response).lower()
+    return "violation of primary key" in text or "duplicate key" in text
+
+
 def _categorizar_inconsistencia(texto):
     """
     Mapea el texto final de Actividad.inconsistencias a una categoría corta
@@ -112,6 +140,11 @@ def _categorizar_inconsistencia(texto):
         return "zeus_rechazo_tipo_usuario"
     if "tipo de usuario" in t:
         return "sin_tipo_usuario"
+    # Errores ZEUS / SQL Server específicos
+    if "deadlocked" in t and "victim" in t:
+        return "deadlock_zeus"
+    if "violation of primary key" in t or "duplicate key" in t:
+        return "pk_violation_zeus"
     if "error al enviar admisión" in t:
         return "rechazo_zeus_otro"
     if "error al crear la admisión" in t:
@@ -756,10 +789,25 @@ def tarea_admisionar_actividades_carga(id_carga, ids_actividades, num_lote=0):
                 )
 
                 try:
-                    respuesta = peticiones_http.crear_admision(admision_actividad, token)
+                    # Retry con backoff+jitter cuando ZEUS devuelve deadlock de SQL Server.
+                    # Otros errores (PK violation, validaciones) NO se reintentan: o no
+                    # son recuperables o requieren reconciliación manual.
+                    respuesta = None
+                    for intento in range(1, settings.ADMISIONADO_MAX_RETRIES + 1):
+                        respuesta = peticiones_http.crear_admision(admision_actividad, token)
 
-                    if not respuesta:
-                        raise Exception("Error en la petición a Zeus")
+                        if not respuesta:
+                            raise Exception("Error en la petición a Zeus")
+
+                        if _es_deadlock(respuesta.get('Errores')) and intento < settings.ADMISIONADO_MAX_RETRIES:
+                            backoff = 0.2 + random.random() * 0.5 * intento
+                            logger.warning(
+                                "Deadlock ZEUS actividad %s reintento %s/%s (espera %.2fs)",
+                                actividad.id, intento, settings.ADMISIONADO_MAX_RETRIES, backoff,
+                            )
+                            time.sleep(backoff)
+                            continue
+                        break
 
                     if respuesta['Errores']:
                         raise Exception(respuesta['Errores'])
