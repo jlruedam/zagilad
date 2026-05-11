@@ -34,6 +34,22 @@
 }
 .vact-back:hover { text-decoration: underline; }
 
+.vact-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.vact-btn-editar {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: var(--azul-rey);
+    color: #fff;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.15s ease;
+}
+.vact-btn-editar:hover { background: #0d52b4; color: #fff; }
+
 .vact-badge {
     display: inline-block;
     padding: 4px 10px;
@@ -141,7 +157,12 @@
                 {% endif %}
             </p>
         </div>
-        <div>
+        <div class="vact-actions">
+            {% if puede_editar %}
+                <a class="vact-btn-editar" href="{% url 'editar_actividad' actividad.id %}" title="Editar campos de la actividad">
+                    <i class="fa fa-pencil"></i> Editar
+                </a>
+            {% endif %}
             {% if actividad.carga_id %}
                 <a class="vact-back" href="/verCarga/{{ actividad.carga_id }}/1">← Volver a la carga #{{ actividad.carga_id }}</a>
             {% endif %}

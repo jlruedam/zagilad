@@ -27,6 +27,7 @@ from zeus_mirror.models import TipoServicio, UnidadFuncional, PuntoAtencion, Cen
 from home.modules import peticiones_http, parametros_generales
 from home.modules import generador_excel, utils
 from home.modules import paginacion_actividades
+from home.modules import revalidador
 
 
 # DJANGO Q
@@ -728,8 +729,106 @@ def ver_actividad(request, id_actividad):
         "contrato_es_snapshot": contrato_es_snapshot,
         "datos_json_pretty": json.dumps(actividad.datos_json, indent=2, ensure_ascii=False) if actividad.datos_json else "",
         "admision_json_pretty": json.dumps(actividad.admision.json, indent=2, ensure_ascii=False) if actividad.admision and actividad.admision.json else "",
+        "puede_editar": not actividad.admision_id and not actividad.admisionada_otra_carga,
     }
     return render(request, "home/verActividad.html", ctx)
+
+
+@login_required(login_url="/login/")
+def editar_actividad(request, id_actividad):
+    """
+    Edita campos clave de una actividad NO admisionada. Tras guardar,
+    re-corre las validaciones de cargue para reflejar el estado real
+    (OK ↔ con inconsistencia) y actualiza los contadores de la carga.
+
+    Solo se editan los campos que suelen causar inconsistencias:
+      tipo_documento, documento_paciente, documento_medico,
+      tipo_actividad, tipo_usuario, diagnostico_p, fecha_servicio.
+
+    Bloquea con 403 si la actividad ya está admisionada (tiene
+    numero_estudio) o quedó marcada como admisionada en otra carga.
+    """
+    try:
+        actividad = (
+            Actividad.objects
+            .select_related("tipo_actividad", "medico", "carga", "admision")
+            .get(id=id_actividad)
+        )
+    except Actividad.DoesNotExist:
+        return HttpResponse("Actividad no encontrada", status=404)
+
+    if actividad.admision_id or actividad.admisionada_otra_carga:
+        return HttpResponse(
+            "No se puede editar: la actividad ya está admisionada o tiene número de estudio asociado.",
+            status=403,
+        )
+
+    if request.method == "GET":
+        tipos = TipoActividad.objects.order_by("nombre").only("id", "nombre", "cups")
+        medicos = (
+            Medico.objects
+            .only("documento", "nombre", "codigo")
+            .order_by("nombre")
+        )
+        ctx = {
+            "actividad": actividad,
+            "tipos_actividad": tipos,
+            "medicos": medicos,
+        }
+        return render(request, "home/editarActividad.html", ctx)
+
+    # POST — aplicar cambios y re-validar
+    tipo_documento = (request.POST.get("tipo_documento") or "").strip().upper()
+    documento_paciente = (request.POST.get("documento_paciente") or "").strip()
+    documento_medico = (request.POST.get("documento_medico") or "").strip()
+    tipo_actividad_id = (request.POST.get("tipo_actividad_id") or "").strip()
+    tipo_usuario = (request.POST.get("tipo_usuario") or "").strip().upper()
+    diagnostico_p = (request.POST.get("diagnostico_p") or "").strip()
+    fecha_servicio_str = (request.POST.get("fecha_servicio") or "").strip()
+
+    if not tipo_documento:
+        return HttpResponseBadRequest("Tipo de documento es requerido")
+    if not documento_paciente:
+        return HttpResponseBadRequest("Documento del paciente es requerido")
+    if not documento_medico:
+        return HttpResponseBadRequest("Documento del médico es requerido")
+    if not tipo_actividad_id:
+        return HttpResponseBadRequest("Tipo de actividad es requerido")
+    if not fecha_servicio_str:
+        return HttpResponseBadRequest("Fecha de servicio es requerida")
+
+    try:
+        fecha_servicio = datetime.strptime(fecha_servicio_str, "%Y-%m-%d").date()
+    except ValueError:
+        return HttpResponseBadRequest("Fecha de servicio inválida (formato YYYY-MM-DD)")
+
+    try:
+        tipo_actividad = TipoActividad.objects.get(id=int(tipo_actividad_id))
+    except (ValueError, TipoActividad.DoesNotExist):
+        return HttpResponseBadRequest("Tipo de actividad inválido")
+
+    actividad.tipo_documento = tipo_documento
+    actividad.documento_paciente = documento_paciente
+    actividad.documento_medico = documento_medico
+    actividad.tipo_actividad = tipo_actividad
+    actividad.tipo_usuario = tipo_usuario or None
+    actividad.diagnostico_p = diagnostico_p
+    actividad.fecha_servicio = fecha_servicio
+
+    revalidador.revalidar_actividad(actividad)
+
+    if actividad.carga_id:
+        carga = actividad.carga
+        carga.actualizar_info_actividades()
+        carga.save(update_fields=[
+            "cantidad_actividades",
+            "cantidad_actividades_ok",
+            "cantidad_actividades_admisionadas",
+            "cantidad_actividades_inconsistencias",
+            "updated_at",
+        ])
+
+    return redirect("ver_actividad", id_actividad=actividad.id)
 
 
 # PROCESAMIENTO DE ACTIVIDADES

@@ -1,0 +1,292 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %} Editar actividad #{{ actividad.id }} {% endblock %}
+
+{% block stylesheets %}
+<style>
+.eact-page { padding: 32px 40px 48px; font-family: var(--fuente); max-width: 960px; margin: 0 auto; }
+
+.eact-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+.eact-titulo {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--azul-rey);
+    margin: 0 0 4px;
+}
+.eact-subtitulo { font-size: 13px; color: #888; margin: 0; }
+
+.eact-info-banner {
+    background: #fff4e5;
+    border-left: 3px solid var(--naranja);
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: #6b3a00;
+    border-radius: 4px;
+}
+
+.eact-card {
+    background: var(--blanco);
+    border-radius: var(--radio);
+    box-shadow: var(--sombra-sm);
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    border-left: 3px solid var(--azul-rey);
+}
+
+.eact-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px 24px;
+}
+
+.eact-field { display: flex; flex-direction: column; gap: 6px; }
+.eact-field--full { grid-column: 1 / -1; }
+.eact-field label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--azul-rey);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.eact-field input,
+.eact-field select {
+    padding: 10px 12px;
+    border: 1px solid #d0d4dc;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #fff;
+    color: var(--gris-texto);
+    width: 100%;
+    box-sizing: border-box;
+}
+.eact-field input:focus,
+.eact-field select:focus {
+    outline: none;
+    border-color: var(--azul-rey);
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15);
+}
+.eact-field small { font-size: 11px; color: #888; }
+
+.eact-readonly {
+    background: #f7f8fa;
+    border: 1px solid #eef0f3;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #555;
+}
+
+.eact-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 24px;
+}
+.eact-btn {
+    padding: 10px 22px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+    display: inline-block;
+}
+.eact-btn--primary { background: var(--azul-rey); color: #fff; }
+.eact-btn--primary:hover { background: #0d52b4; }
+.eact-btn--secondary {
+    background: #fff;
+    color: var(--gris-texto);
+    border: 1px solid #d0d4dc;
+}
+.eact-btn--secondary:hover { background: #f7f8fa; }
+
+@media (max-width: 720px) {
+    .eact-page { padding: 20px 16px 40px; }
+    .eact-grid { grid-template-columns: 1fr; }
+    .eact-actions { flex-direction: column-reverse; }
+    .eact-btn { width: 100%; text-align: center; }
+}
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="eact-page">
+
+    {% include 'includes/btn_volver.html' with href='/verActividad/'|add:actividad.id|stringformat:"s"|add:'/' label='Volver al detalle' %}
+
+    <div class="eact-header">
+        <div>
+            <h1 class="eact-titulo">Editar actividad #{{ actividad.id }}</h1>
+            <p class="eact-subtitulo">
+                Carga #{{ actividad.carga_id }} · cargada {{ actividad.created_at|date:"d/m/Y H:i" }}
+            </p>
+        </div>
+    </div>
+
+    <div class="eact-info-banner">
+        Solo se editan campos que suelen causar inconsistencias. Tras guardar,
+        la actividad será re-validada automáticamente: si los cambios corrigen
+        la inconsistencia, quedará lista para admisionar.
+    </div>
+
+    <form method="POST" action="{% url 'editar_actividad' actividad.id %}" class="eact-card">
+        {% csrf_token %}
+
+        <div class="eact-grid">
+
+            <div class="eact-field">
+                <label for="tipo_documento">Tipo de documento</label>
+                <select id="tipo_documento" name="tipo_documento" required>
+                    {% with td=actividad.tipo_documento|default:"CC" %}
+                    <option value="CC" {% if td == "CC" %}selected{% endif %}>CC — Cédula de ciudadanía</option>
+                    <option value="TI" {% if td == "TI" %}selected{% endif %}>TI — Tarjeta de identidad</option>
+                    <option value="CE" {% if td == "CE" %}selected{% endif %}>CE — Cédula de extranjería</option>
+                    <option value="RC" {% if td == "RC" %}selected{% endif %}>RC — Registro civil</option>
+                    <option value="PA" {% if td == "PA" %}selected{% endif %}>PA — Pasaporte</option>
+                    <option value="PE" {% if td == "PE" %}selected{% endif %}>PE — Permiso especial</option>
+                    <option value="PT" {% if td == "PT" %}selected{% endif %}>PT — Permiso por Protección Temporal</option>
+                    <option value="MS" {% if td == "MS" %}selected{% endif %}>MS — Menor sin identificación</option>
+                    <option value="AS" {% if td == "AS" %}selected{% endif %}>AS — Adulto sin identificación</option>
+                    <option value="NI" {% if td == "NI" %}selected{% endif %}>NI — NIT</option>
+                    {% if td and td not in "CC,TI,CE,RC,PA,PE,PT,MS,AS,NI" %}
+                        <option value="{{ td }}" selected>{{ td }} (actual)</option>
+                    {% endif %}
+                    {% endwith %}
+                </select>
+                <small>Afecta la consulta de tipo de usuario.</small>
+            </div>
+
+            <div class="eact-field">
+                <label for="documento_paciente">Documento del paciente</label>
+                <input type="text" id="documento_paciente" name="documento_paciente"
+                       value="{{ actividad.documento_paciente|default:'' }}"
+                       maxlength="50" required>
+            </div>
+
+            <div class="eact-field">
+                <label for="documento_medico">Médico</label>
+                <input type="text" id="documento_medico" name="documento_medico"
+                       list="medicos-list"
+                       value="{{ actividad.documento_medico|default:'' }}"
+                       maxlength="50"
+                       autocomplete="off"
+                       placeholder="Buscar por documento, nombre o código…"
+                       required>
+                <datalist id="medicos-list">
+                    {% for m in medicos %}
+                        <option value="{{ m.documento }}" label="{{ m.nombre }} — {{ m.codigo }}">{{ m.nombre }} — {{ m.codigo }}</option>
+                    {% endfor %}
+                </datalist>
+                <small id="medico-preview" data-original="{% if actividad.medico %}{{ actividad.medico.nombre }} (cód. {{ actividad.medico.codigo }}, doc. {{ actividad.medico.documento }}){% else %}sin médico vinculado{% endif %}">
+                    Actual:
+                    {% if actividad.medico %}{{ actividad.medico.nombre }} (cód. {{ actividad.medico.codigo }}, doc. {{ actividad.medico.documento }}){% else %}sin médico vinculado{% endif %}
+                </small>
+            </div>
+
+            <div class="eact-field eact-field--full">
+                <label for="tipo_actividad_id">Tipo de actividad</label>
+                <select id="tipo_actividad_id" name="tipo_actividad_id" required>
+                    <option value="">— Seleccionar —</option>
+                    {% for tipo in tipos_actividad %}
+                        <option value="{{ tipo.id }}"
+                                {% if actividad.tipo_actividad_id == tipo.id %}selected{% endif %}>
+                            {{ tipo.nombre }} ({{ tipo.cups }})
+                        </option>
+                    {% endfor %}
+                </select>
+                <small>El contrato y los parámetros del área se recalculan automáticamente.</small>
+            </div>
+
+            <div class="eact-field">
+                <label for="tipo_usuario">Tipo de usuario</label>
+                <input type="text" id="tipo_usuario" name="tipo_usuario"
+                       value="{{ actividad.tipo_usuario|default:'' }}"
+                       maxlength="2"
+                       placeholder="Ej: SU / CO / NA">
+                <small>Si lo dejás vacío, se consulta OPR_SALUD + API MUTUAL.</small>
+            </div>
+
+            <div class="eact-field">
+                <label for="diagnostico_p">Diagnóstico principal</label>
+                <input type="text" id="diagnostico_p" name="diagnostico_p"
+                       value="{{ actividad.diagnostico_p|default:'' }}"
+                       maxlength="10">
+            </div>
+
+            <div class="eact-field">
+                <label for="fecha_servicio">Fecha de servicio</label>
+                <input type="date" id="fecha_servicio" name="fecha_servicio"
+                       value="{{ actividad.fecha_servicio|date:'Y-m-d' }}" required>
+            </div>
+
+            <div class="eact-field">
+                <label>Nombre del paciente</label>
+                <div class="eact-readonly">{{ actividad.nombre_paciente|default:"—" }}</div>
+                <small>No editable desde acá.</small>
+            </div>
+
+        </div>
+
+        {% if actividad.inconsistencias %}
+        <div class="eact-info-banner" style="margin-top: 20px; background:#fce8e6; border-left-color:#c5221f; color:#7a1411;">
+            <strong>Inconsistencia actual:</strong> {{ actividad.inconsistencias }}
+        </div>
+        {% endif %}
+
+        <div class="eact-actions">
+            <a href="/verActividad/{{ actividad.id }}/" class="eact-btn eact-btn--secondary">Cancelar</a>
+            <button type="submit" class="eact-btn eact-btn--primary">Guardar y revalidar</button>
+        </div>
+    </form>
+
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+(function() {
+    var input = document.getElementById('documento_medico');
+    var preview = document.getElementById('medico-preview');
+    if (!input || !preview) return;
+
+    // Mapa documento → "Nombre — codigo" desde el datalist
+    var index = {};
+    document.querySelectorAll('#medicos-list option').forEach(function(opt) {
+        index[opt.value] = opt.label || opt.textContent;
+    });
+
+    var original = preview.dataset.original;
+
+    function actualizarPreview() {
+        var doc = input.value.trim();
+        if (!doc) {
+            preview.textContent = 'Sin médico seleccionado';
+            preview.style.color = '#c5221f';
+            return;
+        }
+        var label = index[doc];
+        if (label) {
+            preview.textContent = 'Seleccionado: ' + label + ' (doc. ' + doc + ')';
+            preview.style.color = '#137333';
+        } else {
+            preview.textContent = '⚠ Documento ' + doc + ' no está en la lista (no se vinculará médico al guardar)';
+            preview.style.color = '#b06a00';
+        }
+    }
+
+    input.addEventListener('input', actualizarPreview);
+    input.addEventListener('change', actualizarPreview);
+})();
+</script>
+{% endblock javascripts %}

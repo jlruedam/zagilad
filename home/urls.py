@@ -29,6 +29,7 @@ urlpatterns = [
     path('listarActividadesAdmisionadas/', views.listar_actividades_admisionadas, name='listar_actividades_admisionadas'),
     path('listarActividadesCarga/<num_carga>', views.listar_actividades_carga, name='listar_actividades_carga'),
     path('verActividad/<int:id_actividad>/', views.ver_actividad, name='ver_actividad'),
+    path('editarActividad/<int:id_actividad>/', views.editar_actividad, name='editar_actividad'),
     # Grabar admisiones
     path('grabarAdmisionPrueba/', views.grabar_admision_prueba, name='grabar_admision_prueba'),
     path('consultarAdmisionesPrueba/', views.consultar_admisiones_prueba, name='consultar_admisiones_prueba'),
