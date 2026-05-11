@@ -129,9 +129,12 @@ def revalidar_actividad(actividad):
             if tipo_usuario_codigo:
                 actividad.tipo_usuario = tipo_usuario_codigo
             else:
+                logger.warning(
+                    "Tipo de Usuario no encontrado en OPR_SALUD ni en API MUTUAL para documento %s",
+                    actividad.documento_paciente,
+                )
                 raise Exception(
-                    f"Tipo de Usuario: documento {actividad.documento_paciente} "
-                    f"no encontrado en OPR_SALUD ni en API MUTUAL"
+                    "Tipo de Usuario no encontrado en OPR_SALUD ni en API MUTUAL"
                 )
 
     except Exception as e:

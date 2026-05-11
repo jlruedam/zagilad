@@ -298,9 +298,12 @@ def procesar_actividad(carga, valores):
             if tipo_usuario_codigo:
                 actividad.tipo_usuario = tipo_usuario_codigo
             else:
+                logger.warning(
+                    "Tipo de Usuario no encontrado en OPR_SALUD ni en API MUTUAL para documento %s",
+                    actividad.documento_paciente,
+                )
                 actividad.inconsistencias = (
-                    f"⚠️Tipo de Usuario: documento {actividad.documento_paciente} "
-                    f"no encontrado en OPR_SALUD ni en API MUTUAL"
+                    "⚠️Tipo de Usuario no encontrado en OPR_SALUD ni en API MUTUAL"
                 )[:500]
         except Exception as e:
             error = e
@@ -509,9 +512,12 @@ def procesar_cargue_actividades(id_carga, datos, num_lote, cantidad_actividades,
             elif fuente_caida:
                 actividad.inconsistencias = mensaje_fuente[:500]
             else:
+                logger.warning(
+                    "Tipo de Usuario no encontrado en OPR_SALUD ni en API MUTUAL para documento %s",
+                    actividad.documento_paciente,
+                )
                 actividad.inconsistencias = (
-                    f"⚠️Tipo de Usuario: documento {actividad.documento_paciente} "
-                    f"no encontrado en OPR_SALUD ni en API MUTUAL"
+                    "⚠️Tipo de Usuario no encontrado en OPR_SALUD ni en API MUTUAL"
                 )[:500]
 
         if actividades_crear:
@@ -747,10 +753,13 @@ def tarea_admisionar_actividades_carga(id_carga, ids_actividades, num_lote=0):
                                 tipo_usuario = siesa
                                 update_fields.add("tipo_usuario")
                             else:
+                                logger.warning(
+                                    "Tipo de Usuario no encontrado en OPR_SALUD ni en API MUTUAL para documento %s",
+                                    actividad.documento_paciente,
+                                )
                                 update_fields.add("inconsistencias")
                                 actividad.inconsistencias = (
-                                    f"⚠️Tipo de Usuario: documento {actividad.documento_paciente} "
-                                    f"no encontrado en OPR_SALUD ni en API MUTUAL"
+                                    "⚠️Tipo de Usuario no encontrado en OPR_SALUD ni en API MUTUAL"
                                 )[:500]
                         except Exception as e:
                             update_fields.add("inconsistencias")

@@ -2,7 +2,54 @@
 {% load static %}
 {% block title %} Carga {{ carga.id }} {% endblock %}
 
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+<style>
+.bloqueTablaResumenInconsistencias td.tipo-inconsistencia {
+    cursor: pointer;
+    color: var(--azul-rey);
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+    transition: background 0.12s ease;
+}
+.bloqueTablaResumenInconsistencias td.tipo-inconsistencia:hover {
+    background: #eef4ff;
+}
+.bloqueTablaResumenInconsistencias tr.is-active td {
+    background: #e8f0fe !important;
+    font-weight: 600;
+}
+
+.filtro-activo {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    margin: 16px 0 8px;
+    background: #fff4e5;
+    border-left: 3px solid var(--naranja);
+    border-radius: 4px;
+    font-size: 13px;
+    color: #6b3a00;
+}
+.filtro-activo.visible { display: flex; }
+.filtro-activo .filtro-texto {
+    flex: 1;
+    word-break: break-word;
+}
+.filtro-activo button {
+    background: #fff;
+    border: 1px solid #d0d4dc;
+    color: #444;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.filtro-activo button:hover { background: #f7f8fa; }
+</style>
+{% endblock stylesheets %}
 
 {% block content %}
 
@@ -71,8 +118,11 @@
             </thead>
             <tbody>
                 {% for inconsistencia in resumen_inconsistencias %}
-                <tr>
-                    <td>{{ inconsistencia.inconsistencias }}</td>
+                <tr data-inconsistencia="{{ inconsistencia.inconsistencias }}">
+                    <td class="tipo-inconsistencia"
+                        title="Click para filtrar las actividades por esta inconsistencia">
+                        {{ inconsistencia.inconsistencias }}
+                    </td>
                     <td>{{ inconsistencia.cantidad }}</td>
                     <td class="mybtn-emoji">
                         <form method="post" action="{% url 'eliminar_actividades_inconsistencia_carga' carga.id %}" style="display:inline">
@@ -88,6 +138,13 @@
     </div>
 </div>
 {% endif %}
+
+<!-- Indicador de filtro activo (controlado por JS) -->
+<div id="filtroInconsistenciaActivo" class="filtro-activo" aria-live="polite">
+    <span><strong>Filtrando actividades por:</strong></span>
+    <span class="filtro-texto"></span>
+    <button type="button" id="btnQuitarFiltroInconsistencia">Quitar filtro</button>
+</div>
 
 <!-- Tabla de actividades -->
 <div class="ver-tabla-wrapper">

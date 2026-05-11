@@ -68,4 +68,41 @@ $(document).ready(async function () {
     
     $('#botonesGestionActividad').html
 
+    // ── Filtrado por tipo de inconsistencia ──
+    // Al hacer click en una fila del resumen, aplica el texto de esa
+    // inconsistencia como búsqueda global de DataTables. El backend ya
+    // soporta inconsistencias__icontains a través de search[value].
+    var $banner = $('#filtroInconsistenciaActivo');
+    var $bannerTexto = $banner.find('.filtro-texto');
+    var $btnQuitar = $('#btnQuitarFiltroInconsistencia');
+    var $resumenWrapper = $('.bloqueTablaResumenInconsistencias');
+
+    function aplicarFiltro(texto) {
+        tabla.search(texto).draw();
+        $bannerTexto.text(texto);
+        $banner.addClass('visible');
+        $resumenWrapper.find('tr').removeClass('is-active');
+        $resumenWrapper.find('tr[data-inconsistencia]').filter(function () {
+            return $(this).attr('data-inconsistencia') === texto;
+        }).addClass('is-active');
+        // scroll suave al banner para que el usuario vea el efecto
+        var top = $banner.offset().top - 80;
+        $('html, body').animate({ scrollTop: top }, 200);
+    }
+
+    function quitarFiltro() {
+        tabla.search('').draw();
+        $banner.removeClass('visible');
+        $bannerTexto.text('');
+        $resumenWrapper.find('tr').removeClass('is-active');
+    }
+
+    $resumenWrapper.on('click', 'td.tipo-inconsistencia', function () {
+        var texto = $(this).closest('tr').attr('data-inconsistencia') || '';
+        if (!texto) return;
+        aplicarFiltro(texto);
+    });
+
+    $btnQuitar.on('click', quitarFiltro);
+
 })
