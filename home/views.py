@@ -613,19 +613,45 @@ def vista_medicos(request):
 
 @login_required(login_url="/login/")
 def informe_cargas(request):
-    cargas = Carga.objects.all()
+    cargas_qs = (
+        Carga.objects
+        .select_related("usuario")
+        .order_by("-id")
+    )
 
-    for carga in cargas:
-        carga.actualizar_info_actividades()
+    paginator = Paginator(cargas_qs, 25)
+    numero_pagina = request.GET.get("page")
+    try:
+        pagina = paginator.page(numero_pagina)
+    except PageNotAnInteger:
+        pagina = paginator.page(1)
+    except EmptyPage:
+        pagina = paginator.page(paginator.num_pages)
 
-    ctx = {"cargas":cargas}
-    return render(request,"home/informeCargas.html",ctx)
+    ctx = {
+        "cargas": pagina.object_list,
+        "pagina": pagina,
+        "paginator": paginator,
+    }
+    return render(request, "home/informeCargas.html", ctx)
 
 
 @login_required(login_url="/login/")
 def listar_resumen_cargas(request):
+    qs = Carga.objects.select_related("usuario").order_by("id")
+
+    # Si el front envía ?ids=1,2,3 solo se refrescan esas filas — evita escanear
+    # toda la tabla en cada poll cuando la página está paginada.
+    ids_param = request.GET.get("ids", "")
+    if ids_param:
+        ids = [int(x) for x in ids_param.split(",") if x.isdigit()]
+        if ids:
+            qs = qs.filter(id__in=ids)
+        else:
+            return JsonResponse({"cargas": []}, safe=False)
+
     resumen = []
-    for carga in Carga.objects.select_related("usuario").order_by("id"):
+    for carga in qs:
         porcentaje_procesamiento = 0
         porcentaje_admisionado = 0
 

@@ -28,6 +28,35 @@
         white-space: nowrap;
     }
     .celda-avance { min-width: 145px; }
+
+    .paginacion-cargas {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+        font-size: 0.9rem;
+    }
+    .paginacion-cargas a,
+    .paginacion-cargas span.pag-actual,
+    .paginacion-cargas span.pag-disabled {
+        padding: 0.35rem 0.7rem;
+        border: 1px solid var(--gris-medio, #ccc);
+        border-radius: 4px;
+        text-decoration: none;
+        color: inherit;
+        background: #fff;
+    }
+    .paginacion-cargas a:hover { background: var(--gris-medio, #eee); }
+    .paginacion-cargas span.pag-actual {
+        background: var(--azul-cielo, #1976d2);
+        color: #fff;
+        border-color: transparent;
+        font-weight: 600;
+    }
+    .paginacion-cargas span.pag-disabled { color: #aaa; }
+    .paginacion-info { color: #666; margin-left: 0.5rem; }
 </style>
 {% endblock stylesheets %}
 
@@ -114,6 +143,32 @@
                 </tbody>
             </table>
         </div>
+
+        {% if paginator.num_pages > 1 %}
+        <nav class="paginacion-cargas" aria-label="Paginación de cargas">
+            {% if pagina.has_previous %}
+                <a href="?page=1" title="Primera">«</a>
+                <a href="?page={{ pagina.previous_page_number }}" title="Anterior">‹</a>
+            {% else %}
+                <span class="pag-disabled">«</span>
+                <span class="pag-disabled">‹</span>
+            {% endif %}
+
+            <span class="pag-actual">
+                Página {{ pagina.number }} de {{ paginator.num_pages }}
+            </span>
+
+            {% if pagina.has_next %}
+                <a href="?page={{ pagina.next_page_number }}" title="Siguiente">›</a>
+                <a href="?page={{ paginator.num_pages }}" title="Última">»</a>
+            {% else %}
+                <span class="pag-disabled">›</span>
+                <span class="pag-disabled">»</span>
+            {% endif %}
+
+            <span class="paginacion-info">{{ paginator.count }} cargas en total</span>
+        </nav>
+        {% endif %}
     </div>
 
 </div>

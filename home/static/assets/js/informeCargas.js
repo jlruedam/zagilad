@@ -88,9 +88,23 @@ function hayEstadoActivo(cargas) {
     return cargas.some(c => c.estado === "procesando" || c.estado === "admisionando");
 }
 
+function idsCargasVisibles() {
+    return Array.from(document.querySelectorAll("[data-carga-id]"))
+        .map(fila => fila.getAttribute("data-carga-id"))
+        .filter(Boolean);
+}
+
 async function cargarResumenCargas() {
     try {
-        const respuesta = await fetch(URL_RESUMEN_CARGAS, {
+        const ids = idsCargasVisibles();
+        if (ids.length === 0) {
+            // Página vacía: no hay nada que refrescar — back off al intervalo lento.
+            pollingTimeout = setTimeout(cargarResumenCargas, INTERVALO_INACTIVO);
+            return;
+        }
+
+        const url = `${URL_RESUMEN_CARGAS}?ids=${encodeURIComponent(ids.join(","))}`;
+        const respuesta = await fetch(url, {
             headers: { "Accept": "application/json" },
         });
         if (!respuesta.ok) return;
