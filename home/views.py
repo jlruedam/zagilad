@@ -28,6 +28,7 @@ from home.modules import peticiones_http, parametros_generales
 from home.modules import generador_excel, utils
 from home.modules import paginacion_actividades
 from home.modules import revalidador
+from home.modules.tipo_usuario.homologacion import SIESA_LABELS
 
 
 # DJANGO Q
@@ -800,6 +801,7 @@ def editar_actividad(request, id_actividad):
             "actividad": actividad,
             "tipos_actividad": tipos,
             "medicos": medicos,
+            "tipos_usuario": list(SIESA_LABELS.items()),
         }
         return render(request, "home/editarActividad.html", ctx)
 
@@ -822,6 +824,11 @@ def editar_actividad(request, id_actividad):
         return HttpResponseBadRequest("Tipo de actividad es requerido")
     if not fecha_servicio_str:
         return HttpResponseBadRequest("Fecha de servicio es requerida")
+    if tipo_usuario and tipo_usuario not in SIESA_LABELS:
+        return HttpResponseBadRequest(
+            f"Tipo de usuario inválido: {tipo_usuario!r}. "
+            f"Valores válidos: {', '.join(SIESA_LABELS)} o vacío para auto-consulta."
+        )
 
     try:
         fecha_servicio = datetime.strptime(fecha_servicio_str, "%Y-%m-%d").date()

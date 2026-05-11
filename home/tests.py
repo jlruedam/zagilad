@@ -193,7 +193,7 @@ class EditarActividadTests(TestCase):
             "documento_paciente": "222",
             "documento_medico": "DOC-MED-OK",
             "tipo_actividad_id": self.tipo.id,
-            "tipo_usuario": "SU",
+            "tipo_usuario": "04",
             "diagnostico_p": "Z00",
             "fecha_servicio": "2024-06-01",
         })
@@ -214,7 +214,7 @@ class EditarActividadTests(TestCase):
             "documento_paciente": "222",
             "documento_medico": "DOC-MED-OK",
             "tipo_actividad_id": self.tipo.id,
-            "tipo_usuario": "SU",
+            "tipo_usuario": "04",
             "diagnostico_p": "Z00",
             "fecha_servicio": "2024-06-01",
         })
@@ -233,7 +233,7 @@ class EditarActividadTests(TestCase):
             "documento_paciente": "111",
             "documento_medico": "DOC-MED-OK",  # ahora apunta al médico válido
             "tipo_actividad_id": self.tipo.id,
-            "tipo_usuario": "SU",
+            "tipo_usuario": "04",
             "diagnostico_p": "A00",
             "fecha_servicio": "2024-06-01",
         })
@@ -242,12 +242,12 @@ class EditarActividadTests(TestCase):
         actividad.refresh_from_db()
         self.assertIsNone(actividad.inconsistencias, "inconsistencia debe quedar resuelta")
         self.assertEqual(actividad.medico_id, self.medico_valido.id)
-        self.assertEqual(actividad.tipo_usuario, "SU")
+        self.assertEqual(actividad.tipo_usuario, "04")
         mock_tipo_usuario.assert_not_called()
 
     @patch("home.modules.revalidador.tipo_usuario_service.obtener_tipo_usuario")
     def test_edicion_consulta_tipo_usuario_si_viene_vacio(self, mock_tipo_usuario):
-        mock_tipo_usuario.return_value = "CO"
+        mock_tipo_usuario.return_value = "01"
         actividad = self._crear_actividad_con_inconsistencia()
 
         url = reverse("editar_actividad", args=[actividad.id])
@@ -263,7 +263,7 @@ class EditarActividadTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         actividad.refresh_from_db()
-        self.assertEqual(actividad.tipo_usuario, "CO")
+        self.assertEqual(actividad.tipo_usuario, "01")
         mock_tipo_usuario.assert_called_once_with("111", "CC")
 
     @patch("home.modules.revalidador.tipo_usuario_service.obtener_tipo_usuario")
@@ -281,7 +281,7 @@ class EditarActividadTests(TestCase):
             "documento_paciente": "111",
             "documento_medico": "DOC-MED-OK",
             "tipo_actividad_id": self.tipo.id,
-            "tipo_usuario": "SU",
+            "tipo_usuario": "04",
             "diagnostico_p": "A00",
             "fecha_servicio": "2024-06-01",
         })
@@ -292,7 +292,7 @@ class EditarActividadTests(TestCase):
 
     @patch("home.modules.revalidador.tipo_usuario_service.obtener_tipo_usuario")
     def test_edicion_cambia_tipo_documento(self, mock_tipo_usuario):
-        mock_tipo_usuario.return_value = "CO"
+        mock_tipo_usuario.return_value = "01"
         actividad = self._crear_actividad_con_inconsistencia()
         self.assertEqual(actividad.tipo_documento, "CC")
 

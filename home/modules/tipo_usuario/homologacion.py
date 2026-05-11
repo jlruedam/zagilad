@@ -30,6 +30,17 @@ SIESA_RULES: dict = {
     },
 }
 
+# Labels descriptivos de cada código SIESA — usados al mostrar el tipo de
+# usuario al usuario final (formularios de edición, reportes). Las claves
+# son la unión de los valores en SIESA_RULES — fuente única para que el
+# select del form de edición no se desincronice con las reglas.
+SIESA_LABELS: dict = {
+    "01": "Cotizante",
+    "02": "Beneficiario",
+    "03": "Adicional",
+    "04": "Subsidiado",
+}
+
 # Mapeo de nombres largos (formato MUTUAL SER) → códigos cortos (formato API).
 # Incluye el typo histórico "FAMLIA" presente en los datos crudos para no
 # perder filas.

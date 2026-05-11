@@ -210,11 +210,16 @@
 
             <div class="eact-field">
                 <label for="tipo_usuario">Tipo de usuario</label>
-                <input type="text" id="tipo_usuario" name="tipo_usuario"
-                       value="{{ actividad.tipo_usuario|default:'' }}"
-                       maxlength="2"
-                       placeholder="Ej: SU / CO / NA">
-                <small>Si lo dejás vacío, se consulta OPR_SALUD + API MUTUAL.</small>
+                <select id="tipo_usuario" name="tipo_usuario">
+                    <option value="">— Auto (consultar MUTUAL_VIEW + API MUTUAL) —</option>
+                    {% for codigo, etiqueta in tipos_usuario %}
+                        <option value="{{ codigo }}"
+                                {% if actividad.tipo_usuario == codigo %}selected{% endif %}>
+                            {{ codigo }} — {{ etiqueta }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <small>Si lo dejás vacío, se resuelve automáticamente contra las fuentes.</small>
             </div>
 
             <div class="eact-field">
