@@ -1,9 +1,10 @@
 """
 Homologación de tipo de afiliado MUTUAL SER → código SIESA.
 
-Fuente única de reglas para los dos paths (SQL OPR_SALUD y API MUTUAL).
-Antes vivían embebidas en el CASE del SQL en utils.py — ahora se aplican en
-Python después de extraer los valores crudos.
+Fuente única de reglas para todos los paths de consulta (SQL MUTUALSER y
+API MUTUAL). Las reglas son las mismas que originalmente vivían embebidas
+en el CASE del SQL contra OPR_SALUD — al portar el sistema a MUTUALSER y
+a la API se extrajeron a Python sobre los valores crudos.
 
 Reglas (tomadas de homologacion_tipoAfiliado_siesa.xlsx):
 
@@ -29,8 +30,9 @@ SIESA_RULES: dict = {
     },
 }
 
-# Mapeo de nombres largos (formato OPR_SALUD) → códigos cortos (formato API).
-# Incluye el typo histórico "FAMLIA" presente en OPR_SALUD para no perder filas.
+# Mapeo de nombres largos (formato MUTUAL SER) → códigos cortos (formato API).
+# Incluye el typo histórico "FAMLIA" presente en los datos crudos para no
+# perder filas.
 SQL_TIPO_AFILIADO_TO_CODIGO: dict = {
     "BENEFICIARIO": "B",
     "COTIZANTE": "C",
@@ -46,7 +48,7 @@ SQL_TIPO_AFILIADO_TO_CODIGO: dict = {
 
 
 def normalizar_tipo_afiliado(tipo_raw) -> str:
-    """Normaliza un tipo de afiliado crudo de OPR_SALUD a código corto."""
+    """Normaliza un tipo de afiliado crudo de MUTUAL SER a código corto."""
     if not tipo_raw:
         return ""
     s = str(tipo_raw).strip()

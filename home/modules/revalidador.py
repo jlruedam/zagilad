@@ -71,7 +71,7 @@ def revalidar_actividad(actividad):
       4) Parámetros área/programa existen para (área, regional)
       5) No duplicada vs admisionadas previas (otra carga)
       6) No duplicada en la misma carga
-      7) tipo_usuario: si vacío, consultar OPR_SALUD + fallback API MUTUAL
+      7) tipo_usuario: si vacío, consultar MUTUAL_VIEW + fallback API MUTUAL
     """
     actividad.inconsistencias = None
     # Reset del flag — si la edición lo limpia, debe poder volver a "OK".
@@ -130,11 +130,11 @@ def revalidar_actividad(actividad):
                 actividad.tipo_usuario = tipo_usuario_codigo
             else:
                 logger.warning(
-                    "Tipo de Usuario no encontrado en OPR_SALUD ni en API MUTUAL para documento %s",
+                    "Tipo de Usuario no encontrado en MUTUAL_VIEW ni en API MUTUAL para documento %s",
                     actividad.documento_paciente,
                 )
                 raise Exception(
-                    "Tipo de Usuario no encontrado en OPR_SALUD ni en API MUTUAL"
+                    "Tipo de Usuario no encontrado en MUTUAL_VIEW ni en API MUTUAL"
                 )
 
     except Exception as e:

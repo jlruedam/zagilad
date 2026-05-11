@@ -299,11 +299,11 @@ def procesar_actividad(carga, valores):
                 actividad.tipo_usuario = tipo_usuario_codigo
             else:
                 logger.warning(
-                    "Tipo de Usuario no encontrado en OPR_SALUD ni en API MUTUAL para documento %s",
+                    "Tipo de Usuario no encontrado en MUTUAL_VIEW ni en API MUTUAL para documento %s",
                     actividad.documento_paciente,
                 )
                 actividad.inconsistencias = (
-                    "⚠️Tipo de Usuario no encontrado en OPR_SALUD ni en API MUTUAL"
+                    "⚠️Tipo de Usuario no encontrado en MUTUAL_VIEW ni en API MUTUAL"
                 )[:500]
         except Exception as e:
             error = e
@@ -488,12 +488,12 @@ def procesar_cargue_actividades(id_carga, datos, num_lote, cantidad_actividades,
         if fuente_caida:
             if batch_error is not None:
                 mensaje_fuente = (
-                    f"⚠️Error consultando tipo_usuario (SQL+API): "
+                    f"⚠️Error consultando tipo_usuario (MUTUAL_VIEW+API): "
                     f"{type(batch_error).__name__}: {batch_error}"
                 )
             else:
                 mensaje_fuente = (
-                    "⚠️Tipo de Usuario no resuelto por OPR_SALUD ni por API MUTUAL. "
+                    "⚠️Tipo de Usuario no resuelto por MUTUAL_VIEW ni por API MUTUAL. "
                     "Contactar al equipo de datos."
                 )
             logger.error("Carga %s: %s", id_carga, mensaje_fuente)
@@ -513,11 +513,11 @@ def procesar_cargue_actividades(id_carga, datos, num_lote, cantidad_actividades,
                 actividad.inconsistencias = mensaje_fuente[:500]
             else:
                 logger.warning(
-                    "Tipo de Usuario no encontrado en OPR_SALUD ni en API MUTUAL para documento %s",
+                    "Tipo de Usuario no encontrado en MUTUAL_VIEW ni en API MUTUAL para documento %s",
                     actividad.documento_paciente,
                 )
                 actividad.inconsistencias = (
-                    "⚠️Tipo de Usuario no encontrado en OPR_SALUD ni en API MUTUAL"
+                    "⚠️Tipo de Usuario no encontrado en MUTUAL_VIEW ni en API MUTUAL"
                 )[:500]
 
         if actividades_crear:
@@ -623,7 +623,7 @@ def tarea_admisionar_actividades_carga(id_carga, ids_actividades, num_lote=0):
     if fuente_tipo_usuario_caida:
         if tipo_usuario_preload_error is not None:
             logger.error(
-                "Carga %s: tipo_usuario inaccesible (SQL+API) (%s: %s)",
+                "Carga %s: tipo_usuario inaccesible (MUTUAL_VIEW+API) (%s: %s)",
                 carga.id, type(tipo_usuario_preload_error).__name__, tipo_usuario_preload_error,
             )
         else:
@@ -734,12 +734,12 @@ def tarea_admisionar_actividades_carga(id_carga, ids_actividades, num_lote=0):
                         update_fields.add("inconsistencias")
                         if tipo_usuario_preload_error is not None:
                             actividad.inconsistencias = (
-                                f"⚠️Tipo de Usuario inaccesible (SQL+API): "
+                                f"⚠️Tipo de Usuario inaccesible (MUTUAL_VIEW+API): "
                                 f"{type(tipo_usuario_preload_error).__name__}: {tipo_usuario_preload_error}"
                             )[:500]
                         else:
                             actividad.inconsistencias = (
-                                "⚠️Tipo de Usuario sin datos en OPR_SALUD ni en API MUTUAL. "
+                                "⚠️Tipo de Usuario sin datos en MUTUAL_VIEW ni en API MUTUAL. "
                                 "Contactar al equipo de datos."
                             )[:500]
                     else:
@@ -754,12 +754,12 @@ def tarea_admisionar_actividades_carga(id_carga, ids_actividades, num_lote=0):
                                 update_fields.add("tipo_usuario")
                             else:
                                 logger.warning(
-                                    "Tipo de Usuario no encontrado en OPR_SALUD ni en API MUTUAL para documento %s",
+                                    "Tipo de Usuario no encontrado en MUTUAL_VIEW ni en API MUTUAL para documento %s",
                                     actividad.documento_paciente,
                                 )
                                 update_fields.add("inconsistencias")
                                 actividad.inconsistencias = (
-                                    "⚠️Tipo de Usuario no encontrado en OPR_SALUD ni en API MUTUAL"
+                                    "⚠️Tipo de Usuario no encontrado en MUTUAL_VIEW ni en API MUTUAL"
                                 )[:500]
                         except Exception as e:
                             update_fields.add("inconsistencias")
@@ -769,14 +769,14 @@ def tarea_admisionar_actividades_carga(id_carga, ids_actividades, num_lote=0):
                             )[:500]
 
                 # ── Reconciliar tipo_usuario contra el regimen de Zeus ──
-                # Zeus es la fuente de verdad para la admisión. Si OPR_SALUD/API
+                # Zeus es la fuente de verdad para la admisión. Si MUTUAL_VIEW/API
                 # dijeron un regimen distinto al que Zeus tiene, el tipo_usuario
                 # quedó mal homologado. Reglas SIESA absolutas:
                 #   Subsidiado → SIEMPRE 04 (cualquier tipo_afiliado).
                 #   Contributivo → 01/02/03 (no 04).
                 if regimen == "Subsidiado" and tipo_usuario != "04":
                     logger.info(
-                        "Reconciliando tipo_usuario actividad %s: Zeus=%r → forzando '04' (era %r de OPR_SALUD/API)",
+                        "Reconciliando tipo_usuario actividad %s: Zeus=%r → forzando '04' (era %r de MUTUAL_VIEW/API)",
                         actividad.id, regimen, tipo_usuario,
                     )
                     actividad.tipo_usuario = "04"
@@ -794,7 +794,7 @@ def tarea_admisionar_actividades_carga(id_carga, ids_actividades, num_lote=0):
                     )
                     raise Exception(
                         "Régimen inconsistente: Zeus dice Contributivo pero "
-                        "tipo_usuario es '04' (Subsidiado) según OPR_SALUD/API."
+                        "tipo_usuario es '04' (Subsidiado) según MUTUAL_VIEW/API."
                     )
 
                 admision_actividad = admision.crear_admision(
