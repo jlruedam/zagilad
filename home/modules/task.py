@@ -774,9 +774,18 @@ def tarea_admisionar_actividades_carga(id_carga, ids_actividades, num_lote=0):
                     tipo_usuario = "04"
                     update_fields.add("tipo_usuario")
                 elif regimen == "Contributivo" and tipo_usuario == "04":
+                    # Mensaje SIN documento del afiliado: necesitamos que el texto
+                    # sea estable para que el resumen agrupe todas las actividades
+                    # afectadas en una sola fila. El documento queda en
+                    # `actividad.documento_paciente` y en este log.
+                    logger.warning(
+                        "Régimen inconsistente actividad %s: Zeus=Contributivo "
+                        "tipo_usuario='04' afiliado=%s",
+                        actividad.id, actividad.documento_paciente,
+                    )
                     raise Exception(
-                        f"Régimen inconsistente: Zeus dice Contributivo pero tipo_usuario es '04' "
-                        f"(Subsidiado) según OPR_SALUD/API. Revisar afiliado {actividad.documento_paciente}."
+                        "Régimen inconsistente: Zeus dice Contributivo pero "
+                        "tipo_usuario es '04' (Subsidiado) según OPR_SALUD/API."
                     )
 
                 admision_actividad = admision.crear_admision(
