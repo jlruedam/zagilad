@@ -1,0 +1,547 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Reglas de Homologación {% endblock %}
+
+{% block stylesheets %}
+<style>
+.rh-tabs { display: flex; gap: 4px; border-bottom: 2px solid #eef0f3; margin-bottom: 18px; }
+.rh-tab {
+    padding: 10px 20px; cursor: pointer; border: none; background: transparent;
+    font-family: var(--fuente); font-size: 14px; font-weight: 600;
+    color: #777; border-bottom: 3px solid transparent; margin-bottom: -2px;
+    transition: color 0.1s, border-color 0.1s;
+}
+.rh-tab.active { color: var(--azul-rey); border-bottom-color: var(--azul-rey); }
+.rh-tab:hover  { color: var(--azul-rey); }
+
+.rh-panel { display: none; }
+.rh-panel.active { display: block; }
+
+.rh-header-actions {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 12px; flex-wrap: wrap; margin-bottom: 16px;
+}
+.rh-btn-nuevo {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--azul-rey); color: #fff; border: none;
+    padding: 10px 18px; border-radius: 8px;
+    font-family: var(--fuente); font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: background 0.15s, transform 0.1s;
+}
+.rh-btn-nuevo:hover { background: #0d3a7a; transform: translateY(-1px); }
+
+.rh-icon-btn {
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 1px solid #d0d5dd; background: #fff; color: #333;
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 13px;
+    transition: transform 0.1s, box-shadow 0.12s, background 0.1s;
+}
+.rh-icon-btn:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+.rh-icon-btn--edit { background: #fff4e5; color: #b06a00; border-color: #f5d0a0; }
+.rh-icon-btn--del  { background: #fce8e6; color: #c5221f; border-color: #f3c2bd; }
+.rh-acciones { display: flex; gap: 6px; justify-content: center; }
+
+.rh-scope-global   { background: #e6f0fb; color: #123c7e; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+.rh-scope-override { background: #fff4d6; color: #8a6d00; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+
+.rh-filtro { display: flex; gap: 8px; align-items: center; }
+.rh-filtro select { padding: 6px 10px; border: 1px solid #d0d5dd; border-radius: 6px; font-size: 13px; font-family: var(--fuente); }
+
+/* Modal (reutilizado de areasPrograma) */
+.modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+    display: none; align-items: flex-start; justify-content: center;
+    z-index: 100; padding: 40px 16px; overflow-y: auto;
+}
+.modal-overlay.visible { display: flex; }
+.modal-card {
+    background: #fff; border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    width: 100%; max-width: 560px; overflow: hidden;
+    animation: modalIn 0.18s ease;
+}
+@keyframes modalIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+.modal-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 18px 24px; border-bottom: 1px solid #eef0f3;
+    background: linear-gradient(180deg, #f9fafc, #fff);
+}
+.modal-head h2 { margin: 0; font-family: var(--fuente); font-size: 18px; font-weight: 700; color: var(--azul-rey); }
+.modal-close { background: none; border: none; font-size: 22px; line-height: 1; color: #888; cursor: pointer; padding: 4px 8px; border-radius: 6px; }
+.modal-close:hover { background: #f0f2f5; color: #333; }
+.modal-body { padding: 20px 24px; }
+.form-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-field { display: flex; flex-direction: column; gap: 6px; }
+.form-field label { font-family: var(--fuente); font-size: 11px; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.4px; }
+.form-field label .req { color: #c5221f; margin-left: 2px; }
+.form-field input, .form-field select {
+    width: 100%; min-width: 0; box-sizing: border-box;
+    padding: 8px 10px; border: 1px solid #d0d5dd; border-radius: 6px;
+    font-size: 14px; font-family: var(--fuente); color: var(--gris-texto); background: #fff;
+}
+.form-field input:focus, .form-field select:focus {
+    outline: none; border-color: var(--azul-rey);
+    box-shadow: 0 0 0 3px rgba(18, 60, 126, 0.12);
+}
+.form-field small { color: #888; font-size: 11px; }
+.modal-msg { margin: 12px 0 0; padding: 10px 14px; border-radius: 6px; font-size: 13px; display: none; }
+.modal-msg--error   { background: #fce8e6; color: #c5221f; display: block; }
+.modal-msg--success { background: #e6f4ea; color: #137333; display: block; }
+.modal-foot { padding: 14px 24px; border-top: 1px solid #eef0f3; display: flex; justify-content: flex-end; gap: 10px; background: #fafbfc; }
+.btn-ghost, .btn-primary {
+    padding: 9px 18px; border-radius: 6px; font-family: var(--fuente);
+    font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid transparent;
+}
+.btn-ghost { background: #fff; color: #555; border-color: #d0d5dd; }
+.btn-ghost:hover { background: #f4f6f8; }
+.btn-primary { background: var(--azul-rey); color: #fff; }
+.btn-primary:hover { background: #0d3a7a; }
+.btn-primary:disabled { background: #8896b3; cursor: progress; }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="admin-tabla-page">
+    {% include 'includes/btn_volver.html' with href='/administrador/' label='Volver al administrador' %}
+    <div class="admin-tabla-header">
+        <h1 class="admin-tabla-titulo">
+            <i class="fa fa-table" style="color:var(--naranja);margin-right:8px"></i>
+            Reglas de Homologación
+        </h1>
+    </div>
+
+    <div class="rh-tabs">
+        <button type="button" class="rh-tab active" data-tab="reglas">Reglas SIESA</button>
+        <button type="button" class="rh-tab" data-tab="norms">Normalizaciones</button>
+    </div>
+
+    <!-- ═════════ TAB: Reglas SIESA ═════════ -->
+    <div class="rh-panel active" data-panel="reglas">
+        <div class="rh-header-actions">
+            <div class="rh-filtro">
+                <label style="font-size:12px;color:#666">Filtrar por fuente:</label>
+                <select id="filtroFuenteReglas">
+                    <option value="all">Todas</option>
+                    <option value="global">Sólo globales</option>
+                    {% for f in fuentes %}
+                        <option value="{{ f.id }}">{{ f.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="button" class="rh-btn-nuevo" id="btnNuevaRegla">
+                <i class="fa fa-plus"></i> Nueva regla
+            </button>
+        </div>
+
+        <div class="admin-tabla-wrapper">
+            <div class="bloqueTabla">
+                <table id="tablaReglas">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Alcance</th>
+                            <th>Régimen</th>
+                            <th>Tipo afiliado</th>
+                            <th>SIESA</th>
+                            <th>Descripción</th>
+                            <th style="text-align:center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in reglas %}
+                        <tr data-fuente-id="{{ r.fuente_id|default:'' }}"
+                            data-regla='{"id":{{ r.id }},"fuente_id":{% if r.fuente_id %}{{ r.fuente_id }}{% else %}null{% endif %},"regimen":"{{ r.regimen|escapejs }}","tipo_afiliado_codigo":"{{ r.tipo_afiliado_codigo|escapejs }}","codigo_siesa":"{{ r.codigo_siesa|escapejs }}","descripcion":"{{ r.descripcion|escapejs }}"}'>
+                            <td>{{ r.id }}</td>
+                            <td>
+                                {% if r.fuente_id %}
+                                    <span class="rh-scope-override">Override: {{ r.fuente.nombre }}</span>
+                                {% else %}
+                                    <span class="rh-scope-global">GLOBAL</span>
+                                {% endif %}
+                            </td>
+                            <td><strong>{{ r.regimen }}</strong></td>
+                            <td><strong>{{ r.tipo_afiliado_codigo }}</strong></td>
+                            <td><strong>{{ r.codigo_siesa }}</strong></td>
+                            <td><small>{{ r.descripcion }}</small></td>
+                            <td>
+                                <div class="rh-acciones">
+                                    <button type="button" class="rh-icon-btn rh-icon-btn--edit" data-action="edit-regla" title="Editar">✏️</button>
+                                    <button type="button" class="rh-icon-btn rh-icon-btn--del"  data-action="del-regla" data-id="{{ r.id }}" data-label="{{ r.regimen }}+{{ r.tipo_afiliado_codigo }} → {{ r.codigo_siesa }}" title="Eliminar">🗑</button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="7" style="text-align:center;color:#888;padding:20px">Sin reglas configuradas — el sistema usará los defaults hardcoded.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═════════ TAB: Normalizaciones ═════════ -->
+    <div class="rh-panel" data-panel="norms">
+        <div class="rh-header-actions">
+            <div class="rh-filtro">
+                <label style="font-size:12px;color:#666">Filtrar por fuente:</label>
+                <select id="filtroFuenteNorms">
+                    <option value="all">Todas</option>
+                    <option value="global">Sólo globales</option>
+                    {% for f in fuentes %}
+                        <option value="{{ f.id }}">{{ f.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="button" class="rh-btn-nuevo" id="btnNuevaNorm">
+                <i class="fa fa-plus"></i> Nueva normalización
+            </button>
+        </div>
+
+        <div class="admin-tabla-wrapper">
+            <div class="bloqueTabla">
+                <table id="tablaNorms">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Alcance</th>
+                            <th>Valor crudo</th>
+                            <th>→ Código normalizado</th>
+                            <th style="text-align:center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for n in normalizaciones %}
+                        <tr data-fuente-id="{{ n.fuente_id|default:'' }}"
+                            data-norm='{"id":{{ n.id }},"fuente_id":{% if n.fuente_id %}{{ n.fuente_id }}{% else %}null{% endif %},"valor_crudo":"{{ n.valor_crudo|escapejs }}","codigo_normalizado":"{{ n.codigo_normalizado|escapejs }}"}'>
+                            <td>{{ n.id }}</td>
+                            <td>
+                                {% if n.fuente_id %}
+                                    <span class="rh-scope-override">Override: {{ n.fuente.nombre }}</span>
+                                {% else %}
+                                    <span class="rh-scope-global">GLOBAL</span>
+                                {% endif %}
+                            </td>
+                            <td><code>{{ n.valor_crudo }}</code></td>
+                            <td><strong>{{ n.codigo_normalizado }}</strong></td>
+                            <td>
+                                <div class="rh-acciones">
+                                    <button type="button" class="rh-icon-btn rh-icon-btn--edit" data-action="edit-norm" title="Editar">✏️</button>
+                                    <button type="button" class="rh-icon-btn rh-icon-btn--del"  data-action="del-norm" data-id="{{ n.id }}" data-label="{{ n.valor_crudo }} → {{ n.codigo_normalizado }}" title="Eliminar">🗑</button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" style="text-align:center;color:#888;padding:20px">Sin normalizaciones configuradas — el sistema usará los defaults hardcoded.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═════════ MODAL Regla SIESA ═════════ -->
+<div class="modal-overlay" id="modalRegla" role="dialog" aria-modal="true">
+    <div class="modal-card">
+        <div class="modal-head">
+            <h2 id="tituloModalRegla">Nueva regla SIESA</h2>
+            <button type="button" class="modal-close" data-cerrar="modalRegla" aria-label="Cerrar">×</button>
+        </div>
+        <form id="formRegla" novalidate>
+            <input type="hidden" id="rg_id" value="">
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label>Alcance</label>
+                        <select id="rg_fuente">
+                            <option value="">Global (todas las fuentes)</option>
+                            {% for f in fuentes %}
+                                <option value="{{ f.id }}">{{ f.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                        <small>Una regla de fuente sobrescribe la global para esa fuente.</small>
+                    </div>
+                    <div class="form-grid-2">
+                        <div class="form-field">
+                            <label>Régimen <span class="req">*</span></label>
+                            <input type="text" id="rg_regimen" maxlength="10" required>
+                            <small>Ej: C, S</small>
+                        </div>
+                        <div class="form-field">
+                            <label>Tipo afiliado <span class="req">*</span></label>
+                            <input type="text" id="rg_tipo" maxlength="10" required>
+                            <small>Código corto. "*" = wildcard</small>
+                        </div>
+                    </div>
+                    <div class="form-field">
+                        <label>Código SIESA <span class="req">*</span></label>
+                        <input type="text" id="rg_siesa" maxlength="10" required>
+                        <small>Ej: 01, 02, 03, 04</small>
+                    </div>
+                    <div class="form-field">
+                        <label>Descripción</label>
+                        <input type="text" id="rg_descripcion" maxlength="150">
+                    </div>
+                </div>
+                <div class="modal-msg" id="msgRegla"></div>
+            </div>
+            <div class="modal-foot">
+                <button type="button" class="btn-ghost" data-cerrar="modalRegla">Cancelar</button>
+                <button type="submit" class="btn-primary" id="btnGuardarRegla">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ═════════ MODAL Normalización ═════════ -->
+<div class="modal-overlay" id="modalNorm" role="dialog" aria-modal="true">
+    <div class="modal-card">
+        <div class="modal-head">
+            <h2 id="tituloModalNorm">Nueva normalización</h2>
+            <button type="button" class="modal-close" data-cerrar="modalNorm" aria-label="Cerrar">×</button>
+        </div>
+        <form id="formNorm" novalidate>
+            <input type="hidden" id="nm_id" value="">
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label>Alcance</label>
+                        <select id="nm_fuente">
+                            <option value="">Global (todas las fuentes)</option>
+                            {% for f in fuentes %}
+                                <option value="{{ f.id }}">{{ f.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>Valor crudo <span class="req">*</span></label>
+                        <input type="text" id="nm_valor" maxlength="100" required>
+                        <small>Tal cual lo devuelve la fuente (ej. CABEZA DE FAMLIA)</small>
+                    </div>
+                    <div class="form-field">
+                        <label>Código normalizado <span class="req">*</span></label>
+                        <input type="text" id="nm_codigo" maxlength="10" required>
+                        <small>Código corto (ej. F, C, B, SC, A, ND)</small>
+                    </div>
+                </div>
+                <div class="modal-msg" id="msgNorm"></div>
+            </div>
+            <div class="modal-foot">
+                <button type="button" class="btn-ghost" data-cerrar="modalNorm">Cancelar</button>
+                <button type="submit" class="btn-primary" id="btnGuardarNorm">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+(function () {
+    'use strict';
+
+    // ─── Tabs ───
+    document.querySelectorAll('.rh-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.rh-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.rh-panel').forEach(p => p.classList.remove('active'));
+            tab.classList.add('active');
+            document.querySelector(`[data-panel="${tab.dataset.tab}"]`).classList.add('active');
+        });
+    });
+
+    // ─── Filtros ───
+    function aplicarFiltro(tabla, selectId) {
+        const valor = document.getElementById(selectId).value;
+        document.querySelectorAll(`#${tabla} tbody tr`).forEach(tr => {
+            const fid = tr.dataset.fuenteId || '';
+            let mostrar = true;
+            if (valor === 'global') mostrar = (fid === '');
+            else if (valor !== 'all') mostrar = (fid === valor);
+            tr.style.display = mostrar ? '' : 'none';
+        });
+    }
+    document.getElementById('filtroFuenteReglas')?.addEventListener('change', () => aplicarFiltro('tablaReglas', 'filtroFuenteReglas'));
+    document.getElementById('filtroFuenteNorms')?.addEventListener('change',  () => aplicarFiltro('tablaNorms',  'filtroFuenteNorms'));
+
+    // ─── Helpers ───
+    function postJson(url, payload) {
+        return fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+            body: JSON.stringify(payload),
+        }).then(async resp => {
+            const data = await resp.json().catch(() => ({}));
+            return { resp, data };
+        });
+    }
+    function abrir(id) { document.getElementById(id).classList.add('visible'); }
+    function cerrar(id) {
+        const m = document.getElementById(id);
+        m.classList.remove('visible');
+        m.querySelector('form')?.reset();
+        m.querySelector('input[type=hidden]').value = '';
+        const msg = m.querySelector('.modal-msg');
+        if (msg) { msg.className = 'modal-msg'; msg.textContent = ''; }
+    }
+    document.querySelectorAll('[data-cerrar]').forEach(b => b.addEventListener('click', () => cerrar(b.dataset.cerrar)));
+    document.querySelectorAll('.modal-overlay').forEach(ov => {
+        ov.addEventListener('click', (e) => { if (e.target === ov) cerrar(ov.id); });
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.visible').forEach(ov => cerrar(ov.id));
+    });
+
+    function mostrarMsg(msgEl, tipo, texto) {
+        msgEl.className = 'modal-msg modal-msg--' + tipo;
+        msgEl.textContent = texto;
+    }
+
+    // ─── Reglas SIESA ───
+    const formRegla = document.getElementById('formRegla');
+    const rg = {
+        id: document.getElementById('rg_id'),
+        fuente: document.getElementById('rg_fuente'),
+        regimen: document.getElementById('rg_regimen'),
+        tipo: document.getElementById('rg_tipo'),
+        siesa: document.getElementById('rg_siesa'),
+        desc: document.getElementById('rg_descripcion'),
+    };
+    const tituloRegla = document.getElementById('tituloModalRegla');
+    const btnGuardarRegla = document.getElementById('btnGuardarRegla');
+    const msgRegla = document.getElementById('msgRegla');
+
+    document.getElementById('btnNuevaRegla').addEventListener('click', () => {
+        tituloRegla.textContent = 'Nueva regla SIESA';
+        formRegla.reset();
+        rg.id.value = '';
+        msgRegla.className = 'modal-msg'; msgRegla.textContent = '';
+        abrir('modalRegla');
+    });
+
+    document.querySelectorAll('[data-action="edit-regla"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const data = JSON.parse(btn.closest('tr').dataset.regla);
+            tituloRegla.textContent = 'Editar regla #' + data.id;
+            rg.id.value = data.id;
+            rg.fuente.value = data.fuente_id ?? '';
+            rg.regimen.value = data.regimen;
+            rg.tipo.value = data.tipo_afiliado_codigo;
+            rg.siesa.value = data.codigo_siesa;
+            rg.desc.value = data.descripcion || '';
+            msgRegla.className = 'modal-msg'; msgRegla.textContent = '';
+            abrir('modalRegla');
+        });
+    });
+
+    document.querySelectorAll('[data-action="del-regla"]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            if (!confirm(`¿Eliminar la regla "${btn.dataset.label}"?`)) return;
+            btn.disabled = true;
+            const { resp, data } = await postJson(`/reglasHomologacion/regla/eliminar/${btn.dataset.id}/`, {});
+            if (resp.ok && data.ok) window.location.reload();
+            else { alert(data.error || 'No se pudo eliminar'); btn.disabled = false; }
+        });
+    });
+
+    formRegla.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = {
+            fuente_id: rg.fuente.value || null,
+            regimen: rg.regimen.value.trim(),
+            tipo_afiliado_codigo: rg.tipo.value.trim(),
+            codigo_siesa: rg.siesa.value.trim(),
+            descripcion: rg.desc.value.trim(),
+        };
+        const esEdicion = !!rg.id.value;
+        const url = esEdicion ? `/reglasHomologacion/regla/editar/${rg.id.value}/` : `/reglasHomologacion/regla/crear/`;
+        btnGuardarRegla.disabled = true;
+        btnGuardarRegla.textContent = esEdicion ? 'Actualizando...' : 'Guardando...';
+        try {
+            const { resp, data } = await postJson(url, payload);
+            if (!resp.ok || !data.ok) {
+                mostrarMsg(msgRegla, 'error', data.error || 'No se pudo guardar');
+                btnGuardarRegla.disabled = false; btnGuardarRegla.textContent = 'Guardar';
+                return;
+            }
+            mostrarMsg(msgRegla, 'success', 'Regla guardada. Recargando...');
+            setTimeout(() => window.location.reload(), 600);
+        } catch (err) {
+            mostrarMsg(msgRegla, 'error', 'Error de red: ' + err.message);
+            btnGuardarRegla.disabled = false; btnGuardarRegla.textContent = 'Guardar';
+        }
+    });
+
+    // ─── Normalizaciones ───
+    const formNorm = document.getElementById('formNorm');
+    const nm = {
+        id: document.getElementById('nm_id'),
+        fuente: document.getElementById('nm_fuente'),
+        valor: document.getElementById('nm_valor'),
+        codigo: document.getElementById('nm_codigo'),
+    };
+    const tituloNorm = document.getElementById('tituloModalNorm');
+    const btnGuardarNorm = document.getElementById('btnGuardarNorm');
+    const msgNorm = document.getElementById('msgNorm');
+
+    document.getElementById('btnNuevaNorm').addEventListener('click', () => {
+        tituloNorm.textContent = 'Nueva normalización';
+        formNorm.reset();
+        nm.id.value = '';
+        msgNorm.className = 'modal-msg'; msgNorm.textContent = '';
+        abrir('modalNorm');
+    });
+
+    document.querySelectorAll('[data-action="edit-norm"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const data = JSON.parse(btn.closest('tr').dataset.norm);
+            tituloNorm.textContent = 'Editar normalización #' + data.id;
+            nm.id.value = data.id;
+            nm.fuente.value = data.fuente_id ?? '';
+            nm.valor.value = data.valor_crudo;
+            nm.codigo.value = data.codigo_normalizado;
+            msgNorm.className = 'modal-msg'; msgNorm.textContent = '';
+            abrir('modalNorm');
+        });
+    });
+
+    document.querySelectorAll('[data-action="del-norm"]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            if (!confirm(`¿Eliminar la normalización "${btn.dataset.label}"?`)) return;
+            btn.disabled = true;
+            const { resp, data } = await postJson(`/reglasHomologacion/normalizacion/eliminar/${btn.dataset.id}/`, {});
+            if (resp.ok && data.ok) window.location.reload();
+            else { alert(data.error || 'No se pudo eliminar'); btn.disabled = false; }
+        });
+    });
+
+    formNorm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = {
+            fuente_id: nm.fuente.value || null,
+            valor_crudo: nm.valor.value.trim(),
+            codigo_normalizado: nm.codigo.value.trim(),
+        };
+        const esEdicion = !!nm.id.value;
+        const url = esEdicion ? `/reglasHomologacion/normalizacion/editar/${nm.id.value}/` : `/reglasHomologacion/normalizacion/crear/`;
+        btnGuardarNorm.disabled = true;
+        btnGuardarNorm.textContent = esEdicion ? 'Actualizando...' : 'Guardando...';
+        try {
+            const { resp, data } = await postJson(url, payload);
+            if (!resp.ok || !data.ok) {
+                mostrarMsg(msgNorm, 'error', data.error || 'No se pudo guardar');
+                btnGuardarNorm.disabled = false; btnGuardarNorm.textContent = 'Guardar';
+                return;
+            }
+            mostrarMsg(msgNorm, 'success', 'Normalización guardada. Recargando...');
+            setTimeout(() => window.location.reload(), 600);
+        } catch (err) {
+            mostrarMsg(msgNorm, 'error', 'Error de red: ' + err.message);
+            btnGuardarNorm.disabled = false; btnGuardarNorm.textContent = 'Guardar';
+        }
+    });
+})();
+</script>
+{% endblock javascripts %}

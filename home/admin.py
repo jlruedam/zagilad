@@ -1,5 +1,9 @@
+from django import forms
 from django.contrib import admin
+
 from home import models
+from home.modules.crypto import encrypt as encrypt_password
+
 # Register your models here.
 
 
@@ -308,6 +312,138 @@ class TokenApiZeusAdmin(admin.ModelAdmin):
     search_fields = ('token',)
     readonly_fields = ('created_at', 'updated_at')
 
+class FuenteTipoUsuarioForm(forms.ModelForm):
+    """Form que reemplaza el ciphertext por un input de password en claro.
+
+    El campo `password` es write-only (nunca se prellena con el valor actual)
+    y, si se completa, cifra antes de guardar. En edición, dejar en blanco
+    conserva el password existente.
+    """
+
+    password = forms.CharField(
+        label="Contraseña",
+        widget=forms.PasswordInput(render_value=False),
+        required=False,
+        help_text="Sólo se almacena cifrada con Fernet. En edición, dejar en blanco mantiene la actual.",
+    )
+
+    class Meta:
+        model = models.FuenteTipoUsuario
+        exclude = ("password_encrypted",)
+
+    def clean(self):
+        cleaned = super().clean()
+        password_plain = cleaned.get("password")
+        # En creación es obligatorio. En edición, si no se ingresó se conserva el actual.
+        if not password_plain and not self.instance.pk:
+            self.add_error("password", "Requerida para crear una fuente nueva.")
+        return cleaned
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        password_plain = self.cleaned_data.get("password")
+        if password_plain:
+            instance.password_encrypted = encrypt_password(password_plain)
+        if commit:
+            instance.save()
+        return instance
+
+
+class FuenteTipoUsuarioAdmin(admin.ModelAdmin):
+    form = FuenteTipoUsuarioForm
+
+    fieldsets = (
+        ("Identificación", {
+            "fields": ("nombre", "descripcion", "activa", "prioridad"),
+        }),
+        ("Conexión SQL Server", {
+            "fields": ("servidor", "base_datos", "usuario", "password", "password_status", "driver"),
+        }),
+        ("Mapeo de tabla", {
+            "fields": ("tabla", "campo_documento", "campo_regimen", "campo_tipo_afiliado"),
+        }),
+        ("Validación", {
+            "fields": ("estado_validacion", "mensaje_validacion", "ultima_validacion_at"),
+            "classes": ("collapse",),
+        }),
+        ("Tiempos", {
+            "fields": ("created_at", "updated_at"),
+            "classes": ("collapse",),
+        }),
+    )
+
+    readonly_fields = (
+        "password_status",
+        "estado_validacion",
+        "mensaje_validacion",
+        "ultima_validacion_at",
+        "created_at",
+        "updated_at",
+    )
+
+    list_display = (
+        "id", "nombre", "activa", "prioridad", "servidor", "tabla",
+        "estado_validacion", "ultima_validacion_at",
+    )
+    list_filter = ("activa", "estado_validacion", "driver")
+    search_fields = ("nombre", "servidor", "tabla", "descripcion")
+    ordering = ("prioridad", "nombre")
+
+    def password_status(self, obj):
+        if obj and obj.password_encrypted:
+            return "✓ Configurado (cifrado)"
+        return "✗ Sin configurar"
+
+    password_status.short_description = "Estado contraseña"
+
+
+class ReglaHomologacionSIESAAdmin(admin.ModelAdmin):
+    list_display = (
+        "id", "fuente", "regimen", "tipo_afiliado_codigo",
+        "codigo_siesa", "descripcion",
+    )
+    list_filter = ("fuente", "regimen", "codigo_siesa")
+    search_fields = ("regimen", "tipo_afiliado_codigo", "codigo_siesa", "descripcion")
+    readonly_fields = ("created_at", "updated_at")
+    ordering = ("fuente_id", "regimen", "tipo_afiliado_codigo")
+
+    fieldsets = (
+        ("Alcance", {
+            "fields": ("fuente",),
+            "description": "Dejá en blanco para una regla global. Asigná una fuente para crear un override.",
+        }),
+        ("Regla", {
+            "fields": ("regimen", "tipo_afiliado_codigo", "codigo_siesa", "descripcion"),
+        }),
+        ("Tiempos", {
+            "fields": ("created_at", "updated_at"),
+            "classes": ("collapse",),
+        }),
+    )
+
+
+class NormalizacionTipoAfiliadoAdmin(admin.ModelAdmin):
+    list_display = ("id", "fuente", "valor_crudo", "codigo_normalizado")
+    list_filter = ("fuente", "codigo_normalizado")
+    search_fields = ("valor_crudo", "codigo_normalizado")
+    readonly_fields = ("created_at", "updated_at")
+    ordering = ("fuente_id", "valor_crudo")
+
+    fieldsets = (
+        ("Alcance", {
+            "fields": ("fuente",),
+            "description": "Dejá en blanco para un mapeo global. Asigná una fuente para override.",
+        }),
+        ("Mapeo", {
+            "fields": ("valor_crudo", "codigo_normalizado"),
+        }),
+        ("Tiempos", {
+            "fields": ("created_at", "updated_at"),
+            "classes": ("collapse",),
+        }),
+    )
+
+
 admin.site.register(models.Admision, AdmisionAdmin)
 admin.site.register(models.AreaPrograma, AreaProgramaAdmin)
 admin.site.register(models.Regional, RegionalAdmin)
@@ -317,4 +453,7 @@ admin.site.register(models.TipoActividad, TipoActividadAdmin)
 admin.site.register(models.Actividad, ActividadAdmin)
 admin.site.register(models.Carga, CargaAdmin)
 admin.site.register(models.TokenApiZeus, TokenApiZeusAdmin)
+admin.site.register(models.FuenteTipoUsuario, FuenteTipoUsuarioAdmin)
+admin.site.register(models.ReglaHomologacionSIESA, ReglaHomologacionSIESAAdmin)
+admin.site.register(models.NormalizacionTipoAfiliado, NormalizacionTipoAfiliadoAdmin)
 

@@ -1224,6 +1224,703 @@ def exportar_carga_excel(request, id_carga,tipo):
     if tipo == 'admisionar':
         print(tipo)
         actividades_carga = Actividad.objects.filter(carga = id_carga).filter(admision = None, inconsistencias = None)
-    
+
     generador_excel.genera_excel_carga(actividades_carga)
     return FileResponse(open(FOLDER_MEDIA+nombre_archivo, 'rb'), as_attachment=True, filename = nombre_archivo)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  FUENTES DE TIPO DE USUARIO — admin del módulo configurable (Fase 3)
+# ═══════════════════════════════════════════════════════════════════════════
+
+import re
+
+from django.utils import timezone
+
+from home.models import (
+    FuenteTipoUsuario,
+    ReglaHomologacionSIESA,
+    NormalizacionTipoAfiliado,
+)
+from home.modules.crypto import decrypt as _decrypt_password
+from home.modules.crypto import encrypt as _encrypt_password
+from home.modules.tipo_usuario import source_admin_helpers as _sah
+
+
+# ─── helpers ───────────────────────────────────────────────────────────────
+
+def _json_post(request):
+    """Devuelve dict del body JSON o lanza JsonResponse 400."""
+    try:
+        return json.loads(request.body.decode("utf-8") or "{}")
+    except (ValueError, UnicodeDecodeError):
+        return None
+
+
+def _resolver_creds(data, requerir_password: bool = True):
+    """
+    Devuelve dict con (servidor, usuario, password, driver, base_datos) o None
+    si falta algo crítico. Si `id_fuente` está set y `password` viene vacío,
+    descifra la del registro existente. Útil para AJAX de probar conexión
+    sobre una fuente ya guardada sin pedir re-tipear el password.
+    """
+    id_fuente = data.get("id_fuente")
+    servidor = (data.get("servidor") or "").strip()
+    usuario = (data.get("usuario") or "").strip()
+    password = data.get("password") or ""
+    driver = (data.get("driver") or "").strip() or "SQL Server"
+    base_datos = (data.get("base_datos") or "").strip()
+
+    if id_fuente:
+        try:
+            fuente = FuenteTipoUsuario.objects.get(id=id_fuente)
+        except FuenteTipoUsuario.DoesNotExist:
+            return None
+        if not password:
+            try:
+                password = _decrypt_password(fuente.password_encrypted)
+            except Exception:
+                # Si falla el descifrado, dejamos que el caller lo detecte
+                password = ""
+        servidor = servidor or fuente.servidor
+        usuario = usuario or fuente.usuario
+        driver = driver if data.get("driver") else (fuente.driver or driver)
+        base_datos = base_datos if data.get("base_datos") is not None else (fuente.base_datos or "")
+
+    if not (servidor and usuario):
+        return None
+    if requerir_password and not password:
+        return None
+
+    return {
+        "servidor": servidor,
+        "usuario": usuario,
+        "password": password,
+        "driver": driver,
+        "base_datos": base_datos,
+    }
+
+
+def _serialize_fuente(fuente: FuenteTipoUsuario) -> dict:
+    return {
+        "id": fuente.id,
+        "nombre": fuente.nombre,
+        "descripcion": fuente.descripcion,
+        "activa": fuente.activa,
+        "prioridad": fuente.prioridad,
+        "servidor": fuente.servidor,
+        "base_datos": fuente.base_datos,
+        "usuario": fuente.usuario,
+        "driver": fuente.driver,
+        "tabla": fuente.tabla,
+        "campo_documento": fuente.campo_documento,
+        "campo_tipo_documento": fuente.campo_tipo_documento,
+        "campo_regimen": fuente.campo_regimen,
+        "campo_tipo_afiliado": fuente.campo_tipo_afiliado,
+        "estado_validacion": fuente.estado_validacion,
+        "mensaje_validacion": fuente.mensaje_validacion,
+        "ultima_validacion_at": (
+            fuente.ultima_validacion_at.isoformat() if fuente.ultima_validacion_at else None
+        ),
+    }
+
+
+_RX_SQL_IDENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*){0,2}$")
+
+
+def _validar_mapeo(tabla, campo_documento, campo_regimen, campo_tipo_afiliado,
+                   campo_tipo_documento=""):
+    """Valida identificadores SQL. Devuelve mensaje de error o None.
+
+    `campo_tipo_documento` es opcional — se valida solo si viene con valor.
+    """
+    items = [
+        ("Tabla", tabla),
+        ("Campo documento", campo_documento),
+        ("Campo régimen", campo_regimen),
+        ("Campo tipo afiliado", campo_tipo_afiliado),
+    ]
+    for label, valor in items:
+        if not valor:
+            return f"{label} es requerido"
+        if not _RX_SQL_IDENT.match(valor):
+            return (
+                f"{label} inválido: '{valor}'. Sólo letras, dígitos, "
+                "guion bajo y hasta dos puntos de separación."
+            )
+    if campo_tipo_documento and not _RX_SQL_IDENT.match(campo_tipo_documento):
+        return (
+            f"Campo tipo documento inválido: '{campo_tipo_documento}'. "
+            "Sólo letras, dígitos, guion bajo y hasta dos puntos de separación."
+        )
+    return None
+
+
+# ─── listado y CRUD de fuentes ─────────────────────────────────────────────
+
+@login_required(login_url="/login/")
+def vista_fuentes_tipo_usuario(request):
+    fuentes = FuenteTipoUsuario.objects.all().order_by("prioridad", "nombre")
+    ctx = {"fuentes": fuentes}
+    return render(request, "home/fuentesTipoUsuario.html", ctx)
+
+
+@login_required(login_url="/login/")
+def crear_fuente_tipo_usuario(request):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "Método no permitido"}, status=405)
+    data = _json_post(request)
+    if data is None:
+        return JsonResponse({"ok": False, "error": "JSON inválido"}, status=400)
+
+    nombre = (data.get("nombre") or "").strip()
+    if not nombre:
+        return JsonResponse({"ok": False, "error": "Nombre requerido"}, status=400)
+    if FuenteTipoUsuario.objects.filter(nombre=nombre).exists():
+        return JsonResponse(
+            {"ok": False, "error": f"Ya existe una fuente con nombre '{nombre}'"},
+            status=400,
+        )
+
+    error_mapeo = _validar_mapeo(
+        (data.get("tabla") or "").strip(),
+        (data.get("campo_documento") or "").strip(),
+        (data.get("campo_regimen") or "").strip(),
+        (data.get("campo_tipo_afiliado") or "").strip(),
+        (data.get("campo_tipo_documento") or "").strip(),
+    )
+    if error_mapeo:
+        return JsonResponse({"ok": False, "error": error_mapeo}, status=400)
+
+    servidor = (data.get("servidor") or "").strip()
+    usuario = (data.get("usuario") or "").strip()
+    password = data.get("password") or ""
+    if not (servidor and usuario and password):
+        return JsonResponse(
+            {"ok": False, "error": "Servidor, usuario y contraseña son requeridos"},
+            status=400,
+        )
+
+    try:
+        password_encrypted = _encrypt_password(password)
+    except Exception as e:
+        return JsonResponse(
+            {"ok": False, "error": f"No se pudo cifrar la contraseña: {e}"},
+            status=500,
+        )
+
+    try:
+        prioridad = int(data.get("prioridad") or 100)
+    except (TypeError, ValueError):
+        prioridad = 100
+
+    fuente = FuenteTipoUsuario.objects.create(
+        nombre=nombre,
+        descripcion=(data.get("descripcion") or "").strip(),
+        activa=bool(data.get("activa", True)),
+        prioridad=prioridad,
+        servidor=servidor,
+        base_datos=(data.get("base_datos") or "").strip(),
+        usuario=usuario,
+        password_encrypted=password_encrypted,
+        driver=(data.get("driver") or "SQL Server").strip(),
+        tabla=(data.get("tabla") or "").strip(),
+        campo_documento=(data.get("campo_documento") or "").strip(),
+        campo_tipo_documento=(data.get("campo_tipo_documento") or "").strip(),
+        campo_regimen=(data.get("campo_regimen") or "").strip(),
+        campo_tipo_afiliado=(data.get("campo_tipo_afiliado") or "").strip(),
+    )
+    return JsonResponse({"ok": True, "fuente": _serialize_fuente(fuente)})
+
+
+@login_required(login_url="/login/")
+def editar_fuente_tipo_usuario(request, id_fuente):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "Método no permitido"}, status=405)
+    try:
+        fuente = FuenteTipoUsuario.objects.get(id=id_fuente)
+    except FuenteTipoUsuario.DoesNotExist:
+        return JsonResponse({"ok": False, "error": "Fuente no encontrada"}, status=404)
+
+    data = _json_post(request)
+    if data is None:
+        return JsonResponse({"ok": False, "error": "JSON inválido"}, status=400)
+
+    nombre = (data.get("nombre") or "").strip()
+    if not nombre:
+        return JsonResponse({"ok": False, "error": "Nombre requerido"}, status=400)
+    if FuenteTipoUsuario.objects.filter(nombre=nombre).exclude(id=fuente.id).exists():
+        return JsonResponse(
+            {"ok": False, "error": f"Ya existe otra fuente con nombre '{nombre}'"},
+            status=400,
+        )
+
+    error_mapeo = _validar_mapeo(
+        (data.get("tabla") or "").strip(),
+        (data.get("campo_documento") or "").strip(),
+        (data.get("campo_regimen") or "").strip(),
+        (data.get("campo_tipo_afiliado") or "").strip(),
+        (data.get("campo_tipo_documento") or "").strip(),
+    )
+    if error_mapeo:
+        return JsonResponse({"ok": False, "error": error_mapeo}, status=400)
+
+    fuente.nombre = nombre
+    fuente.descripcion = (data.get("descripcion") or "").strip()
+    fuente.activa = bool(data.get("activa", fuente.activa))
+    try:
+        fuente.prioridad = int(data.get("prioridad") or fuente.prioridad)
+    except (TypeError, ValueError):
+        pass
+    fuente.servidor = (data.get("servidor") or "").strip() or fuente.servidor
+    fuente.base_datos = (data.get("base_datos") or "").strip()
+    fuente.usuario = (data.get("usuario") or "").strip() or fuente.usuario
+    fuente.driver = (data.get("driver") or "").strip() or fuente.driver
+    fuente.tabla = (data.get("tabla") or "").strip()
+    fuente.campo_documento = (data.get("campo_documento") or "").strip()
+    fuente.campo_tipo_documento = (data.get("campo_tipo_documento") or "").strip()
+    fuente.campo_regimen = (data.get("campo_regimen") or "").strip()
+    fuente.campo_tipo_afiliado = (data.get("campo_tipo_afiliado") or "").strip()
+
+    password = data.get("password") or ""
+    if password:
+        try:
+            fuente.password_encrypted = _encrypt_password(password)
+        except Exception as e:
+            return JsonResponse(
+                {"ok": False, "error": f"No se pudo cifrar la contraseña: {e}"},
+                status=500,
+            )
+
+    fuente.save()
+    return JsonResponse({"ok": True, "fuente": _serialize_fuente(fuente)})
+
+
+@login_required(login_url="/login/")
+def toggle_activa_fuente(request, id_fuente):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "Método no permitido"}, status=405)
+    try:
+        fuente = FuenteTipoUsuario.objects.get(id=id_fuente)
+    except FuenteTipoUsuario.DoesNotExist:
+        return JsonResponse({"ok": False, "error": "Fuente no encontrada"}, status=404)
+    fuente.activa = not fuente.activa
+    fuente.save(update_fields=["activa", "updated_at"])
+    return JsonResponse({"ok": True, "activa": fuente.activa})
+
+
+@login_required(login_url="/login/")
+def eliminar_fuente_tipo_usuario(request, id_fuente):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "Método no permitido"}, status=405)
+    try:
+        fuente = FuenteTipoUsuario.objects.get(id=id_fuente)
+    except FuenteTipoUsuario.DoesNotExist:
+        return JsonResponse({"ok": False, "error": "Fuente no encontrada"}, status=404)
+    fuente.delete()
+    return JsonResponse({"ok": True})
+
+
+# ─── AJAX: inspección SQL desde el wizard ──────────────────────────────────
+
+@login_required(login_url="/login/")
+def probar_conexion_fuente(request):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "Método no permitido"}, status=405)
+    data = _json_post(request)
+    if data is None:
+        return JsonResponse({"ok": False, "error": "JSON inválido"}, status=400)
+
+    creds = _resolver_creds(data)
+    if creds is None:
+        return JsonResponse(
+            {"ok": False, "error": "Servidor, usuario y contraseña son requeridos"},
+            status=400,
+        )
+
+    ok, mensaje = _sah.test_conexion(**creds)
+
+    # Si la fuente existe, persistir el resultado
+    id_fuente = data.get("id_fuente")
+    if id_fuente:
+        try:
+            fuente = FuenteTipoUsuario.objects.get(id=id_fuente)
+            fuente.estado_validacion = (
+                FuenteTipoUsuario.ESTADO_OK if ok else FuenteTipoUsuario.ESTADO_ERROR
+            )
+            fuente.mensaje_validacion = mensaje
+            fuente.ultima_validacion_at = timezone.now()
+            fuente.save(update_fields=[
+                "estado_validacion", "mensaje_validacion",
+                "ultima_validacion_at", "updated_at",
+            ])
+        except FuenteTipoUsuario.DoesNotExist:
+            pass
+
+    return JsonResponse({"ok": ok, "mensaje": mensaje})
+
+
+@login_required(login_url="/login/")
+def listar_bases_datos_fuente(request):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "Método no permitido"}, status=405)
+    data = _json_post(request)
+    if data is None:
+        return JsonResponse({"ok": False, "error": "JSON inválido"}, status=400)
+
+    creds = _resolver_creds(data)
+    if creds is None:
+        return JsonResponse(
+            {"ok": False, "error": "Servidor, usuario y contraseña son requeridos"},
+            status=400,
+        )
+
+    try:
+        bases = _sah.listar_bases_datos(
+            servidor=creds["servidor"], usuario=creds["usuario"],
+            password=creds["password"], driver=creds["driver"],
+        )
+        return JsonResponse({"ok": True, "bases_datos": bases})
+    except Exception as e:
+        logger.exception("listar_bases_datos_fuente fallo")
+        return JsonResponse({"ok": False, "error": f"{type(e).__name__}: {e}"}, status=400)
+
+
+@login_required(login_url="/login/")
+def listar_tablas_fuente(request):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "Método no permitido"}, status=405)
+    data = _json_post(request)
+    if data is None:
+        return JsonResponse({"ok": False, "error": "JSON inválido"}, status=400)
+
+    creds = _resolver_creds(data)
+    if creds is None:
+        return JsonResponse(
+            {"ok": False, "error": "Servidor, usuario y contraseña son requeridos"},
+            status=400,
+        )
+    base_datos = (data.get("base_datos") or creds["base_datos"] or "").strip()
+    if not base_datos:
+        return JsonResponse(
+            {"ok": False, "error": "Base de datos requerida para listar tablas"},
+            status=400,
+        )
+
+    try:
+        tablas = _sah.listar_tablas(
+            servidor=creds["servidor"], usuario=creds["usuario"],
+            password=creds["password"], driver=creds["driver"],
+            base_datos=base_datos,
+        )
+        # Devolver con prefijo de DB para que el campo `tabla` quede completo.
+        tablas_full = [f"{base_datos}.{t}" for t in tablas]
+        return JsonResponse({"ok": True, "tablas": tablas_full})
+    except Exception as e:
+        logger.exception("listar_tablas_fuente fallo")
+        return JsonResponse({"ok": False, "error": f"{type(e).__name__}: {e}"}, status=400)
+
+
+@login_required(login_url="/login/")
+def listar_columnas_fuente(request):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "Método no permitido"}, status=405)
+    data = _json_post(request)
+    if data is None:
+        return JsonResponse({"ok": False, "error": "JSON inválido"}, status=400)
+
+    creds = _resolver_creds(data)
+    if creds is None:
+        return JsonResponse(
+            {"ok": False, "error": "Servidor, usuario y contraseña son requeridos"},
+            status=400,
+        )
+    tabla = (data.get("tabla") or "").strip()
+    if not tabla:
+        return JsonResponse({"ok": False, "error": "Tabla requerida"}, status=400)
+
+    # `tabla` puede venir como "DB.schema.nombre" o "schema.nombre" o "nombre".
+    partes = tabla.split(".")
+    if len(partes) == 3:
+        base_datos = partes[0]
+        tabla_sin_db = ".".join(partes[1:])
+    elif len(partes) in (1, 2):
+        base_datos = (data.get("base_datos") or creds["base_datos"] or "").strip()
+        tabla_sin_db = tabla
+    else:
+        return JsonResponse({"ok": False, "error": f"Formato de tabla inválido: {tabla}"}, status=400)
+
+    if not base_datos:
+        return JsonResponse(
+            {"ok": False, "error": "Base de datos requerida (en `base_datos` o como prefijo de tabla)"},
+            status=400,
+        )
+
+    try:
+        columnas = _sah.listar_columnas(
+            servidor=creds["servidor"], usuario=creds["usuario"],
+            password=creds["password"], driver=creds["driver"],
+            base_datos=base_datos, tabla=tabla_sin_db,
+        )
+        return JsonResponse({"ok": True, "columnas": columnas})
+    except Exception as e:
+        logger.exception("listar_columnas_fuente fallo")
+        return JsonResponse({"ok": False, "error": f"{type(e).__name__}: {e}"}, status=400)
+
+
+# ─── reglas SIESA y normalizaciones ────────────────────────────────────────
+
+def _serialize_regla(r: ReglaHomologacionSIESA) -> dict:
+    return {
+        "id": r.id,
+        "fuente_id": r.fuente_id,
+        "fuente_nombre": r.fuente.nombre if r.fuente_id else None,
+        "regimen": r.regimen,
+        "tipo_afiliado_codigo": r.tipo_afiliado_codigo,
+        "codigo_siesa": r.codigo_siesa,
+        "descripcion": r.descripcion,
+    }
+
+
+def _serialize_normalizacion(n: NormalizacionTipoAfiliado) -> dict:
+    return {
+        "id": n.id,
+        "fuente_id": n.fuente_id,
+        "fuente_nombre": n.fuente.nombre if n.fuente_id else None,
+        "valor_crudo": n.valor_crudo,
+        "codigo_normalizado": n.codigo_normalizado,
+    }
+
+
+def _resolver_fuente_id(data):
+    """Devuelve (fuente_id_or_None, error_msg_or_None)."""
+    fuente_id = data.get("fuente_id")
+    if fuente_id in ("", None, 0, "0"):
+        return None, None
+    try:
+        fuente_id = int(fuente_id)
+    except (TypeError, ValueError):
+        return None, "fuente_id inválido"
+    if not FuenteTipoUsuario.objects.filter(id=fuente_id).exists():
+        return None, f"Fuente {fuente_id} no encontrada"
+    return fuente_id, None
+
+
+@login_required(login_url="/login/")
+def vista_reglas_homologacion(request):
+    reglas = (
+        ReglaHomologacionSIESA.objects
+        .select_related("fuente")
+        .order_by("fuente_id", "regimen", "tipo_afiliado_codigo")
+    )
+    normalizaciones = (
+        NormalizacionTipoAfiliado.objects
+        .select_related("fuente")
+        .order_by("fuente_id", "valor_crudo")
+    )
+    fuentes = FuenteTipoUsuario.objects.all().order_by("prioridad", "nombre")
+    ctx = {
+        "reglas": reglas,
+        "normalizaciones": normalizaciones,
+        "fuentes": fuentes,
+    }
+    return render(request, "home/reglasHomologacion.html", ctx)
+
+
+@login_required(login_url="/login/")
+def crear_regla_siesa(request):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "Método no permitido"}, status=405)
+    data = _json_post(request)
+    if data is None:
+        return JsonResponse({"ok": False, "error": "JSON inválido"}, status=400)
+
+    regimen = (data.get("regimen") or "").strip().upper()
+    tipo = (data.get("tipo_afiliado_codigo") or "").strip().upper()
+    siesa = (data.get("codigo_siesa") or "").strip()
+    descripcion = (data.get("descripcion") or "").strip()
+    if not (regimen and tipo and siesa):
+        return JsonResponse(
+            {"ok": False, "error": "Régimen, tipo afiliado y código SIESA son requeridos"},
+            status=400,
+        )
+
+    fuente_id, err = _resolver_fuente_id(data)
+    if err:
+        return JsonResponse({"ok": False, "error": err}, status=400)
+
+    # Chequeo de duplicado (replica la UNIQUE parcial para devolver mensaje claro)
+    dup_qs = ReglaHomologacionSIESA.objects.filter(
+        fuente_id=fuente_id, regimen=regimen, tipo_afiliado_codigo=tipo,
+    )
+    if dup_qs.exists():
+        scope = f"fuente {fuente_id}" if fuente_id else "global"
+        return JsonResponse(
+            {"ok": False, "error": f"Ya existe una regla {scope} para {regimen}+{tipo}"},
+            status=400,
+        )
+
+    regla = ReglaHomologacionSIESA.objects.create(
+        fuente_id=fuente_id,
+        regimen=regimen,
+        tipo_afiliado_codigo=tipo,
+        codigo_siesa=siesa,
+        descripcion=descripcion,
+    )
+    return JsonResponse({"ok": True, "regla": _serialize_regla(regla)})
+
+
+@login_required(login_url="/login/")
+def editar_regla_siesa(request, id_regla):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "Método no permitido"}, status=405)
+    try:
+        regla = ReglaHomologacionSIESA.objects.get(id=id_regla)
+    except ReglaHomologacionSIESA.DoesNotExist:
+        return JsonResponse({"ok": False, "error": "Regla no encontrada"}, status=404)
+
+    data = _json_post(request)
+    if data is None:
+        return JsonResponse({"ok": False, "error": "JSON inválido"}, status=400)
+
+    regimen = (data.get("regimen") or "").strip().upper()
+    tipo = (data.get("tipo_afiliado_codigo") or "").strip().upper()
+    siesa = (data.get("codigo_siesa") or "").strip()
+    descripcion = (data.get("descripcion") or "").strip()
+    if not (regimen and tipo and siesa):
+        return JsonResponse(
+            {"ok": False, "error": "Régimen, tipo afiliado y código SIESA son requeridos"},
+            status=400,
+        )
+
+    fuente_id, err = _resolver_fuente_id(data)
+    if err:
+        return JsonResponse({"ok": False, "error": err}, status=400)
+
+    # Chequeo de duplicado excluyendo a sí misma
+    dup_qs = (
+        ReglaHomologacionSIESA.objects
+        .filter(fuente_id=fuente_id, regimen=regimen, tipo_afiliado_codigo=tipo)
+        .exclude(id=regla.id)
+    )
+    if dup_qs.exists():
+        scope = f"fuente {fuente_id}" if fuente_id else "global"
+        return JsonResponse(
+            {"ok": False, "error": f"Ya existe otra regla {scope} para {regimen}+{tipo}"},
+            status=400,
+        )
+
+    regla.fuente_id = fuente_id
+    regla.regimen = regimen
+    regla.tipo_afiliado_codigo = tipo
+    regla.codigo_siesa = siesa
+    regla.descripcion = descripcion
+    regla.save()
+    return JsonResponse({"ok": True, "regla": _serialize_regla(regla)})
+
+
+@login_required(login_url="/login/")
+def eliminar_regla_siesa(request, id_regla):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "Método no permitido"}, status=405)
+    try:
+        regla = ReglaHomologacionSIESA.objects.get(id=id_regla)
+    except ReglaHomologacionSIESA.DoesNotExist:
+        return JsonResponse({"ok": False, "error": "Regla no encontrada"}, status=404)
+    regla.delete()
+    return JsonResponse({"ok": True})
+
+
+@login_required(login_url="/login/")
+def crear_normalizacion(request):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "Método no permitido"}, status=405)
+    data = _json_post(request)
+    if data is None:
+        return JsonResponse({"ok": False, "error": "JSON inválido"}, status=400)
+
+    valor_crudo = (data.get("valor_crudo") or "").strip()
+    codigo = (data.get("codigo_normalizado") or "").strip()
+    if not (valor_crudo and codigo):
+        return JsonResponse(
+            {"ok": False, "error": "Valor crudo y código normalizado son requeridos"},
+            status=400,
+        )
+
+    fuente_id, err = _resolver_fuente_id(data)
+    if err:
+        return JsonResponse({"ok": False, "error": err}, status=400)
+
+    dup_qs = NormalizacionTipoAfiliado.objects.filter(
+        fuente_id=fuente_id, valor_crudo=valor_crudo,
+    )
+    if dup_qs.exists():
+        scope = f"fuente {fuente_id}" if fuente_id else "global"
+        return JsonResponse(
+            {"ok": False, "error": f"Ya existe una normalización {scope} para '{valor_crudo}'"},
+            status=400,
+        )
+
+    norm = NormalizacionTipoAfiliado.objects.create(
+        fuente_id=fuente_id,
+        valor_crudo=valor_crudo,
+        codigo_normalizado=codigo,
+    )
+    return JsonResponse({"ok": True, "normalizacion": _serialize_normalizacion(norm)})
+
+
+@login_required(login_url="/login/")
+def editar_normalizacion(request, id_norm):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "Método no permitido"}, status=405)
+    try:
+        norm = NormalizacionTipoAfiliado.objects.get(id=id_norm)
+    except NormalizacionTipoAfiliado.DoesNotExist:
+        return JsonResponse({"ok": False, "error": "Normalización no encontrada"}, status=404)
+
+    data = _json_post(request)
+    if data is None:
+        return JsonResponse({"ok": False, "error": "JSON inválido"}, status=400)
+
+    valor_crudo = (data.get("valor_crudo") or "").strip()
+    codigo = (data.get("codigo_normalizado") or "").strip()
+    if not (valor_crudo and codigo):
+        return JsonResponse(
+            {"ok": False, "error": "Valor crudo y código normalizado son requeridos"},
+            status=400,
+        )
+
+    fuente_id, err = _resolver_fuente_id(data)
+    if err:
+        return JsonResponse({"ok": False, "error": err}, status=400)
+
+    dup_qs = (
+        NormalizacionTipoAfiliado.objects
+        .filter(fuente_id=fuente_id, valor_crudo=valor_crudo)
+        .exclude(id=norm.id)
+    )
+    if dup_qs.exists():
+        scope = f"fuente {fuente_id}" if fuente_id else "global"
+        return JsonResponse(
+            {"ok": False, "error": f"Ya existe otra normalización {scope} para '{valor_crudo}'"},
+            status=400,
+        )
+
+    norm.fuente_id = fuente_id
+    norm.valor_crudo = valor_crudo
+    norm.codigo_normalizado = codigo
+    norm.save()
+    return JsonResponse({"ok": True, "normalizacion": _serialize_normalizacion(norm)})
+
+
+@login_required(login_url="/login/")
+def eliminar_normalizacion(request, id_norm):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "Método no permitido"}, status=405)
+    try:
+        norm = NormalizacionTipoAfiliado.objects.get(id=id_norm)
+    except NormalizacionTipoAfiliado.DoesNotExist:
+        return JsonResponse({"ok": False, "error": "Normalización no encontrada"}, status=404)
+    norm.delete()
+    return JsonResponse({"ok": True})
+

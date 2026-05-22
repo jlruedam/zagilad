@@ -49,5 +49,25 @@ urlpatterns = [
     # Administración
     path('administrador/', views.vista_administrador, name='vista_administrador'),
     path('cargarConfiguracionArranque/', views.cargar_configuracion_arranque, name='cargar_configuracion_arranque'),
+
+    # Fuentes de Tipo de Usuario (Fase 3)
+    path('fuentesTipoUsuario/',                              views.vista_fuentes_tipo_usuario,   name='vista_fuentes_tipo_usuario'),
+    path('fuentesTipoUsuario/crear/',                        views.crear_fuente_tipo_usuario,    name='crear_fuente_tipo_usuario'),
+    path('fuentesTipoUsuario/editar/<int:id_fuente>/',       views.editar_fuente_tipo_usuario,   name='editar_fuente_tipo_usuario'),
+    path('fuentesTipoUsuario/toggleActiva/<int:id_fuente>/', views.toggle_activa_fuente,         name='toggle_activa_fuente'),
+    path('fuentesTipoUsuario/eliminar/<int:id_fuente>/',     views.eliminar_fuente_tipo_usuario, name='eliminar_fuente_tipo_usuario'),
+    path('fuentesTipoUsuario/probarConexion/',               views.probar_conexion_fuente,       name='probar_conexion_fuente'),
+    path('fuentesTipoUsuario/listarBasesDatos/',             views.listar_bases_datos_fuente,    name='listar_bases_datos_fuente'),
+    path('fuentesTipoUsuario/listarTablas/',                 views.listar_tablas_fuente,         name='listar_tablas_fuente'),
+    path('fuentesTipoUsuario/listarColumnas/',               views.listar_columnas_fuente,       name='listar_columnas_fuente'),
+
+    # Reglas de homologación SIESA + normalizaciones (Fase 3)
+    path('reglasHomologacion/',                                      views.vista_reglas_homologacion, name='vista_reglas_homologacion'),
+    path('reglasHomologacion/regla/crear/',                          views.crear_regla_siesa,         name='crear_regla_siesa'),
+    path('reglasHomologacion/regla/editar/<int:id_regla>/',          views.editar_regla_siesa,        name='editar_regla_siesa'),
+    path('reglasHomologacion/regla/eliminar/<int:id_regla>/',        views.eliminar_regla_siesa,      name='eliminar_regla_siesa'),
+    path('reglasHomologacion/normalizacion/crear/',                  views.crear_normalizacion,       name='crear_normalizacion'),
+    path('reglasHomologacion/normalizacion/editar/<int:id_norm>/',   views.editar_normalizacion,      name='editar_normalizacion'),
+    path('reglasHomologacion/normalizacion/eliminar/<int:id_norm>/', views.eliminar_normalizacion,    name='eliminar_normalizacion'),
 ]
 

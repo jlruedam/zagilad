@@ -1,16 +1,21 @@
 """
 Paquete `tipo_usuario` — orquesta la obtención del código SIESA de afiliados
-de MUTUAL SER con dos fuentes, en este orden de prioridad:
+con cascada de fuentes:
 
-1. **SQL MUTUAL_VIEW** (`DL_MS_AFILIADO_VIEW_CLEAN`) — fuente primaria, rápida y
-   con datos depurados, accedida directamente sin OPENQUERY.
-2. **API MUTUAL `validateRights`** — fallback autoritativo, más lento y por
-   afiliado.
+1. **Fuentes SQL configurables** (`source_dinamica`) — itera todas las filas
+   activas de `FuenteTipoUsuario` en orden de prioridad. La fuente histórica
+   MUTUAL_VIEW vive ahora como una fila más en esa tabla (seed en migración
+   `0050_seed_fuente_mutualser`).
+2. **API MUTUAL `validateRights`** (`source_api`) — fallback autoritativo,
+   más lento y por afiliado. Sigue hardcoded como último recurso porque es
+   un canal HTTP, no SQL.
 
 La fuente histórica OPR_SALUD fue archivada — ver
-`docs/legacy/opr_salud_tipo_usuario.md` para detalles y cómo reactivarla.
+`docs/legacy/opr_salud_tipo_usuario.md`. El path que iba directo a
+`MUTUALSER.dbo.DL_MS_AFILIADO_VIEW_CLEAN` (`source_mutualser.py`) fue
+reemplazado por `source_dinamica.py` en Fase 2 — la configuración vive en DB.
 
-API pública:
+API pública (no cambió):
     obtener_tipo_usuario(documento, tipo_documento="CC") -> str
     obtener_tipo_usuario_batch(docs_tipos) -> dict
 
@@ -21,29 +26,29 @@ ninguna fuente NO aparecen en el dict.
 
 import logging
 
-from home.modules.tipo_usuario import source_api, source_mutualser
+from home.modules.tipo_usuario import source_api, source_dinamica
 
 logger = logging.getLogger(__name__)
 
 
 def obtener_tipo_usuario(documento, tipo_documento: str = "CC") -> str:
     """
-    Devuelve el código SIESA para un documento. Cascada MUTUAL_VIEW → API.
+    Devuelve el código SIESA para un documento. Cascada SQL configurable → API.
     Devuelve `''` si ninguna fuente lo resuelve.
     """
     documento_str = str(documento)
     tipo_doc_str = (tipo_documento or "CC").strip().upper() or "CC"
 
-    # 1. MUTUAL_VIEW (primaria)
-    mutualser_failed = False
+    # 1. Fuentes SQL configurables en cascada (primarias)
+    sql_failed = False
     try:
-        siesa = source_mutualser.obtener(documento_str)
+        siesa = source_dinamica.obtener(documento_str, tipo_doc_str)
         if siesa:
             return siesa
     except Exception as e:
-        mutualser_failed = True
+        sql_failed = True
         logger.warning(
-            "MUTUAL_VIEW falló para %s, intentando API MUTUAL: %s: %s",
+            "Fuentes SQL fallaron para %s, intentando API MUTUAL: %s: %s",
             documento_str, type(e).__name__, e,
         )
 
@@ -51,10 +56,16 @@ def obtener_tipo_usuario(documento, tipo_documento: str = "CC") -> str:
     try:
         siesa = source_api.obtener(documento_str, tipo_doc_str)
         if siesa:
-            if mutualser_failed:
-                logger.info("API MUTUAL resolvió %s tras fallar MUTUAL_VIEW", documento_str)
+            if sql_failed:
+                logger.info(
+                    "API MUTUAL resolvió %s tras fallar las fuentes SQL",
+                    documento_str,
+                )
             else:
-                logger.info("API MUTUAL resolvió %s (no estaba en MUTUAL_VIEW)", documento_str)
+                logger.info(
+                    "API MUTUAL resolvió %s (no estaba en ninguna fuente SQL)",
+                    documento_str,
+                )
             return siesa
     except Exception as e:
         logger.warning(
@@ -75,9 +86,12 @@ def obtener_tipo_usuario_batch(docs_tipos) -> dict:
     resueltas. Documentos no resueltos no aparecen.
 
     Estrategia:
-      1. MUTUAL_VIEW con todos los docs (SQL directo, batch único).
-      2. Los docs no resueltos por MUTUAL_VIEW → API MUTUAL (uno por uno).
-      3. Si ambas fallan con excepción y nada se resolvió → re-lanza la
+      1. Fuentes SQL configurables (cascada de `FuenteTipoUsuario` activas
+         por prioridad) con todos los docs únicos en un solo batch por
+         fuente.
+      2. Los docs no resueltos por ninguna fuente SQL → API MUTUAL (uno por
+         uno).
+      3. Si todas fallan con excepción y nada se resolvió → re-lanza la
          primera excepción (task.py la convierte en mensaje de inconsistencia).
     """
     if not docs_tipos:
@@ -96,36 +110,40 @@ def obtener_tipo_usuario_batch(docs_tipos) -> dict:
 
     resultado: dict = {}
     primera_excepcion: Exception | None = None
-    docs_unicos = list({doc for doc, _ in pares})
+    pares_unicos = list({(doc, tipo_doc) for doc, tipo_doc in pares})
 
-    # ─── 1. MUTUAL_VIEW (primaria) ────────────────────────────────────────────
-    mutualser_result: dict = {}
+    # ─── 1. Fuentes SQL configurables (primarias) ──────────────────────────
+    # Pasamos los pares (doc, tipo_doc) — source_dinamica usará tipo_doc como
+    # filtro adicional solo en las fuentes que tengan `campo_tipo_documento`
+    # configurado. La salida queda keyed por (doc, tipo_doc).
+    sql_result: dict = {}
     try:
-        mutualser_result = source_mutualser.obtener_batch(docs_unicos)
+        sql_result = source_dinamica.obtener_batch(pares_unicos)
     except Exception as e:
         primera_excepcion = e
         logger.warning(
-            "MUTUAL_VIEW batch falló (%s), usando API MUTUAL para todos: %s",
+            "Fuentes SQL batch fallaron (%s), usando API MUTUAL para todos: %s",
             type(e).__name__, e,
         )
 
     pendientes: list = []
     for doc, tipo_doc in pares:
-        if doc in mutualser_result:
-            resultado[(doc, tipo_doc)] = mutualser_result[doc]
+        clave = (doc, tipo_doc)
+        if clave in sql_result:
+            resultado[clave] = sql_result[clave]
         else:
             pendientes.append((doc, tipo_doc))
 
-    # ─── 2. API MUTUAL (fallback) ───────────────────────────────────────────
+    # ─── 2. API MUTUAL (fallback) ──────────────────────────────────────────
     if pendientes:
         if primera_excepcion is not None:
             logger.warning(
-                "Fallback API MUTUAL: MUTUAL_VIEW caído, consultando %s docs",
+                "Fallback API MUTUAL: fuentes SQL caídas, consultando %s docs",
                 len(pendientes),
             )
         else:
             logger.info(
-                "Fallback API MUTUAL: %s docs no resueltos por MUTUAL_VIEW",
+                "Fallback API MUTUAL: %s docs no resueltos por las fuentes SQL",
                 len(pendientes),
             )
         try:
