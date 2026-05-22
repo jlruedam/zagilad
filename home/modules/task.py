@@ -800,7 +800,7 @@ def tarea_admisionar_actividades_carga(id_carga, ids_actividades, num_lote=0):
                 #   Contributivo → 01/02/03 (no 04).
                 if regimen == "Subsidiado" and tipo_usuario != "04":
                     logger.info(
-                        "Reconciliando tipo_usuario actividad %s: Zeus=%r → forzando '04' (era %r de MUTUAL_VIEW/API)",
+                        "Reconciliando tipo_usuario actividad %s: Zeus=%r -> forzando '04' (era %r de MUTUAL_VIEW/API)",
                         actividad.id, regimen, tipo_usuario,
                     )
                     actividad.tipo_usuario = "04"

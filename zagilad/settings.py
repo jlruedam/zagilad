@@ -230,6 +230,10 @@ LOGGING = {
             'class': 'logging.FileHandler',
             'filename': os.path.join(BASE_DIR, 'logs/zagilad.log'),
             'formatter': 'verbose',
+            # En Windows, open() default es cp1252 — sin esto cualquier mensaje
+            # con caracteres no-Latin1 (emojis, flechas, '⚠️') crashea el handler
+            # silenciosamente y se pierden líneas del log.
+            'encoding': 'utf-8',
         },
     },
     'loggers': {
