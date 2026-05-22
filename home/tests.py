@@ -381,3 +381,61 @@ class ProcesarCargueEstadoFinalTests(TestCase):
                 tiempo_inicial=0,
             )
             self.assertTrue(result)
+
+
+class DetectoresErrorZeusTests(TestCase):
+    """Helpers que clasifican respuestas de ZEUS para decidir si reintentar."""
+
+    def test_deadlock_detecta_mensaje_canonico_sql_server(self):
+        from home.modules.task import _es_deadlock
+
+        msg = (
+            "Transaction (Process ID 87) was deadlocked on lock resources "
+            "with another process and has been chosen as the deadlock victim. "
+            "Rerun the transaction."
+        )
+        self.assertTrue(_es_deadlock(msg))
+        self.assertTrue(_es_deadlock([msg]))  # también acepta lista
+
+    def test_deadlock_no_falla_con_none_ni_vacio(self):
+        from home.modules.task import _es_deadlock
+
+        self.assertFalse(_es_deadlock(None))
+        self.assertFalse(_es_deadlock(""))
+        self.assertFalse(_es_deadlock([]))
+        self.assertFalse(_es_deadlock("error genérico"))
+
+    def test_pk_violation_detecta_mensajes_reales(self):
+        from home.modules.task import _es_pk_violation
+
+        # Mensaje exacto del log de produccion
+        msg1 = (
+            "[\"Violation of PRIMARY KEY constraint 'PK_ingresos_servicios'. "
+            "Cannot insert duplicate key in object 'dbo.ingresos_servicios'. "
+            "The duplicate key value is (351602).\"]"
+        )
+        self.assertTrue(_es_pk_violation(msg1))
+        # Variante en minúsculas
+        self.assertTrue(_es_pk_violation("violation of primary key constraint"))
+        # Solo "duplicate key" también debe matchear
+        self.assertTrue(_es_pk_violation("Cannot insert duplicate key"))
+
+    def test_pk_violation_no_falsos_positivos(self):
+        from home.modules.task import _es_pk_violation
+
+        self.assertFalse(_es_pk_violation(None))
+        self.assertFalse(_es_pk_violation(""))
+        self.assertFalse(_es_pk_violation("error de validación"))
+        # Deadlock NO debe ser detectado como PK violation
+        self.assertFalse(_es_pk_violation("deadlock victim"))
+
+    def test_deadlock_y_pk_son_mutuamente_excluyentes(self):
+        """Una respuesta no debería matchear ambos detectores simultáneamente."""
+        from home.modules.task import _es_deadlock, _es_pk_violation
+
+        deadlock_msg = "deadlocked ... deadlock victim"
+        pk_msg = "Violation of PRIMARY KEY constraint"
+        self.assertTrue(_es_deadlock(deadlock_msg))
+        self.assertFalse(_es_pk_violation(deadlock_msg))
+        self.assertFalse(_es_deadlock(pk_msg))
+        self.assertTrue(_es_pk_violation(pk_msg))

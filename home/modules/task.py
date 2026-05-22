@@ -831,9 +831,16 @@ def tarea_admisionar_actividades_carga(id_carga, ids_actividades, num_lote=0):
                 )
 
                 try:
-                    # Retry con backoff+jitter cuando ZEUS devuelve deadlock de SQL Server.
-                    # Otros errores (PK violation, validaciones) NO se reintentan: o no
-                    # son recuperables o requieren reconciliación manual.
+                    # Retry con backoff+jitter para errores retryables de ZEUS:
+                    #   - Deadlock de SQL Server (canónico retry-friendly).
+                    #   - PK violation: empíricamente transitoria (el contador de
+                    #     ingresos_servicios en Zeus se desincroniza y rechaza un
+                    #     INSERT sin que realmente haya duplicado — confirmado
+                    #     verificando que Zeus no había creado la fila). Reintentar
+                    #     espaciado en el tiempo suele resolverla. Si Zeus sí
+                    #     tiene la fila, los reintentos fallan igual y queda como
+                    #     inconsistencia: no se generan duplicados.
+                    # Validaciones de negocio NO se reintentan.
                     respuesta = None
                     for intento in range(1, settings.ADMISIONADO_MAX_RETRIES + 1):
                         respuesta = peticiones_http.crear_admision(admision_actividad, token)
@@ -841,11 +848,16 @@ def tarea_admisionar_actividades_carga(id_carga, ids_actividades, num_lote=0):
                         if not respuesta:
                             raise Exception("Error en la petición a Zeus")
 
-                        if _es_deadlock(respuesta.get('Errores')) and intento < settings.ADMISIONADO_MAX_RETRIES:
+                        errores = respuesta.get('Errores')
+                        es_deadlock = _es_deadlock(errores)
+                        es_pk = _es_pk_violation(errores)
+                        if (es_deadlock or es_pk) and intento < settings.ADMISIONADO_MAX_RETRIES:
                             backoff = 0.2 + random.random() * 0.5 * intento
+                            tipo = "Deadlock" if es_deadlock else "PK violation"
                             logger.warning(
-                                "Deadlock ZEUS actividad %s reintento %s/%s (espera %.2fs)",
-                                actividad.id, intento, settings.ADMISIONADO_MAX_RETRIES, backoff,
+                                "%s ZEUS actividad %s reintento %s/%s (espera %.2fs)",
+                                tipo, actividad.id, intento,
+                                settings.ADMISIONADO_MAX_RETRIES, backoff,
                             )
                             time.sleep(backoff)
                             continue
