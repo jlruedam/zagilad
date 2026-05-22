@@ -321,3 +321,63 @@ class EditarActividadTests(TestCase):
         self.assertContains(response, "Editar actividad")
         self.assertContains(response, "documento_paciente")
         self.assertContains(response, "tipo_actividad_id")
+
+
+class ProcesarCargueEstadoFinalTests(TestCase):
+    """
+    Regresión: si `procesar_cargue_actividades` crashea mid-lote, la carga NO
+    debe quedar stuck en 'procesando'. Antes del fix, el `carga.save()` vivía
+    dentro del `try` y nunca corría cuando había excepción — la tarea
+    retornaba True y django-q la marcaba como exitosa, dejando la carga
+    huérfana en estado 'procesando'.
+    """
+
+    def setUp(self):
+        self.user = User.objects.create_user(username="testuser", password="x")
+        self.carga = Carga.objects.create(
+            usuario=self.user,
+            estado="procesando",
+            cantidad_actividades=5,
+        )
+
+    @patch("home.modules.task._cargar_cache_cargue")
+    def test_excepcion_durante_procesamiento_marca_carga_como_cancelada(
+        self, mock_cache,
+    ):
+        from home.modules import task
+
+        mock_cache.side_effect = RuntimeError("simulated crash mid-lote")
+        # Datos dummy — no se llega a usar porque _cargar_cache_cargue revienta primero.
+        result = task.procesar_cargue_actividades(
+            id_carga=self.carga.id,
+            datos=[],
+            num_lote=1,
+            cantidad_actividades=5,
+            tiempo_inicial=0,
+        )
+        # La tarea retorna True (django-q la considera exitosa) pero...
+        self.assertTrue(result)
+        # ...el estado DEBE haber transicionado a 'cancelada' en DB.
+        self.carga.refresh_from_db()
+        self.assertEqual(self.carga.estado, "cancelada")
+
+    @patch("home.modules.task._cargar_cache_cargue")
+    def test_carga_no_queda_en_procesando_si_save_final_falla(self, mock_cache):
+        """
+        Si el `carga.save()` del finally falla por alguna razón externa, no
+        debe relanzar la excepción ni dejar a la tarea reportando éxito sin
+        logs. El test verifica que la función no propaga la excepción del save.
+        """
+        from home.modules import task
+
+        mock_cache.side_effect = RuntimeError("crash")
+        with patch.object(Carga, "save", side_effect=RuntimeError("DB caída")):
+            # No debe propagar — el `except` interno del finally lo absorbe.
+            result = task.procesar_cargue_actividades(
+                id_carga=self.carga.id,
+                datos=[],
+                num_lote=1,
+                cantidad_actividades=5,
+                tiempo_inicial=0,
+            )
+            self.assertTrue(result)

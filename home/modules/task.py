@@ -522,29 +522,53 @@ def procesar_cargue_actividades(id_carga, datos, num_lote, cantidad_actividades,
 
         if actividades_crear:
             Actividad.objects.bulk_create(actividades_crear, batch_size=500)
-                
+
         # Validar si se completa la carga
-        numero_actividades_carga = Actividad.objects.filter(carga = id_carga).count() 
+        numero_actividades_carga = Actividad.objects.filter(carga=id_carga).count()
         if numero_actividades_carga == cantidad_actividades:
             estado = "procesada"
             final = time.time()
-            carga.tiempo_procesamiento = (final - tiempo_inicial)/60
-            
+            carga.tiempo_procesamiento = (final - tiempo_inicial) / 60
+
+            # El email es no-crítico: si falla (SMTP caído, plantilla rota,
+            # email inválido) no debe abortar la transición a 'procesada' —
+            # antes esto provocaba que toda la carga quedara stuck en
+            # 'procesando' por un fallo de notificación.
             if carga.usuario and carga.usuario.email:
-                notificaciones_email.notificar_carga_procesada(carga, [carga.usuario.email])
+                try:
+                    notificaciones_email.notificar_carga_procesada(
+                        carga, [carga.usuario.email]
+                    )
+                except Exception:
+                    logger.exception(
+                        "Fallo enviando email de carga procesada (carga %s) — "
+                        "continuando con la transición de estado",
+                        id_carga,
+                    )
 
-        carga.estado = estado
-        carga.actualizar_info_actividades()
-        # Preservar el total objetivo mientras la carga no esté finalizada,
-        # para que el cálculo de porcentaje de avance sea correcto.
-        if estado != "procesada":
-            carga.cantidad_actividades = cantidad_actividades
-        carga.save()
-
-    except Exception as e:
-        logger.exception("Error al procesar la carga %s", id_carga)
+    except Exception:
+        # Cualquier falla mid-lote — la carga queda 'cancelada'. El save final
+        # se hace siempre en el `finally` para que el estado no quede stuck en
+        # 'procesando' si esta función crashea antes del save explícito.
+        logger.exception("Error al procesar la carga %s lote %s", id_carga, num_lote)
         estado = "cancelada"
     finally:
+        # Persistir SIEMPRE el estado final — éxito, cancelada o intermedio.
+        # Si el save mismo falla, lo logueamos pero no relanzamos (estamos en
+        # `finally`, romper acá enmascararía la excepción original del `try`).
+        try:
+            carga.estado = estado
+            carga.actualizar_info_actividades()
+            # Preservar el total objetivo mientras la carga no esté finalizada,
+            # para que el cálculo de porcentaje de avance sea correcto.
+            if estado != "procesada":
+                carga.cantidad_actividades = cantidad_actividades
+            carga.save()
+        except Exception:
+            logger.exception(
+                "Fallo guardando estado final de carga %s lote %s (estado intentado: %s)",
+                id_carga, num_lote, estado,
+            )
         logger.info(
             "Lote: %s - num_actividades_tarea: %s - Total Actividades Carga: %s - Estado: %s",
             num_lote,
@@ -552,7 +576,7 @@ def procesar_cargue_actividades(id_carga, datos, num_lote, cantidad_actividades,
             cantidad_actividades,
             estado,
         )
-            
+
     return True
 
 def tarea_admisionar_actividades_carga(id_carga, ids_actividades, num_lote=0):
@@ -927,7 +951,18 @@ def tarea_admisionar_actividades_carga(id_carga, ids_actividades, num_lote=0):
 
     if es_ultimo_lote and carga.usuario and carga.usuario.email:
         logger.info("Enviar notificacion de admision a: %s", carga.usuario.email)
-        notificaciones_email.notificar_carga_admisionada(carga, [carga.usuario.email])
+        # Email no-crítico: el estado de la carga ya quedó persistido. Si la
+        # notificación falla, lo logueamos pero el lote se reporta como OK
+        # (django-q no debería ver esta tarea como fallida).
+        try:
+            notificaciones_email.notificar_carga_admisionada(
+                carga, [carga.usuario.email]
+            )
+        except Exception:
+            logger.exception(
+                "Fallo enviando email de carga admisionada (carga %s)",
+                carga.id,
+            )
 
     return f"LOTE_{num_lote}_OK ({total_actividades} actividades)"
 
