@@ -19,6 +19,7 @@ import numpy as np
 import json
 import logging
 import os
+import io
 
 # ZAGILAD
 from home.models import TipoActividad, Actividad, ParametrosAreaPrograma
@@ -151,6 +152,13 @@ def tipos_actividad(request):
     return render(request, "home/tiposActividad.html", ctx)
 
 
+def _normalizar_nombre(valor):
+    """Normaliza el nombre de un tipo de actividad para comparar y guardar:
+    colapsa cualquier secuencia de espacios/tabs/saltos a un solo espacio y
+    recorta los extremos. Así 'CONSULTA  GENERAL ' == 'consulta general'."""
+    return " ".join(str(valor or "").split())
+
+
 @login_required(login_url="/login/")
 def crear_tipo_actividad(request):
     if request.method != "POST":
@@ -182,8 +190,15 @@ def crear_tipo_actividad(request):
     except (ContratoMarco.DoesNotExist, TipoServicio.DoesNotExist, AreaPrograma.DoesNotExist):
         return JsonResponse({"ok": False, "error": "Contrato, tipo de servicio o área no válidos"}, status=400)
 
+    nombre = _normalizar_nombre(data["nombre"])
+    if TipoActividad.objects.filter(nombre__iexact=nombre).exists():
+        return JsonResponse(
+            {"ok": False, "error": f"Ya existe un tipo de actividad con el nombre '{nombre}'"},
+            status=400,
+        )
+
     tipo = TipoActividad.objects.create(
-        nombre=data["nombre"].strip(),
+        nombre=nombre,
         cups=data["cups"].strip(),
         grupo=(data.get("grupo") or "").strip() or None,
         responsable=(data.get("responsable") or "").strip() or None,
@@ -243,7 +258,14 @@ def editar_tipo_actividad(request, id_tipo):
     except (ContratoMarco.DoesNotExist, TipoServicio.DoesNotExist, AreaPrograma.DoesNotExist):
         return JsonResponse({"ok": False, "error": "Contrato, tipo de servicio o área no válidos"}, status=400)
 
-    tipo.nombre = data["nombre"].strip()
+    nombre = _normalizar_nombre(data["nombre"])
+    if TipoActividad.objects.filter(nombre__iexact=nombre).exclude(id=tipo.id).exists():
+        return JsonResponse(
+            {"ok": False, "error": f"Ya existe otro tipo de actividad con el nombre '{nombre}'"},
+            status=400,
+        )
+
+    tipo.nombre = nombre
     tipo.cups = data["cups"].strip()
     tipo.grupo = (data.get("grupo") or "").strip() or None
     tipo.responsable = (data.get("responsable") or "").strip() or None
@@ -264,6 +286,230 @@ def editar_tipo_actividad(request, id_tipo):
             "nombre": tipo.nombre,
             "cups": tipo.cups,
         },
+    })
+
+
+# ── CARGA MASIVA DE TIPOS DE ACTIVIDAD ──────────────────────────────────────
+# Encabezados esperados (en orden) en el Excel de carga masiva.
+ENCABEZADOS_TIPOS_ACTIVIDAD = [
+    "nombre", "cups", "contrato", "tipo_servicio", "area",
+    "grupo", "responsable", "diagnostico", "finalidad",
+    "fuente", "observacion", "entrega",
+]
+# Campos requeridos por fila.
+REQUERIDOS_TIPOS_ACTIVIDAD = ("nombre", "cups", "contrato", "tipo_servicio", "area")
+# Límites de longitud (CharField) para validar antes de insertar.
+LIMITES_TIPOS_ACTIVIDAD = {
+    "nombre": 150, "cups": 10, "grupo": 10, "responsable": 150,
+    "diagnostico": 10, "finalidad": 50, "fuente": 50,
+    "observacion": 150, "entrega": 150,
+}
+
+
+def _celda_texto(valor):
+    """Normaliza un valor de celda de pandas a string limpio.
+    Convierte floats enteros (123.0 -> '123') para no arrastrar sufijos espurios."""
+    if valor is None:
+        return ""
+    if isinstance(valor, float):
+        if pd.isna(valor):
+            return ""
+        if valor.is_integer():
+            return str(int(valor))
+        return str(valor).strip()
+    return str(valor).strip()
+
+
+@login_required(login_url="/login/")
+def descargar_plantilla_tipos_actividad(request):
+    """Genera y descarga la plantilla Excel para la carga masiva: una hoja con
+    los encabezados + fila de ejemplo, y hojas de referencia con los contratos,
+    áreas y tipos de servicio válidos (para evitar errores de tipeo)."""
+    ejemplo = {
+        "nombre": "CONSULTA MEDICINA GENERAL",
+        "cups": "890201",
+        "contrato": "(número de contrato exacto)",
+        "tipo_servicio": "(id_zeus del tipo de servicio)",
+        "area": "(nombre o identificador del área)",
+        "grupo": "", "responsable": "", "diagnostico": "",
+        "finalidad": "", "fuente": "", "observacion": "", "entrega": "",
+    }
+    df_datos = pd.DataFrame([ejemplo], columns=ENCABEZADOS_TIPOS_ACTIVIDAD)
+
+    df_contratos = pd.DataFrame({
+        "contrato (numero)": list(
+            ContratoMarco.objects.order_by("numero").values_list("numero", flat=True)
+        )
+    })
+    df_areas = pd.DataFrame(
+        list(AreaPrograma.objects.order_by("identificador").values_list("identificador", "nombre")),
+        columns=["area (identificador)", "area (nombre)"],
+    )
+    df_servicios = pd.DataFrame(
+        list(TipoServicio.objects.order_by("nombre").values_list("id_zeus", "nombre", "tipo")),
+        columns=["tipo_servicio (id_zeus)", "nombre", "tipo"],
+    )
+
+    buffer = io.BytesIO()
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        df_datos.to_excel(writer, sheet_name="Tipos de Actividad", index=False)
+        df_contratos.to_excel(writer, sheet_name="Ref - Contratos", index=False)
+        df_areas.to_excel(writer, sheet_name="Ref - Areas", index=False)
+        df_servicios.to_excel(writer, sheet_name="Ref - Tipos Servicio", index=False)
+    buffer.seek(0)
+
+    resp = HttpResponse(
+        buffer.getvalue(),
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    resp["Content-Disposition"] = 'attachment; filename="plantilla_tipos_actividad.xlsx"'
+    return resp
+
+
+@login_required(login_url="/login/")
+def cargar_tipos_actividad_masivo(request):
+    """Crea tipos de actividad de forma masiva desde un Excel.
+
+    Resuelve las FKs por valor legible: contrato -> ContratoMarco.numero,
+    area -> AreaPrograma.nombre o identificador, tipo_servicio -> TipoServicio.id_zeus.
+    Crea todas las filas válidas (sin deduplicar por CUPS) y reporta por fila las que
+    fallan, con el número de fila del Excel y el motivo.
+    """
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "Método no permitido"}, status=405)
+
+    if "adjunto" not in request.FILES:
+        return JsonResponse({"ok": False, "error": "No se ha proporcionado ningún archivo"}, status=400)
+
+    try:
+        df = pd.read_excel(request.FILES["adjunto"], sheet_name=0)
+    except Exception:
+        return JsonResponse(
+            {"ok": False, "error": "No se pudo leer el archivo. ¿Es un Excel (.xlsx) válido?"},
+            status=400,
+        )
+
+    df = df.fillna("")
+    columnas = list(df.columns)
+    if set(columnas) != set(ENCABEZADOS_TIPOS_ACTIVIDAD):
+        faltantes = set(ENCABEZADOS_TIPOS_ACTIVIDAD) - set(columnas)
+        adicionales = set(columnas) - set(ENCABEZADOS_TIPOS_ACTIVIDAD)
+        partes = ["Error en el formato del archivo."]
+        if faltantes:
+            partes.append(f"Columnas faltantes: {', '.join(sorted(faltantes))}.")
+        if adicionales:
+            partes.append(f"Columnas no reconocidas: {', '.join(sorted(adicionales))}.")
+        partes.append("Descarga la plantilla para el formato correcto.")
+        return JsonResponse({"ok": False, "error": " ".join(partes)}, status=400)
+
+    df = df[ENCABEZADOS_TIPOS_ACTIVIDAD]
+
+    # Índices de resolución de FKs (una consulta por tabla, no por fila).
+    contratos_por_numero = {str(c.numero).strip(): c for c in ContratoMarco.objects.all()}
+    areas = list(AreaPrograma.objects.all())
+    areas_por_identificador = {str(a.identificador).strip().lower(): a for a in areas}
+    areas_por_nombre = {}
+    for a in areas:
+        areas_por_nombre.setdefault(str(a.nombre).strip().lower(), []).append(a)
+    servicios_por_idzeus = {}
+    for ts in TipoServicio.objects.all():
+        servicios_por_idzeus.setdefault(ts.id_zeus, []).append(ts)
+    # Nombres ya existentes en la base (case-insensitive) — el nombre no se repite.
+    nombres_existentes = {
+        str(n).strip().lower() for n in TipoActividad.objects.values_list("nombre", flat=True)
+    }
+
+    nuevos = []
+    errores = []
+    nombres_en_lote = set()  # nombres ya encolados en este mismo archivo
+
+    # start=2 -> la fila 1 del Excel son los encabezados.
+    for i, fila in enumerate(df.itertuples(index=False, name=None), start=2):
+        v = {col: _celda_texto(val) for col, val in zip(ENCABEZADOS_TIPOS_ACTIVIDAD, fila)}
+        v["nombre"] = _normalizar_nombre(v["nombre"])  # colapsa espacios internos
+
+        # Saltar filas completamente vacías sin reportarlas.
+        if not any(v[c] for c in REQUERIDOS_TIPOS_ACTIVIDAD):
+            continue
+
+        motivos = []
+        for campo in REQUERIDOS_TIPOS_ACTIVIDAD:
+            if not v[campo]:
+                motivos.append(f"falta '{campo}'")
+        for campo, limite in LIMITES_TIPOS_ACTIVIDAD.items():
+            if len(v[campo]) > limite:
+                motivos.append(f"'{campo}' excede {limite} caracteres")
+
+        # El nombre no se repite: ni contra la base ni dentro del mismo archivo.
+        nombre_norm = v["nombre"].lower()
+        if v["nombre"]:
+            if nombre_norm in nombres_existentes:
+                motivos.append(f"nombre '{v['nombre']}' ya existe en la base")
+            elif nombre_norm in nombres_en_lote:
+                motivos.append(f"nombre '{v['nombre']}' está duplicado en el archivo")
+
+        contrato = contratos_por_numero.get(v["contrato"]) if v["contrato"] else None
+        if v["contrato"] and contrato is None:
+            motivos.append(f"contrato '{v['contrato']}' no existe")
+
+        tipo_servicio = None
+        if v["tipo_servicio"]:
+            try:
+                idz = int(float(v["tipo_servicio"]))
+            except ValueError:
+                motivos.append(f"tipo_servicio '{v['tipo_servicio']}' no es un id de Zeus numérico")
+            else:
+                candidatos = servicios_por_idzeus.get(idz, [])
+                if not candidatos:
+                    motivos.append(f"tipo_servicio id_zeus={idz} no existe")
+                elif len(candidatos) > 1:
+                    motivos.append(f"tipo_servicio id_zeus={idz} es ambiguo ({len(candidatos)} coincidencias)")
+                else:
+                    tipo_servicio = candidatos[0]
+
+        area = None
+        if v["area"]:
+            clave = v["area"].lower()
+            if clave in areas_por_identificador:
+                area = areas_por_identificador[clave]
+            else:
+                por_nombre = areas_por_nombre.get(clave, [])
+                if len(por_nombre) == 1:
+                    area = por_nombre[0]
+                elif len(por_nombre) > 1:
+                    motivos.append(f"area '{v['area']}' es ambigua; usa el identificador")
+                else:
+                    motivos.append(f"area '{v['area']}' no existe")
+
+        if motivos:
+            errores.append({"fila": i, "motivo": "; ".join(motivos)})
+            continue
+
+        nombres_en_lote.add(nombre_norm)
+        nuevos.append(TipoActividad(
+            nombre=v["nombre"],
+            cups=v["cups"],
+            grupo=v["grupo"] or None,
+            responsable=v["responsable"] or None,
+            diagnostico=v["diagnostico"] or None,
+            finalidad=v["finalidad"] or None,
+            fuente=v["fuente"] or None,
+            observacion=v["observacion"] or None,
+            entrega=v["entrega"] or None,
+            contrato=contrato,
+            tipo_servicio=tipo_servicio,
+            area=area,
+        ))
+
+    if nuevos:
+        with transaction.atomic():
+            TipoActividad.objects.bulk_create(nuevos)
+
+    return JsonResponse({
+        "ok": True,
+        "creados": len(nuevos),
+        "total_filas": int(len(df.index)),
+        "errores": errores,
     })
 
 

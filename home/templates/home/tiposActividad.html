@@ -29,6 +29,25 @@
 }
 .tipos-btn-nuevo:hover { background: #0d3a7a; transform: translateY(-1px); }
 .tipos-btn-nuevo:active { transform: translateY(0); }
+.tipos-btn-masivo { background: #137333; }
+.tipos-btn-masivo:hover { background: #0e5a28; }
+
+/* ── Reporte de carga masiva ── */
+.masivo-pasos { font-size: 13px; color: #555; margin: 0 0 14px; padding-left: 18px; }
+.masivo-pasos li { margin-bottom: 4px; }
+.masivo-resumen { font-size: 14px; font-weight: 600; margin: 4px 0 10px; }
+.masivo-errores { max-height: 260px; overflow-y: auto; border: 1px solid #eef0f3; border-radius: 8px; }
+.masivo-errores table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.masivo-errores th, .masivo-errores td { padding: 7px 12px; text-align: left; border-bottom: 1px solid #f0f2f5; }
+.masivo-errores th { background: #fafbfc; font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; color: #666; position: sticky; top: 0; }
+.masivo-errores td:first-child { width: 64px; font-weight: 600; color: #c5221f; }
+.dl-plantilla {
+    display: inline-flex; align-items: center; gap: 8px;
+    text-decoration: none; padding: 9px 16px; border-radius: 6px;
+    background: #e6f4ea; color: #137333; border: 1px solid #b7e1c4;
+    font-size: 13px; font-weight: 600; transition: background 0.1s;
+}
+.dl-plantilla:hover { background: #d4ecdb; }
 
 .tipos-btn-editar {
     display: inline-flex;
@@ -198,9 +217,14 @@
 
     <div class="tipos-header-actions">
         <span style="font-size:13px;color:#888">{{ tipos_actividad|length }} tipo(s) registrado(s)</span>
-        <button type="button" class="tipos-btn-nuevo" id="btnAbrirNuevoTipo">
-            <i class="fa fa-plus"></i> Nuevo tipo
-        </button>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button type="button" class="tipos-btn-nuevo tipos-btn-masivo" id="btnAbrirCargaMasiva">
+                <i class="fa fa-file-excel-o"></i> Cargar masivo
+            </button>
+            <button type="button" class="tipos-btn-nuevo" id="btnAbrirNuevoTipo">
+                <i class="fa fa-plus"></i> Nuevo tipo
+            </button>
+        </div>
     </div>
 
     <div class="admin-tabla-wrapper">
@@ -362,6 +386,40 @@
                 <button type="submit" class="btn-primary" id="btnGuardarNuevoTipo">Guardar</button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Modal: carga masiva -->
+<div class="modal-overlay" id="modalCargaMasiva" role="dialog" aria-modal="true" aria-labelledby="tituloModalMasivo">
+    <div class="modal-card" style="max-width:720px">
+        <div class="modal-head">
+            <h2 id="tituloModalMasivo">Carga masiva de tipos de actividad</h2>
+            <button type="button" class="modal-close" id="btnCerrarMasivo" aria-label="Cerrar">×</button>
+        </div>
+        <div class="modal-body">
+            <ol class="masivo-pasos">
+                <li>Descarga la plantilla (incluye hojas de referencia con contratos, áreas y tipos de servicio válidos).</li>
+                <li>Completá una fila por cada tipo de actividad. <b>Contrato</b> = número exacto · <b>Tipo de servicio</b> = id de Zeus · <b>Área</b> = nombre o identificador.</li>
+                <li>Subí el archivo y procesá. Las filas válidas se crean; las que fallen se listan con el motivo.</li>
+                <li>El <b>nombre</b> no puede repetirse (ni con los existentes ni dentro del archivo).</li>
+            </ol>
+
+            <a href="/descargarPlantillaTiposActividad/" class="dl-plantilla">
+                <i class="fa fa-download"></i> Descargar plantilla
+            </a>
+
+            <div class="form-field form-field--full" style="margin-top:18px">
+                <label for="f_archivo_masivo">Archivo Excel (.xlsx)</label>
+                <input type="file" id="f_archivo_masivo" accept=".xlsx,.xls">
+            </div>
+
+            <div class="modal-msg" id="masivoMsg"></div>
+            <div id="masivoResultado" style="display:none;margin-top:14px"></div>
+        </div>
+        <div class="modal-foot">
+            <button type="button" class="btn-ghost" id="btnCancelarMasivo">Cerrar</button>
+            <button type="button" class="btn-primary" id="btnProcesarMasivo">Procesar archivo</button>
+        </div>
     </div>
 </div>
 {% endblock content %}
@@ -540,6 +598,95 @@
             msg.textContent = 'Error de red: ' + err.message;
             btnGuard.disabled = false;
             btnGuard.textContent = 'Guardar';
+        }
+    });
+})();
+
+// ── Carga masiva ──────────────────────────────────────────────────────────
+(function () {
+    const overlay  = document.getElementById('modalCargaMasiva');
+    const btnAbrir = document.getElementById('btnAbrirCargaMasiva');
+    const btnCerrar= document.getElementById('btnCerrarMasivo');
+    const btnCancel= document.getElementById('btnCancelarMasivo');
+    const btnProc  = document.getElementById('btnProcesarMasivo');
+    const inputFile= document.getElementById('f_archivo_masivo');
+    const msg      = document.getElementById('masivoMsg');
+    const resultado= document.getElementById('masivoResultado');
+
+    function reset() {
+        inputFile.value = '';
+        msg.className = 'modal-msg'; msg.textContent = '';
+        resultado.style.display = 'none'; resultado.innerHTML = '';
+        btnProc.disabled = false; btnProc.textContent = 'Procesar archivo';
+    }
+    function abrir()  { reset(); overlay.classList.add('visible'); }
+    function cerrar() { overlay.classList.remove('visible'); reset(); }
+
+    function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, c => (
+            {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]
+        ));
+    }
+
+    function renderResultado(p) {
+        const errores = p.errores || [];
+        let html = `<p class="masivo-resumen" style="color:#137333">✓ ${p.creados} tipo(s) creado(s) de ${p.total_filas} fila(s).</p>`;
+        if (errores.length) {
+            html += `<p class="masivo-resumen" style="color:#c5221f">${errores.length} fila(s) con error (no se crearon):</p>`;
+            html += '<div class="masivo-errores"><table><thead><tr><th>Fila</th><th>Motivo</th></tr></thead><tbody>';
+            errores.forEach(e => {
+                html += `<tr><td>${e.fila}</td><td>${escapeHtml(e.motivo)}</td></tr>`;
+            });
+            html += '</tbody></table></div>';
+        }
+        resultado.innerHTML = html;
+        resultado.style.display = 'block';
+    }
+
+    btnAbrir.addEventListener('click', abrir);
+    btnCerrar.addEventListener('click', cerrar);
+    btnCancel.addEventListener('click', cerrar);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) cerrar(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && overlay.classList.contains('visible')) cerrar(); });
+
+    btnProc.addEventListener('click', async () => {
+        msg.className = 'modal-msg'; msg.textContent = '';
+        resultado.style.display = 'none'; resultado.innerHTML = '';
+
+        if (!inputFile.files.length) {
+            msg.className = 'modal-msg modal-msg--error';
+            msg.textContent = 'Selecciona un archivo Excel primero.';
+            return;
+        }
+
+        const fd = new FormData();
+        fd.append('adjunto', inputFile.files[0]);
+
+        btnProc.disabled = true; btnProc.textContent = 'Procesando...';
+        try {
+            const resp = await fetch('/cargarTiposActividadMasivo/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrftoken },
+                body: fd,
+            });
+            const payload = await resp.json().catch(() => ({}));
+            if (!resp.ok || !payload.ok) {
+                msg.className = 'modal-msg modal-msg--error';
+                msg.textContent = payload.error || 'No se pudo procesar el archivo.';
+                btnProc.disabled = false; btnProc.textContent = 'Procesar archivo';
+                return;
+            }
+            renderResultado(payload);
+            btnProc.textContent = 'Procesar otro';
+            btnProc.disabled = false;
+            if (payload.creados > 0) {
+                msg.className = 'modal-msg modal-msg--success';
+                msg.textContent = 'Carga aplicada. Recargá la página para ver el listado actualizado.';
+            }
+        } catch (err) {
+            msg.className = 'modal-msg modal-msg--error';
+            msg.textContent = 'Error de red: ' + err.message;
+            btnProc.disabled = false; btnProc.textContent = 'Procesar archivo';
         }
     });
 })();
