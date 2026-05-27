@@ -613,14 +613,22 @@
     const msg      = document.getElementById('masivoMsg');
     const resultado= document.getElementById('masivoResultado');
 
+    let huboCreacion = false;  // si se crearon tipos, al cerrar recargamos la tabla
+
     function reset() {
         inputFile.value = '';
         msg.className = 'modal-msg'; msg.textContent = '';
         resultado.style.display = 'none'; resultado.innerHTML = '';
         btnProc.disabled = false; btnProc.textContent = 'Procesar archivo';
+        btnCancel.textContent = 'Cerrar';
+        huboCreacion = false;
     }
     function abrir()  { reset(); overlay.classList.add('visible'); }
-    function cerrar() { overlay.classList.remove('visible'); reset(); }
+    function cerrar() {
+        // Si la carga creó tipos, recargamos para reflejarlos en la tabla.
+        if (huboCreacion) { window.location.reload(); return; }
+        overlay.classList.remove('visible'); reset();
+    }
 
     function escapeHtml(s) {
         return String(s).replace(/[&<>"']/g, c => (
@@ -680,8 +688,10 @@
             btnProc.textContent = 'Procesar otro';
             btnProc.disabled = false;
             if (payload.creados > 0) {
+                huboCreacion = true;
+                btnCancel.textContent = 'Cerrar y actualizar listado';
                 msg.className = 'modal-msg modal-msg--success';
-                msg.textContent = 'Carga aplicada. Recargá la página para ver el listado actualizado.';
+                msg.textContent = 'Carga aplicada. Al cerrar esta ventana se actualizará el listado.';
             }
         } catch (err) {
             msg.className = 'modal-msg modal-msg--error';
